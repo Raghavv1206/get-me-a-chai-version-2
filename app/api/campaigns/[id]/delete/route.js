@@ -1,0 +1,52 @@
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import connectDb from '@/db/connectDb';
+import Campaign from '@/models/Campaign';
+
+export async function DELETE(request, { params }) {
+    try {
+        const session = await getServerSession();
+        if (!session) {
+            return NextResponse.json(
+                { success: false, message: 'Unauthorized' },
+                { status: 401 }
+            );
+        }
+
+        const { id: campaignId } = await params;
+
+        await connectDb();
+
+        const campaign = await Campaign.findById(campaignId);
+        if (!campaign) {
+            return NextResponse.json(
+                { success: false, message: 'Campaign not found' },
+                { status: 404 }
+            );
+        }
+
+        // Verify ownership
+        if (campaign.creator.toString() !== session.user.id) {
+            return NextResponse.json(
+                { success: false, message: 'Unauthorized' },
+                { status: 403 }
+            );
+        }
+
+        // Soft delete
+        campaign.status = 'deleted';
+        campaign.deletedAt = new Date();
+        await campaign.save();
+
+        return NextResponse.json({
+            success: true,
+            message: 'Campaign deleted successfully'
+        });
+    } catch (error) {
+        console.error('Error deleting campaign:', error);
+        return NextResponse.json(
+            { success: false, message: 'Failed to delete campaign', error: error.message },
+            { status: 500 }
+        );
+    }
+}
