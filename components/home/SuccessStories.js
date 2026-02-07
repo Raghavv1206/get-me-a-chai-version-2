@@ -1,7 +1,9 @@
 "use client"
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function SuccessStories() {
+  const router = useRouter();
   const [activeStory, setActiveStory] = useState(0);
 
   const stories = [
@@ -148,7 +150,10 @@ export default function SuccessStories() {
                     </div>
 
                     {/* CTA */}
-                    <button className="w-full px-6 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-purple-500/50 transition-all hover:scale-105">
+                    <button
+                      onClick={() => router.push(`/campaign/${currentStory.id}`)}
+                      className="w-full px-6 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-purple-500/50 transition-all hover:scale-105"
+                    >
                       Read Full Story
                       <svg className="inline-block w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
@@ -164,11 +169,10 @@ export default function SuccessStories() {
                   <button
                     key={story.id}
                     onClick={() => setActiveStory(idx)}
-                    className={`transition-all ${
-                      idx === activeStory
+                    className={`transition-all ${idx === activeStory
                         ? 'w-12 h-3 bg-gradient-to-r from-purple-500 to-blue-500'
                         : 'w-3 h-3 bg-gray-600 hover:bg-gray-500'
-                    } rounded-full`}
+                      } rounded-full`}
                   />
                 ))}
               </div>

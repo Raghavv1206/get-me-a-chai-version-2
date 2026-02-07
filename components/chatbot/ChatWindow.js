@@ -10,6 +10,27 @@ export default function ChatWindow({ onClose, onMinimize, userContext }) {
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(false);
     const messagesEndRef = useRef(null);
+    const messagesContainerRef = useRef(null);
+
+    // Prevent scroll propagation to main page
+    useEffect(() => {
+        const container = messagesContainerRef.current;
+        if (!container) return;
+
+        const handleWheel = (e) => {
+            const { scrollTop, scrollHeight, clientHeight } = container;
+            const isAtTop = scrollTop === 0;
+            const isAtBottom = scrollTop + clientHeight >= scrollHeight - 1;
+
+            // Prevent propagation if we're scrolling within bounds
+            if ((e.deltaY < 0 && !isAtTop) || (e.deltaY > 0 && !isAtBottom)) {
+                e.stopPropagation();
+            }
+        };
+
+        container.addEventListener('wheel', handleWheel, { passive: false });
+        return () => container.removeEventListener('wheel', handleWheel);
+    }, []);
 
     // Load chat history on mount
     useEffect(() => {
@@ -158,7 +179,7 @@ export default function ChatWindow({ onClose, onMinimize, userContext }) {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div ref={messagesContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4" style={{ overscrollBehavior: 'contain' }}>
                 {messages.map((msg, index) => (
                     <ChatMessage key={index} message={msg} />
                 ))}

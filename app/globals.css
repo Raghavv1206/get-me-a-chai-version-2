@@ -29,8 +29,23 @@
   * {
     @apply border-white/10;
   }
+
   body {
     @apply bg-black text-gray-100 antialiased selection:bg-purple-500/30 selection:text-purple-200;
+    overscroll-behavior: none;
+  }
+
+  button {
+    @apply cursor-pointer;
+  }
+
+  a {
+    @apply cursor-pointer;
+  }
+
+  /* Ensure all scrollable areas work with mouse wheel */
+  * {
+    overscroll-behavior: auto;
   }
 }
 

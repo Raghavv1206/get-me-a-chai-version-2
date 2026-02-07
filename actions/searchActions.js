@@ -412,16 +412,21 @@ export async function searchCampaigns(params) {
         }
 
         if (searchIntent.minGoal !== null) {
-            dbQuery.$and.push({ goal: { $gte: searchIntent.minGoal } });
+            dbQuery.$and.push({ goalAmount: { $gte: searchIntent.minGoal } });
         }
 
         if (searchIntent.maxGoal !== null) {
-            dbQuery.$and.push({ goal: { $lte: searchIntent.maxGoal } });
+            dbQuery.$and.push({ goalAmount: { $lte: searchIntent.maxGoal } });
         }
 
         // Apply manual filters
         if (validFilters.category && validFilters.category.length > 0) {
-            dbQuery.$and.push({ category: { $in: validFilters.category } });
+            // Use case-insensitive regex for category matching
+            dbQuery.$and.push({
+                category: {
+                    $in: validFilters.category.map(cat => new RegExp(`^${cat}$`, 'i'))
+                }
+            });
         }
 
         if (validFilters.location) {
@@ -429,11 +434,11 @@ export async function searchCampaigns(params) {
         }
 
         if (validFilters.minGoal !== undefined) {
-            dbQuery.$and.push({ goal: { $gte: validFilters.minGoal } });
+            dbQuery.$and.push({ goalAmount: { $gte: validFilters.minGoal } });
         }
 
         if (validFilters.maxGoal !== undefined) {
-            dbQuery.$and.push({ goal: { $lte: validFilters.maxGoal } });
+            dbQuery.$and.push({ goalAmount: { $lte: validFilters.maxGoal } });
         }
 
         if (validFilters.status) {
@@ -456,7 +461,7 @@ export async function searchCampaigns(params) {
             const sevenDaysFromNow = new Date();
             sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
             dbQuery.$and.push({
-                deadline: { $lte: sevenDaysFromNow, $gte: new Date() },
+                endDate: { $lte: sevenDaysFromNow, $gte: new Date() },
             });
         }
 
@@ -478,13 +483,13 @@ export async function searchCampaigns(params) {
                 sortQuery = { createdAt: -1 };
                 break;
             case 'ending-soon':
-                sortQuery = { deadline: 1 };
+                sortQuery = { endDate: 1 };
                 break;
             case 'most-funded':
-                sortQuery = { raised: -1 };
+                sortQuery = { currentAmount: -1 };
                 break;
             case 'least-funded':
-                sortQuery = { raised: 1 };
+                sortQuery = { currentAmount: 1 };
                 break;
             case 'alphabetical':
                 sortQuery = { title: 1 };
@@ -492,7 +497,7 @@ export async function searchCampaigns(params) {
             case 'trending':
             default:
                 // Trending = combination of recent activity + funding
-                sortQuery = { viewCount: -1, raised: -1, createdAt: -1 };
+                sortQuery = { 'stats.views': -1, currentAmount: -1, createdAt: -1 };
                 break;
         }
 
@@ -605,7 +610,10 @@ export async function filterCampaigns(params) {
 
         // Apply all filters (same logic as search)
         if (validFilters.category && validFilters.category.length > 0) {
-            dbQuery.category = { $in: validFilters.category };
+            // Use case-insensitive regex for category matching
+            dbQuery.category = {
+                $in: validFilters.category.map(cat => new RegExp(`^${cat}$`, 'i'))
+            };
         }
 
         if (validFilters.location) {
@@ -613,12 +621,12 @@ export async function filterCampaigns(params) {
         }
 
         if (validFilters.minGoal !== undefined || validFilters.maxGoal !== undefined) {
-            dbQuery.goal = {};
+            dbQuery.goalAmount = {};
             if (validFilters.minGoal !== undefined) {
-                dbQuery.goal.$gte = validFilters.minGoal;
+                dbQuery.goalAmount.$gte = validFilters.minGoal;
             }
             if (validFilters.maxGoal !== undefined) {
-                dbQuery.goal.$lte = validFilters.maxGoal;
+                dbQuery.goalAmount.$lte = validFilters.maxGoal;
             }
         }
 
@@ -641,7 +649,7 @@ export async function filterCampaigns(params) {
         if (validFilters.endingSoon) {
             const sevenDaysFromNow = new Date();
             sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
-            dbQuery.deadline = { $lte: sevenDaysFromNow, $gte: new Date() };
+            dbQuery.endDate = { $lte: sevenDaysFromNow, $gte: new Date() };
         }
 
         if (validFilters.verified) {
@@ -656,19 +664,19 @@ export async function filterCampaigns(params) {
                 sortQuery = { createdAt: -1 };
                 break;
             case 'ending-soon':
-                sortQuery = { deadline: 1 };
+                sortQuery = { endDate: 1 };
                 break;
             case 'most-funded':
-                sortQuery = { raised: -1 };
+                sortQuery = { currentAmount: -1 };
                 break;
             case 'least-funded':
-                sortQuery = { raised: 1 };
+                sortQuery = { currentAmount: 1 };
                 break;
             case 'alphabetical':
                 sortQuery = { title: 1 };
                 break;
             default:
-                sortQuery = { viewCount: -1, raised: -1 };
+                sortQuery = { 'stats.views': -1, currentAmount: -1 };
         }
 
         // Execute

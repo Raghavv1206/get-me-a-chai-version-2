@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
+import { useScrollIsolation } from '../hooks/useScrollIsolation';
 
 export default function NotificationBell() {
     const { data: session } = useSession();
@@ -12,6 +13,7 @@ export default function NotificationBell() {
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const dropdownRef = useRef(null);
+    const scrollRef = useScrollIsolation();
 
     useEffect(() => {
         if (session) {
@@ -157,7 +159,7 @@ export default function NotificationBell() {
                     </div>
 
                     {/* Notifications List */}
-                    <div className="overflow-y-auto flex-1">
+                    <div ref={scrollRef} className="overflow-y-auto flex-1">
                         {notifications.length === 0 ? (
                             <div className="p-8 text-center">
                                 <div className="text-4xl mb-2">🔔</div>

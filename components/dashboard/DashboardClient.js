@@ -46,11 +46,11 @@ export default function DashboardClient({ data }) {
 
   return (
     <div className="min-h-screen bg-black text-gray-100">
-      {/* Top Navigation Bar */}
-      <nav className="fixed top-0 left-0 right-0 z-[100] bg-black/95 backdrop-blur-md border-b border-white/10 shadow-lg">
+      {/* Top Navigation Bar - Hidden since we use main Navbar */}
+      <nav className="hidden fixed top-0 left-0 right-0 z-[100] bg-black/95 backdrop-blur-md border-b border-white/10 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-           
+
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-2">

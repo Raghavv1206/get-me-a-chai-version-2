@@ -1,11 +1,12 @@
 "use client"
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 // Reusable Campaign Card Component
 function CampaignCard({ campaign, featured = false }) {
   const progress = (campaign.currentAmount / campaign.goalAmount) * 100;
   const daysLeft = Math.ceil((new Date(campaign.endDate) - new Date()) / (1000 * 60 * 60 * 24));
-  
+
   const categoryColors = {
     technology: 'from-blue-500 to-cyan-500',
     art: 'from-purple-500 to-pink-500',
@@ -24,8 +25,13 @@ function CampaignCard({ campaign, featured = false }) {
     education: '📚'
   };
 
+  const router = useRouter();
+
   return (
-    <div className="group relative backdrop-blur-md bg-gray-800/30 border border-gray-700 rounded-2xl overflow-hidden hover:border-purple-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/20 hover:-translate-y-1">
+    <div
+      onClick={() => router.push(`/campaign/${campaign.id}`)}
+      className="group relative backdrop-blur-md bg-gray-800/30 border border-gray-700 rounded-2xl overflow-hidden hover:border-purple-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/20 hover:-translate-y-1 cursor-pointer"
+    >
       {/* Featured badge */}
       {featured && (
         <div className="absolute top-4 left-4 z-10 px-3 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full text-xs font-bold text-white shadow-lg flex items-center gap-1">
@@ -39,7 +45,7 @@ function CampaignCard({ campaign, featured = false }) {
           {categoryIcons[campaign.category] || '📦'}
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-        
+
         {/* Category badge */}
         <div className={`absolute top-4 right-4 px-3 py-1 bg-gradient-to-r ${categoryColors[campaign.category] || 'from-gray-500 to-gray-600'} rounded-full text-xs font-semibold text-white backdrop-blur-sm`}>
           {campaign.category}
@@ -97,7 +103,7 @@ function CampaignCard({ campaign, featured = false }) {
             <span>{progress.toFixed(0)}% funded</span>
           </div>
           <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
-            <div 
+            <div
               className={`h-full bg-gradient-to-r ${categoryColors[campaign.category] || 'from-gray-500 to-gray-600'} rounded-full transition-all duration-500`}
               style={{ width: `${Math.min(progress, 100)}%` }}
             />
@@ -129,6 +135,7 @@ function CampaignCard({ campaign, featured = false }) {
 
 // Main Trending Campaigns Component
 export default function TrendingCampaigns() {
+  const router = useRouter();
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeSlide, setActiveSlide] = useState(0);
@@ -280,7 +287,7 @@ export default function TrendingCampaigns() {
 
             {/* Mobile Carousel */}
             <div className="md:hidden relative overflow-hidden">
-              <div 
+              <div
                 className="flex transition-transform duration-500 ease-out"
                 style={{ transform: `translateX(-${activeSlide * 100}%)` }}
               >
@@ -297,9 +304,8 @@ export default function TrendingCampaigns() {
                   <button
                     key={idx}
                     onClick={() => setActiveSlide(idx)}
-                    className={`h-2 rounded-full transition-all ${
-                      idx === activeSlide ? 'w-8 bg-purple-500' : 'w-2 bg-gray-600'
-                    }`}
+                    className={`h-2 rounded-full transition-all ${idx === activeSlide ? 'w-8 bg-purple-500' : 'w-2 bg-gray-600'
+                      }`}
                   />
                 ))}
               </div>
@@ -309,7 +315,10 @@ export default function TrendingCampaigns() {
 
         {/* View All Button */}
         <div className="text-center mt-12">
-          <button className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-purple-500/50 transition-all hover:scale-105">
+          <button
+            onClick={() => router.push('/explore')}
+            className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-purple-500/50 transition-all hover:scale-105"
+          >
             View All Campaigns
             <svg className="inline-block w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />

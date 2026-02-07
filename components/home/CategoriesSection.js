@@ -1,7 +1,9 @@
 "use client"
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function CategoriesSection() {
+  const router = useRouter();
   const [hoveredCategory, setHoveredCategory] = useState(null);
 
   const categories = [
@@ -108,6 +110,7 @@ export default function CategoriesSection() {
           {categories.map((category, idx) => (
             <div
               key={category.id}
+              onClick={() => router.push(`/explore?category=${category.id}`)}
               onMouseEnter={() => setHoveredCategory(category.id)}
               onMouseLeave={() => setHoveredCategory(null)}
               className="group relative backdrop-blur-md bg-gray-800/30 border border-gray-700 rounded-2xl p-6 hover:border-purple-500/50 transition-all duration-300 hover:-translate-y-2 cursor-pointer overflow-hidden"
@@ -166,7 +169,10 @@ export default function CategoriesSection() {
 
         {/* Browse All Button */}
         <div className="text-center mt-12">
-          <button className="group inline-flex items-center gap-2 px-8 py-4 bg-gray-800/50 text-white font-semibold rounded-xl border border-gray-700 backdrop-blur-sm hover:bg-gray-800/70 hover:border-purple-500/50 transition-all duration-300">
+          <button
+            onClick={() => router.push('/explore')}
+            className="group inline-flex items-center gap-2 px-8 py-4 bg-gray-800/50 text-white font-semibold rounded-xl border border-gray-700 backdrop-blur-sm hover:bg-gray-800/70 hover:border-purple-500/50 transition-all duration-300"
+          >
             Browse All Categories
             <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />

@@ -1,5 +1,8 @@
 "use client"
+import { useRouter } from 'next/navigation';
+
 export default function PlatformFeatures() {
+  const router = useRouter();
   const features = [
     {
       icon: '🤖',
@@ -112,7 +115,13 @@ export default function PlatformFeatures() {
               </ul>
 
               {/* Learn more link */}
-              <button className="group/btn flex items-center gap-2 text-purple-400 hover:text-purple-300 font-semibold text-sm transition-colors">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push(feature.link);
+                }}
+                className="group/btn flex items-center gap-2 text-purple-400 hover:text-purple-300 font-semibold text-sm transition-colors"
+              >
                 Learn more
                 <svg className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
@@ -144,7 +153,10 @@ export default function PlatformFeatures() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <button className="group px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-xl shadow-lg shadow-purple-500/50 hover:shadow-purple-500/70 transition-all duration-300 hover:scale-105">
+                <button
+                  onClick={() => router.push('/dashboard/campaign/new')}
+                  className="group px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-xl shadow-lg shadow-purple-500/50 hover:shadow-purple-500/70 transition-all duration-300 hover:scale-105"
+                >
                   <span className="flex items-center gap-2">
                     Start Free Campaign
                     <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -153,7 +165,10 @@ export default function PlatformFeatures() {
                   </span>
                 </button>
 
-                <button className="px-8 py-4 bg-gray-800/50 text-white font-semibold rounded-xl border border-gray-700 backdrop-blur-sm hover:bg-gray-800/70 hover:border-purple-500/50 transition-all duration-300">
+                <button
+                  onClick={() => router.push('/pricing')}
+                  className="px-8 py-4 bg-gray-800/50 text-white font-semibold rounded-xl border border-gray-700 backdrop-blur-sm hover:bg-gray-800/70 hover:border-purple-500/50 transition-all duration-300"
+                >
                   Compare Plans
                 </button>
               </div>

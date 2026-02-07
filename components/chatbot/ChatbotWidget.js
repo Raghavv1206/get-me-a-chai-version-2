@@ -23,7 +23,9 @@ export default function ChatbotWidget() {
                         bottom: `${position.bottom}px`,
                         right: `${position.right}px`,
                         width: '380px',
-                        height: '600px',
+                        maxWidth: 'calc(100vw - 40px)',
+                        height: 'min(600px, calc(100vh - 100px))',
+                        maxHeight: 'calc(100vh - 100px)',
                     }}
                 >
                     <ChatWindow

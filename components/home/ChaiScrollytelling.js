@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect, useState, useMemo, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 /**
  * ChaiScrollytelling Component
@@ -10,6 +11,8 @@ import Link from "next/link";
  * Renders a sequence of 200 JPG frames synchronized with scroll position.
  */
 export default function ChaiScrollytelling() {
+    const router = useRouter();
+
     // State
     const [loadingProgress, setLoadingProgress] = useState(0);
     const [imagesLoaded, setImagesLoaded] = useState(false);

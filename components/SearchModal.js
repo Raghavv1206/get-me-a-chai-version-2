@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useScrollIsolation } from '../hooks/useScrollIsolation';
 
 export default function SearchModal({ isOpen, onClose }) {
     const [query, setQuery] = useState('');
@@ -12,6 +13,7 @@ export default function SearchModal({ isOpen, onClose }) {
     const [selectedIndex, setSelectedIndex] = useState(-1);
     const inputRef = useRef(null);
     const router = useRouter();
+    const scrollRef = useScrollIsolation();
 
     const categories = [
         { id: 'technology', name: 'Technology', icon: '💻' },
@@ -154,7 +156,7 @@ export default function SearchModal({ isOpen, onClose }) {
                 </div>
 
                 {/* Content */}
-                <div className="max-h-[500px] overflow-y-auto">
+                <div ref={scrollRef} className="max-h-[500px] overflow-y-auto">
                     {query.trim() ? (
                         // Search Results
                         results.length > 0 ? (
@@ -167,8 +169,8 @@ export default function SearchModal({ isOpen, onClose }) {
                                         key={result.id}
                                         onClick={() => handleSelectResult(result)}
                                         className={`w-full text-left p-4 rounded-xl transition-colors ${index === selectedIndex
-                                                ? 'bg-purple-500/20 border border-purple-500/50'
-                                                : 'hover:bg-gray-800 border border-transparent'
+                                            ? 'bg-purple-500/20 border border-purple-500/50'
+                                            : 'hover:bg-gray-800 border border-transparent'
                                             }`}
                                     >
                                         <div className="flex items-start gap-4">

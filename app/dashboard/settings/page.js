@@ -63,12 +63,7 @@ export default async function SettingsPage() {
 
             {/* Notification Preferences */}
             <div className="mb-8">
-                <div className="bg-gray-900/50 backdrop-blur-md rounded-xl border border-gray-800 p-6">
-                    <h2 className="text-xl font-semibold text-white mb-4">
-                        Notification Preferences
-                    </h2>
-                    <NotificationPreferences />
-                </div>
+                <NotificationPreferences />
             </div>
 
             {/* Account Actions */}

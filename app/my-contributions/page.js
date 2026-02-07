@@ -19,8 +19,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Download, RefreshCw } from 'lucide-react';
-import Link from 'next/link';
+import { Download, RefreshCw } from 'lucide-react';
 import ContributionsSummary from '@/components/contributions/ContributionsSummary';
 import ContributionsTimeline from '@/components/contributions/ContributionsTimeline';
 import BadgesDisplay from '@/components/contributions/BadgesDisplay';
@@ -201,14 +200,6 @@ Thank you for your generous support!
             <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
                 {/* Header */}
                 <div className="mb-8 sm:mb-12">
-                    <Link
-                        href="/dashboard"
-                        className="inline-flex items-center gap-2 text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 mb-4 transition-colors"
-                    >
-                        <ArrowLeft className="w-4 h-4" />
-                        Back to Dashboard
-                    </Link>
-
                     <div className="flex items-center justify-between">
                         <div>
                             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">

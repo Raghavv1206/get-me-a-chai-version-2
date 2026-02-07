@@ -19,8 +19,9 @@
 import { useState, useEffect } from 'react';
 import {
     Filter, X, ChevronDown, ChevronUp, Sparkles, Star,
-    CheckCircle, Video, Clock, DollarSign, MapPin, Tag
+    CheckCircle, Video, Clock, DollarSign, Tag
 } from 'lucide-react';
+import { useScrollIsolation } from '../../hooks/useScrollIsolation';
 
 const CATEGORIES = [
     'Technology',
@@ -51,15 +52,15 @@ export default function FilterSidebar({
 }) {
     const [expandedSections, setExpandedSections] = useState({
         category: true,
-        location: true,
         goal: true,
         status: true,
         special: true,
     });
 
+    const scrollRef = useScrollIsolation();
+
     const [localFilters, setLocalFilters] = useState({
         category: [],
-        location: '',
         minGoal: '',
         maxGoal: '',
         status: '',
@@ -104,9 +105,16 @@ export default function FilterSidebar({
         };
 
         setLocalFilters(newFilters);
+        // Don't call onFilterChange here - only on Apply button click
+    };
 
+    // ========================================================================
+    // HANDLE APPLY FILTERS
+    // ========================================================================
+
+    const handleApplyFilters = () => {
         if (onFilterChange) {
-            onFilterChange(newFilters);
+            onFilterChange(localFilters);
         }
     };
 
@@ -130,7 +138,6 @@ export default function FilterSidebar({
     const handleClearAll = () => {
         const clearedFilters = {
             category: [],
-            location: '',
             minGoal: '',
             maxGoal: '',
             status: '',
@@ -158,7 +165,6 @@ export default function FilterSidebar({
         let count = 0;
 
         if (localFilters.category?.length > 0) count += localFilters.category.length;
-        if (localFilters.location) count++;
         if (localFilters.minGoal) count++;
         if (localFilters.maxGoal) count++;
         if (localFilters.status) count++;
@@ -206,7 +212,7 @@ export default function FilterSidebar({
             </div>
 
             {/* Filters */}
-            <div className="p-4 space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto">
+            <div ref={scrollRef} className="p-4 space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto">
 
                 {/* ================================================================ */}
                 {/* CATEGORY FILTER */}
@@ -254,39 +260,6 @@ export default function FilterSidebar({
                                 </label>
                             ))}
                         </div>
-                    )}
-                </div>
-
-                {/* ================================================================ */}
-                {/* LOCATION FILTER */}
-                {/* ================================================================ */}
-
-                <div>
-                    <button
-                        onClick={() => toggleSection('location')}
-                        className="w-full flex items-center justify-between mb-3 group"
-                    >
-                        <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-gray-500" />
-                            <span className="font-medium text-gray-900 dark:text-white">
-                                Location
-                            </span>
-                        </div>
-                        {expandedSections.location ? (
-                            <ChevronUp className="w-4 h-4 text-gray-400" />
-                        ) : (
-                            <ChevronDown className="w-4 h-4 text-gray-400" />
-                        )}
-                    </button>
-
-                    {expandedSections.location && (
-                        <input
-                            type="text"
-                            value={localFilters.location}
-                            onChange={(e) => handleFilterChange('location', e.target.value)}
-                            placeholder="Enter location..."
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        />
                     )}
                 </div>
 
@@ -529,6 +502,17 @@ export default function FilterSidebar({
                         </div>
                     )}
                 </div>
+            </div>
+
+            {/* Apply Filters Button */}
+            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+                <button
+                    onClick={handleApplyFilters}
+                    className="w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
+                >
+                    <Filter className="w-4 h-4" />
+                    Apply Filters
+                </button>
             </div>
         </div>
     );

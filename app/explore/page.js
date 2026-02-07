@@ -39,7 +39,6 @@ export default function ExplorePage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [filters, setFilters] = useState({
         category: [],
-        location: '',
         minGoal: '',
         maxGoal: '',
         status: '',
@@ -172,7 +171,6 @@ export default function ExplorePage() {
     const handleClearFilters = () => {
         setFilters({
             category: [],
-            location: '',
             minGoal: '',
             maxGoal: '',
             status: '',
@@ -208,14 +206,18 @@ export default function ExplorePage() {
     // ========================================================================
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-950 dark:to-black">
-            <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <div className="min-h-screen bg-black text-gray-100">
+            {/* Background Ambient Effects */}
+            <div className="fixed top-20 right-0 w-[500px] h-[500px] bg-purple-900/10 blur-[100px] rounded-full pointer-events-none -z-10" />
+            <div className="fixed bottom-0 left-20 w-[400px] h-[400px] bg-blue-900/10 blur-[100px] rounded-full pointer-events-none -z-10" />
+
+            <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 pt-24 relative">
                 {/* Header */}
                 <div className="mb-8 sm:mb-12">
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3 sm:mb-4">
                         🔍 Explore Campaigns
                     </h1>
-                    <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400">
+                    <p className="text-base sm:text-lg text-gray-400">
                         Discover amazing projects and support creators
                     </p>
                 </div>
@@ -232,7 +234,7 @@ export default function ExplorePage() {
                 {/* Controls Bar */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
                     {/* Left: Results Count */}
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="text-sm text-gray-400">
                         {loading && campaigns.length === 0 ? (
                             <span>Loading campaigns...</span>
                         ) : (
@@ -248,12 +250,12 @@ export default function ExplorePage() {
                         {/* Mobile Filter Toggle */}
                         <button
                             onClick={() => setShowFilters(!showFilters)}
-                            className="lg:hidden flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium hover:border-purple-300 dark:hover:border-purple-600 transition-colors"
+                            className="lg:hidden flex items-center gap-2 px-4 py-2.5 bg-gray-800 border-2 border-gray-700 rounded-lg text-sm font-medium hover:border-purple-600 transition-colors text-white"
                         >
                             <Filter className="w-4 h-4" />
                             <span>Filters</span>
                             {activeFilterCount > 0 && (
-                                <span className="px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-medium rounded-full">
+                                <span className="px-2 py-0.5 bg-purple-900/30 text-purple-300 text-xs font-medium rounded-full">
                                     {activeFilterCount}
                                 </span>
                             )}

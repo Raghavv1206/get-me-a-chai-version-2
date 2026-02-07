@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import UserProfileDropdown from './UserProfileDropdown';
 import NotificationBell from './NotificationBell';
 import SearchModal from './SearchModal';
+import { useScrollIsolation } from '../hooks/useScrollIsolation';
 
 export default function Navbar() {
   const { data: session } = useSession();
@@ -16,6 +17,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const mobileMenuScrollRef = useScrollIsolation();
 
   // Handle scroll effect
   useEffect(() => {
@@ -55,15 +57,28 @@ export default function Navbar() {
     { name: 'Success Stories', href: '/stories', icon: '⭐' }
   ];
 
-  const isActive = (href) => pathname === href;
+  const dashboardLinks = [
+    { name: 'Overview', href: '/dashboard' },
+    { name: 'Campaigns', href: '/dashboard/campaigns' },
+    { name: 'Analytics', href: '/dashboard/analytics' },
+    { name: 'Supporters', href: '/dashboard/supporters' },
+    { name: 'Content', href: '/dashboard/content' },
+    { name: 'Settings', href: '/dashboard/settings' }
+  ];
+
+  const isDashboardPage = pathname?.startsWith('/dashboard');
+
+  const isActive = (href) => {
+    if (href === '/dashboard') {
+      return pathname === '/dashboard';
+    }
+    return pathname === href || pathname?.startsWith(href + '/');
+  };
 
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 transform ${isVisible ? 'translate-y-0' : '-translate-y-full'
-          } ${scrolled
-            ? 'bg-black/80 backdrop-blur-xl border-b border-white/5 py-2'
-            : 'bg-transparent py-4'
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 group bg-transparent hover:bg-black/80 hover:backdrop-blur-xl hover:border-b hover:border-white/5 ${scrolled ? 'py-2' : 'py-4'
           }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -84,18 +99,35 @@ export default function Navbar() {
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center justify-center absolute left-1/2 transform -translate-x-1/2">
               <div className="flex items-center gap-1 p-1 rounded-full bg-white/5 border border-white/5 backdrop-blur-sm">
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={`px-4 py-1.5 text-sm font-medium rounded-full transition-all duration-200 ${isActive(link.href)
+                {isDashboardPage ? (
+                  // Dashboard Navigation
+                  dashboardLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={`px-4 py-1.5 text-sm font-medium rounded-full transition-all duration-200 ${isActive(link.href)
                         ? 'bg-white/10 text-white shadow-sm'
                         : 'text-gray-400 hover:text-white hover:bg-white/5'
-                      }`}
-                  >
-                    {link.name}
-                  </Link>
-                ))}
+                        }`}
+                    >
+                      {link.name}
+                    </Link>
+                  ))
+                ) : (
+                  // Regular Navigation
+                  navLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={`px-4 py-1.5 text-sm font-medium rounded-full transition-all duration-200 ${isActive(link.href)
+                        ? 'bg-white/10 text-white shadow-sm'
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                        }`}
+                    >
+                      {link.name}
+                    </Link>
+                  ))
+                )}
               </div>
             </div>
 
@@ -165,7 +197,7 @@ export default function Navbar() {
         className={`fixed top-0 right-0 bottom-0 z-50 w-72 bg-gray-950 border-l border-white/10 shadow-2xl transform transition-transform duration-300 md:hidden ${showMobileMenu ? 'translate-x-0' : 'translate-x-full'
           }`}
       >
-        <div className="flex flex-col h-full overflow-y-auto">
+        <div ref={mobileMenuScrollRef} className="flex flex-col h-full overflow-y-auto">
           <div className="p-6 border-b border-white/10 flex justify-between items-center">
             <span className="font-bold text-lg text-white">Menu</span>
             <button onClick={() => setShowMobileMenu(false)} className="p-2 text-gray-400 hover:text-white">
@@ -176,20 +208,38 @@ export default function Navbar() {
           </div>
 
           <div className="p-6 space-y-2">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all ${isActive(link.href)
-                    ? 'bg-white/10 text-white'
-                    : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                  }`}
-                onClick={() => setShowMobileMenu(false)}
-              >
-                <span className="text-xl">{link.icon}</span>
-                <span className="font-medium">{link.name}</span>
-              </Link>
-            ))}
+            {isDashboardPage ? (
+              // Dashboard Links for Mobile
+              dashboardLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all ${isActive(link.href)
+                      ? 'bg-white/10 text-white'
+                      : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                    }`}
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  <span className="font-medium">{link.name}</span>
+                </Link>
+              ))
+            ) : (
+              // Regular Links for Mobile
+              navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all ${isActive(link.href)
+                      ? 'bg-white/10 text-white'
+                      : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                    }`}
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  <span className="text-xl">{link.icon}</span>
+                  <span className="font-medium">{link.name}</span>
+                </Link>
+              ))
+            )}
           </div>
 
           <div className="mt-auto p-6 border-t border-white/10 bg-black/20">
