@@ -3,102 +3,102 @@
 import { FaCheck, FaClock, FaGift } from 'react-icons/fa';
 
 export default function RewardTiers({ rewards = [], onSelectReward }) {
-    if (rewards.length === 0) {
-        return null;
-    }
+  if (rewards.length === 0) {
+    return null;
+  }
 
-    const sortedRewards = [...rewards].sort((a, b) => a.amount - b.amount);
+  const sortedRewards = [...rewards].sort((a, b) => a.amount - b.amount);
 
-    const getAvailability = (reward) => {
-        if (!reward.limitedQuantity) return { available: true, text: 'Unlimited' };
-        const remaining = reward.limitedQuantity - (reward.claimedCount || 0);
-        return {
-            available: remaining > 0,
-            text: `${remaining} of ${reward.limitedQuantity} remaining`,
-            percentage: (remaining / reward.limitedQuantity) * 100
-        };
+  const getAvailability = (reward) => {
+    if (!reward.limitedQuantity) return { available: true, text: 'Unlimited' };
+    const remaining = reward.limitedQuantity - (reward.claimedCount || 0);
+    return {
+      available: remaining > 0,
+      text: `${remaining} of ${reward.limitedQuantity} remaining`,
+      percentage: (remaining / reward.limitedQuantity) * 100
     };
+  };
 
-    return (
-        <div className="reward-tiers">
-            <h3 className="rewards-title">
-                <FaGift className="title-icon" />
-                Reward Tiers
-            </h3>
+  return (
+    <div className="reward-tiers">
+      <h3 className="rewards-title">
+        <FaGift className="title-icon" />
+        Reward Tiers
+      </h3>
 
-            <div className="rewards-grid">
-                {sortedRewards.map((reward, index) => {
-                    const availability = getAvailability(reward);
-                    const isLowStock = availability.percentage && availability.percentage < 20;
+      <div className="rewards-grid">
+        {sortedRewards.map((reward, index) => {
+          const availability = getAvailability(reward);
+          const isLowStock = availability.percentage && availability.percentage < 20;
 
-                    return (
-                        <div
-                            key={index}
-                            className={`reward-card ${!availability.available ? 'sold-out' : ''}`}
-                        >
-                            <div className="reward-header">
-                                <div className="reward-amount">
-                                    ₹{reward.amount.toLocaleString('en-IN')}
-                                </div>
-                                {!availability.available && (
-                                    <span className="sold-out-badge">Sold Out</span>
-                                )}
-                                {availability.available && isLowStock && (
-                                    <span className="low-stock-badge">Limited</span>
-                                )}
-                            </div>
+          return (
+            <div
+              key={index}
+              className={`reward-card ${!availability.available ? 'sold-out' : ''}`}
+            >
+              <div className="reward-header">
+                <div className="reward-amount">
+                  ₹{reward.amount.toLocaleString('en-IN')}
+                </div>
+                {!availability.available && (
+                  <span className="sold-out-badge">Sold Out</span>
+                )}
+                {availability.available && isLowStock && (
+                  <span className="low-stock-badge">Limited</span>
+                )}
+              </div>
 
-                            <h4 className="reward-title">{reward.title}</h4>
+              <h4 className="reward-title">{reward.title}</h4>
 
-                            {reward.description && (
-                                <p className="reward-description">{reward.description}</p>
-                            )}
+              {reward.description && (
+                <p className="reward-description">{reward.description}</p>
+              )}
 
-                            <div className="reward-meta">
-                                {reward.deliveryTime && (
-                                    <div className="meta-item">
-                                        <FaClock className="meta-icon" />
-                                        <span>Delivery: {reward.deliveryTime}</span>
-                                    </div>
-                                )}
+              <div className="reward-meta">
+                {reward.deliveryTime && (
+                  <div className="meta-item">
+                    <FaClock className="meta-icon" />
+                    <span>Delivery: {reward.deliveryTime}</span>
+                  </div>
+                )}
 
-                                {reward.limitedQuantity && (
-                                    <div className="meta-item">
-                                        <FaCheck className="meta-icon" />
-                                        <span className={isLowStock ? 'low-stock-text' : ''}>
-                                            {availability.text}
-                                        </span>
-                                    </div>
-                                )}
-                            </div>
+                {reward.limitedQuantity && (
+                  <div className="meta-item">
+                    <FaCheck className="meta-icon" />
+                    <span className={isLowStock ? 'low-stock-text' : ''}>
+                      {availability.text}
+                    </span>
+                  </div>
+                )}
+              </div>
 
-                            {availability.available && availability.percentage && (
-                                <div className="availability-bar">
-                                    <div
-                                        className="availability-fill"
-                                        style={{
-                                            width: `${availability.percentage}%`,
-                                            background: isLowStock
-                                                ? 'linear-gradient(90deg, #ef4444 0%, #f87171 100%)'
-                                                : 'linear-gradient(90deg, #10b981 0%, #34d399 100%)'
-                                        }}
-                                    ></div>
-                                </div>
-                            )}
+              {availability.available && availability.percentage && (
+                <div className="availability-bar">
+                  <div
+                    className="availability-fill"
+                    style={{
+                      width: `${availability.percentage}%`,
+                      background: isLowStock
+                        ? 'linear-gradient(90deg, #ef4444 0%, #f87171 100%)'
+                        : 'linear-gradient(90deg, #10b981 0%, #34d399 100%)'
+                    }}
+                  ></div>
+                </div>
+              )}
 
-                            <button
-                                className="select-reward-btn"
-                                onClick={() => onSelectReward && onSelectReward(reward)}
-                                disabled={!availability.available}
-                            >
-                                {availability.available ? 'Select Reward' : 'Sold Out'}
-                            </button>
-                        </div>
-                    );
-                })}
+              <button
+                className="select-reward-btn"
+                onClick={() => onSelectReward && onSelectReward(reward)}
+                disabled={!availability.available}
+              >
+                {availability.available ? 'Select Reward' : 'Sold Out'}
+              </button>
             </div>
+          );
+        })}
+      </div>
 
-            <style jsx>{`
+      <style jsx>{`
         .reward-tiers {
           margin-top: 40px;
         }
@@ -106,7 +106,7 @@ export default function RewardTiers({ rewards = [], onSelectReward }) {
         .rewards-title {
           font-size: 1.5rem;
           font-weight: 700;
-          color: #111827;
+          color: #f1f5f9;
           margin-bottom: 24px;
           display: flex;
           align-items: center;
@@ -125,8 +125,8 @@ export default function RewardTiers({ rewards = [], onSelectReward }) {
         }
 
         .reward-card {
-          background: white;
-          border: 2px solid #e5e7eb;
+          background: #1e293b;
+          border: 2px solid #334155;
           border-radius: 16px;
           padding: 24px;
           transition: all 0.3s ease;
@@ -142,7 +142,7 @@ export default function RewardTiers({ rewards = [], onSelectReward }) {
 
         .reward-card.sold-out {
           opacity: 0.6;
-          background: #f9fafb;
+          background: #0f172a;
         }
 
         .reward-header {
@@ -184,12 +184,12 @@ export default function RewardTiers({ rewards = [], onSelectReward }) {
         .reward-title {
           font-size: 1.25rem;
           font-weight: 600;
-          color: #111827;
+          color: #f1f5f9;
           margin: 0 0 12px 0;
         }
 
         .reward-description {
-          color: #6b7280;
+          color: #94a3b8;
           line-height: 1.6;
           margin: 0 0 16px 0;
           flex: 1;
@@ -207,7 +207,7 @@ export default function RewardTiers({ rewards = [], onSelectReward }) {
           display: flex;
           align-items: center;
           gap: 8px;
-          color: #6b7280;
+          color: #94a3b8;
           font-size: 0.9rem;
         }
 
@@ -223,7 +223,7 @@ export default function RewardTiers({ rewards = [], onSelectReward }) {
 
         .availability-bar {
           height: 6px;
-          background: #f3f4f6;
+          background: #0f172a;
           border-radius: 100px;
           overflow: hidden;
           margin-bottom: 16px;
@@ -281,6 +281,6 @@ export default function RewardTiers({ rewards = [], onSelectReward }) {
           }
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

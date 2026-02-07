@@ -3,76 +3,76 @@
 import { FaCheckCircle, FaClock, FaCircle } from 'react-icons/fa';
 
 export default function MilestonesSection({ milestones = [], currentAmount = 0 }) {
-    if (milestones.length === 0) {
-        return null;
-    }
+  if (milestones.length === 0) {
+    return null;
+  }
 
-    const getMilestoneStatus = (milestone) => {
-        if (milestone.completed) return 'completed';
-        if (currentAmount >= milestone.amount) return 'completed';
-        if (currentAmount >= milestone.amount * 0.5) return 'in-progress';
-        return 'not-started';
-    };
+  const getMilestoneStatus = (milestone) => {
+    if (milestone.completed) return 'completed';
+    if (currentAmount >= milestone.amount) return 'completed';
+    if (currentAmount >= milestone.amount * 0.5) return 'in-progress';
+    return 'not-started';
+  };
 
-    const getMilestoneProgress = (milestone) => {
-        if (milestone.completed || currentAmount >= milestone.amount) return 100;
-        const progress = (currentAmount / milestone.amount) * 100;
-        return Math.min(Math.max(progress, 0), 100);
-    };
+  const getMilestoneProgress = (milestone) => {
+    if (milestone.completed || currentAmount >= milestone.amount) return 100;
+    const progress = (currentAmount / milestone.amount) * 100;
+    return Math.min(Math.max(progress, 0), 100);
+  };
 
-    return (
-        <div className="milestones-section">
-            <h3 className="milestones-title">Milestones</h3>
+  return (
+    <div className="milestones-section">
+      <h3 className="milestones-title">Milestones</h3>
 
-            <div className="milestones-list">
-                {milestones.map((milestone, index) => {
-                    const status = getMilestoneStatus(milestone);
-                    const progress = getMilestoneProgress(milestone);
+      <div className="milestones-list">
+        {milestones.map((milestone, index) => {
+          const status = getMilestoneStatus(milestone);
+          const progress = getMilestoneProgress(milestone);
 
-                    return (
-                        <div key={index} className={`milestone-item ${status}`}>
-                            <div className="milestone-icon-wrapper">
-                                {status === 'completed' && <FaCheckCircle className="milestone-icon completed" />}
-                                {status === 'in-progress' && <FaClock className="milestone-icon in-progress" />}
-                                {status === 'not-started' && <FaCircle className="milestone-icon not-started" />}
-                            </div>
+          return (
+            <div key={index} className={`milestone-item ${status}`}>
+              <div className="milestone-icon-wrapper">
+                {status === 'completed' && <FaCheckCircle className="milestone-icon completed" />}
+                {status === 'in-progress' && <FaClock className="milestone-icon in-progress" />}
+                {status === 'not-started' && <FaCircle className="milestone-icon not-started" />}
+              </div>
 
-                            <div className="milestone-content">
-                                <div className="milestone-header">
-                                    <h4 className="milestone-title">{milestone.title}</h4>
-                                    <span className="milestone-amount">
-                                        ₹{milestone.amount.toLocaleString('en-IN')}
-                                    </span>
-                                </div>
+              <div className="milestone-content">
+                <div className="milestone-header">
+                  <h4 className="milestone-title">{milestone.title}</h4>
+                  <span className="milestone-amount">
+                    ₹{milestone.amount.toLocaleString('en-IN')}
+                  </span>
+                </div>
 
-                                {milestone.description && (
-                                    <p className="milestone-description">{milestone.description}</p>
-                                )}
+                {milestone.description && (
+                  <p className="milestone-description">{milestone.description}</p>
+                )}
 
-                                {status === 'in-progress' && (
-                                    <div className="milestone-progress">
-                                        <div className="progress-bar">
-                                            <div
-                                                className="progress-fill"
-                                                style={{ width: `${progress}%` }}
-                                            ></div>
-                                        </div>
-                                        <span className="progress-text">{Math.round(progress)}% reached</span>
-                                    </div>
-                                )}
+                {status === 'in-progress' && (
+                  <div className="milestone-progress">
+                    <div className="progress-bar">
+                      <div
+                        className="progress-fill"
+                        style={{ width: `${progress}%` }}
+                      ></div>
+                    </div>
+                    <span className="progress-text">{Math.round(progress)}% reached</span>
+                  </div>
+                )}
 
-                                {milestone.completed && milestone.completedAt && (
-                                    <p className="milestone-completed-date">
-                                        Completed on {new Date(milestone.completedAt).toLocaleDateString('en-IN')}
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-                    );
-                })}
+                {milestone.completed && milestone.completedAt && (
+                  <p className="milestone-completed-date">
+                    Completed on {new Date(milestone.completedAt).toLocaleDateString('en-IN')}
+                  </p>
+                )}
+              </div>
             </div>
+          );
+        })}
+      </div>
 
-            <style jsx>{`
+      <style jsx>{`
         .milestones-section {
           margin-top: 40px;
         }
@@ -80,7 +80,7 @@ export default function MilestonesSection({ milestones = [], currentAmount = 0 }
         .milestones-title {
           font-size: 1.5rem;
           font-weight: 700;
-          color: #111827;
+          color: #f1f5f9;
           margin-bottom: 20px;
         }
 
@@ -94,25 +94,25 @@ export default function MilestonesSection({ milestones = [], currentAmount = 0 }
           display: flex;
           gap: 20px;
           padding: 24px;
-          background: white;
-          border: 2px solid #e5e7eb;
+          background: #1e293b;
+          border: 2px solid #334155;
           border-radius: 12px;
           transition: all 0.3s ease;
         }
 
         .milestone-item:hover {
-          border-color: #d1d5db;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+          border-color: #475569;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
         .milestone-item.completed {
-          background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-          border-color: #86efac;
+          background: linear-gradient(135deg, #1e3a2f 0%, #2d4a3f 100%);
+          border-color: #10b981;
         }
 
         .milestone-item.in-progress {
-          background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-          border-color: #fcd34d;
+          background: linear-gradient(135deg, #3a2e1e 0%, #4a3e2d 100%);
+          border-color: #f59e0b;
         }
 
         .milestone-icon-wrapper {
@@ -163,7 +163,7 @@ export default function MilestonesSection({ milestones = [], currentAmount = 0 }
         .milestone-title {
           font-size: 1.1rem;
           font-weight: 600;
-          color: #111827;
+          color: #f1f5f9;
           margin: 0;
           flex: 1;
         }
@@ -176,7 +176,7 @@ export default function MilestonesSection({ milestones = [], currentAmount = 0 }
         }
 
         .milestone-description {
-          color: #6b7280;
+          color: #94a3b8;
           line-height: 1.6;
           margin: 0 0 12px 0;
           font-size: 0.95rem;
@@ -188,7 +188,7 @@ export default function MilestonesSection({ milestones = [], currentAmount = 0 }
 
         .progress-bar {
           height: 8px;
-          background: #f3f4f6;
+          background: #0f172a;
           border-radius: 100px;
           overflow: hidden;
           margin-bottom: 6px;
@@ -246,6 +246,6 @@ export default function MilestonesSection({ milestones = [], currentAmount = 0 }
           }
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

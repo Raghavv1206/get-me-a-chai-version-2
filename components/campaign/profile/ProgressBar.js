@@ -3,128 +3,128 @@
 import { useState, useEffect, useRef } from 'react';
 
 export default function ProgressBar({
-    current,
-    goal,
-    milestones = [],
-    animated = true
+  current,
+  goal,
+  milestones = [],
+  animated = true
 }) {
-    const [progress, setProgress] = useState(0);
-    const [isVisible, setIsVisible] = useState(false);
-    const progressRef = useRef(null);
+  const [progress, setProgress] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
+  const progressRef = useRef(null);
 
-    const percentage = Math.min((current / goal) * 100, 100);
+  const percentage = Math.min((current / goal) * 100, 100);
 
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) {
-                    setIsVisible(true);
-                }
-            },
-            { threshold: 0.3 }
-        );
-
-        if (progressRef.current) {
-            observer.observe(progressRef.current);
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
         }
+      },
+      { threshold: 0.3 }
+    );
 
-        return () => {
-            if (progressRef.current) {
-                observer.unobserve(progressRef.current);
-            }
-        };
-    }, []);
+    if (progressRef.current) {
+      observer.observe(progressRef.current);
+    }
 
-    useEffect(() => {
-        if (!isVisible || !animated) {
-            setProgress(percentage);
-            return;
-        }
-
-        const duration = 1500;
-        const steps = 60;
-        const stepDuration = duration / steps;
-        let currentStep = 0;
-
-        const interval = setInterval(() => {
-            currentStep++;
-            const currentProgress = (percentage / steps) * currentStep;
-            setProgress(Math.min(currentProgress, percentage));
-
-            if (currentStep >= steps) {
-                clearInterval(interval);
-                setProgress(percentage);
-            }
-        }, stepDuration);
-
-        return () => clearInterval(interval);
-    }, [isVisible, percentage, animated]);
-
-    const getProgressColor = () => {
-        if (percentage >= 100) return '#10b981'; // Green
-        if (percentage >= 75) return '#3b82f6'; // Blue
-        if (percentage >= 50) return '#f59e0b'; // Orange
-        return '#667eea'; // Purple
+    return () => {
+      if (progressRef.current) {
+        observer.unobserve(progressRef.current);
+      }
     };
+  }, []);
 
-    const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR',
-            maximumFractionDigits: 0
-        }).format(amount);
-    };
+  useEffect(() => {
+    if (!isVisible || !animated) {
+      setProgress(percentage);
+      return;
+    }
 
-    return (
-        <div className="progress-bar-container" ref={progressRef}>
-            <div className="progress-info">
-                <div className="progress-amounts">
-                    <span className="current-amount">{formatCurrency(current)}</span>
-                    <span className="goal-amount">of {formatCurrency(goal)}</span>
-                </div>
-                <div className="progress-percentage">
-                    {Math.round(progress)}%
-                </div>
-            </div>
+    const duration = 1500;
+    const steps = 60;
+    const stepDuration = duration / steps;
+    let currentStep = 0;
 
-            <div className="progress-bar-wrapper">
-                <div className="progress-bar-track">
-                    <div
-                        className="progress-bar-fill"
-                        style={{
-                            width: `${progress}%`,
-                            background: `linear-gradient(90deg, ${getProgressColor()} 0%, ${getProgressColor()}dd 100%)`
-                        }}
-                    >
-                        <div className="progress-bar-shine"></div>
-                    </div>
+    const interval = setInterval(() => {
+      currentStep++;
+      const currentProgress = (percentage / steps) * currentStep;
+      setProgress(Math.min(currentProgress, percentage));
 
-                    {/* Milestone markers */}
-                    {milestones.map((milestone, index) => {
-                        const milestonePercentage = (milestone.amount / goal) * 100;
-                        if (milestonePercentage > 100) return null;
+      if (currentStep >= steps) {
+        clearInterval(interval);
+        setProgress(percentage);
+      }
+    }, stepDuration);
 
-                        return (
-                            <div
-                                key={index}
-                                className="milestone-marker"
-                                style={{ left: `${milestonePercentage}%` }}
-                                title={`${milestone.title}: ${formatCurrency(milestone.amount)}`}
-                            >
-                                <div className={`milestone-dot ${progress >= milestonePercentage ? 'reached' : ''}`}></div>
-                            </div>
-                        );
-                    })}
-                </div>
-            </div>
+    return () => clearInterval(interval);
+  }, [isVisible, percentage, animated]);
 
-            {percentage >= 100 && (
-                <div className="goal-reached-badge">
-                    🎉 Goal Reached!
-                </div>
-            )}
+  const getProgressColor = () => {
+    if (percentage >= 100) return '#10b981'; // Green
+    if (percentage >= 75) return '#3b82f6'; // Blue
+    if (percentage >= 50) return '#f59e0b'; // Orange
+    return '#667eea'; // Purple
+  };
 
-            <style jsx>{`
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
+  return (
+    <div className="progress-bar-container" ref={progressRef}>
+      <div className="progress-info">
+        <div className="progress-amounts">
+          <span className="current-amount">{formatCurrency(current)}</span>
+          <span className="goal-amount">of {formatCurrency(goal)}</span>
+        </div>
+        <div className="progress-percentage">
+          {Math.round(progress)}%
+        </div>
+      </div>
+
+      <div className="progress-bar-wrapper">
+        <div className="progress-bar-track">
+          <div
+            className="progress-bar-fill"
+            style={{
+              width: `${progress}%`,
+              background: `linear-gradient(90deg, ${getProgressColor()} 0%, ${getProgressColor()}dd 100%)`
+            }}
+          >
+            <div className="progress-bar-shine"></div>
+          </div>
+
+          {/* Milestone markers */}
+          {milestones.map((milestone, index) => {
+            const milestonePercentage = (milestone.amount / goal) * 100;
+            if (milestonePercentage > 100) return null;
+
+            return (
+              <div
+                key={index}
+                className="milestone-marker"
+                style={{ left: `${milestonePercentage}%` }}
+                title={`${milestone.title}: ${formatCurrency(milestone.amount)}`}
+              >
+                <div className={`milestone-dot ${progress >= milestonePercentage ? 'reached' : ''}`}></div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {percentage >= 100 && (
+        <div className="goal-reached-badge">
+          🎉 Goal Reached!
+        </div>
+      )}
+
+      <style jsx>{`
         .progress-bar-container {
           width: 100%;
         }
@@ -145,12 +145,12 @@ export default function ProgressBar({
         .current-amount {
           font-size: 1.5rem;
           font-weight: 700;
-          color: #111827;
+          color: #f1f5f9;
         }
 
         .goal-amount {
           font-size: 0.9rem;
-          color: #6b7280;
+          color: #94a3b8;
         }
 
         .progress-percentage {
@@ -168,10 +168,10 @@ export default function ProgressBar({
           position: relative;
           width: 100%;
           height: 16px;
-          background: #f3f4f6;
+          background: #0f172a;
           border-radius: 100px;
           overflow: hidden;
-          box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+          box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         .progress-bar-fill {
@@ -217,8 +217,8 @@ export default function ProgressBar({
           width: 12px;
           height: 12px;
           border-radius: 50%;
-          background: white;
-          border: 3px solid #d1d5db;
+          background: #1e293b;
+          border: 3px solid #475569;
           transition: all 0.3s ease;
           cursor: pointer;
         }
@@ -282,6 +282,6 @@ export default function ProgressBar({
           }
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

@@ -196,10 +196,11 @@ export default function AboutTab({ campaign, onSelectReward }) {
         }
 
         .overview-card {
-          background: white;
+          background: #1e293b;
           border-radius: 16px;
           padding: 30px;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+          border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .overview-meta {
@@ -208,7 +209,7 @@ export default function AboutTab({ campaign, onSelectReward }) {
           gap: 20px;
           margin-top: 30px;
           padding-top: 30px;
-          border-top: 2px solid #f3f4f6;
+          border-top: 2px solid #334155;
         }
 
         .meta-item {
@@ -225,25 +226,26 @@ export default function AboutTab({ campaign, onSelectReward }) {
         .meta-value {
           font-size: 1.5rem;
           font-weight: 700;
-          color: #111827;
+          color: #f1f5f9;
         }
 
         .meta-label {
           font-size: 0.85rem;
-          color: #6b7280;
+          color: #94a3b8;
         }
 
         .story-section {
-          background: white;
+          background: #1e293b;
           border-radius: 16px;
           padding: 30px;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+          border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .section-title {
           font-size: 1.5rem;
           font-weight: 700;
-          color: #111827;
+          color: #f1f5f9;
           margin: 0 0 20px 0;
           display: flex;
           align-items: center;
@@ -257,17 +259,17 @@ export default function AboutTab({ campaign, onSelectReward }) {
         .story-hook {
           font-size: 1.25rem;
           font-weight: 600;
-          color: #374151;
+          color: #e2e8f0;
           line-height: 1.7;
           margin-bottom: 20px;
           padding: 20px;
-          background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+          background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%);
           border-left: 4px solid #667eea;
           border-radius: 8px;
         }
 
         .story-content {
-          color: #4b5563;
+          color: #cbd5e1;
           line-height: 1.8;
           font-size: 1.05rem;
         }
@@ -276,7 +278,7 @@ export default function AboutTab({ campaign, onSelectReward }) {
         .story-content :global(h2),
         .story-content :global(h3) {
           font-weight: 700;
-          color: #111827;
+          color: #f1f5f9;
           margin-top: 24px;
           margin-bottom: 12px;
         }
@@ -299,7 +301,7 @@ export default function AboutTab({ campaign, onSelectReward }) {
 
         .story-content :global(strong) {
           font-weight: 700;
-          color: #111827;
+          color: #f1f5f9;
         }
 
         .story-content :global(ul),
@@ -333,10 +335,11 @@ export default function AboutTab({ campaign, onSelectReward }) {
         }
 
         .media-gallery {
-          background: white;
+          background: #1e293b;
           border-radius: 16px;
           padding: 30px;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+          border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .gallery-grid {
@@ -383,8 +386,8 @@ export default function AboutTab({ campaign, onSelectReward }) {
           margin-top: 20px;
           width: 100%;
           padding: 12px;
-          background: white;
-          border: 2px solid #e5e7eb;
+          background: #0f172a;
+          border: 2px solid #334155;
           border-radius: 12px;
           color: #667eea;
           font-weight: 600;
@@ -393,15 +396,16 @@ export default function AboutTab({ campaign, onSelectReward }) {
         }
 
         .show-more-btn:hover {
-          background: #f9fafb;
+          background: #334155;
           border-color: #667eea;
         }
 
         .video-section {
-          background: white;
+          background: #1e293b;
           border-radius: 16px;
           padding: 30px;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+          border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .video-wrapper {

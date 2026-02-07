@@ -4,71 +4,71 @@ import { useState } from 'react';
 import { FaChevronDown, FaChevronUp, FaSearch } from 'react-icons/fa';
 
 export default function FAQAccordion({ faqs = [] }) {
-    const [openIndex, setOpenIndex] = useState(null);
-    const [searchTerm, setSearchTerm] = useState('');
+  const [openIndex, setOpenIndex] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
-    const filteredFaqs = faqs.filter(faq =>
-        faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        faq.answer.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  const filteredFaqs = faqs.filter(faq =>
+    faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    faq.answer.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-    const toggleFaq = (index) => {
-        setOpenIndex(openIndex === index ? null : index);
-    };
+  const toggleFaq = (index) => {
+    setOpenIndex(openIndex === index ? null : index);
+  };
 
-    if (faqs.length === 0) {
-        return null;
-    }
+  if (faqs.length === 0) {
+    return null;
+  }
 
-    return (
-        <div className="faq-accordion">
-            <h3 className="faq-title">Frequently Asked Questions</h3>
+  return (
+    <div className="faq-accordion">
+      <h3 className="faq-title">Frequently Asked Questions</h3>
 
-            {faqs.length > 3 && (
-                <div className="faq-search">
-                    <FaSearch className="search-icon" />
-                    <input
-                        type="text"
-                        placeholder="Search FAQs..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="search-input"
-                    />
+      {faqs.length > 3 && (
+        <div className="faq-search">
+          <FaSearch className="search-icon" />
+          <input
+            type="text"
+            placeholder="Search FAQs..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input"
+          />
+        </div>
+      )}
+
+      <div className="faq-list">
+        {filteredFaqs.length === 0 ? (
+          <div className="no-results">
+            No FAQs found matching your search.
+          </div>
+        ) : (
+          filteredFaqs.map((faq, index) => (
+            <div
+              key={index}
+              className={`faq-item ${openIndex === index ? 'open' : ''}`}
+            >
+              <button
+                className="faq-question"
+                onClick={() => toggleFaq(index)}
+              >
+                <span className="question-text">{faq.question}</span>
+                <span className="toggle-icon">
+                  {openIndex === index ? <FaChevronUp /> : <FaChevronDown />}
+                </span>
+              </button>
+
+              <div className={`faq-answer ${openIndex === index ? 'expanded' : ''}`}>
+                <div className="answer-content">
+                  {faq.answer}
                 </div>
-            )}
-
-            <div className="faq-list">
-                {filteredFaqs.length === 0 ? (
-                    <div className="no-results">
-                        No FAQs found matching your search.
-                    </div>
-                ) : (
-                    filteredFaqs.map((faq, index) => (
-                        <div
-                            key={index}
-                            className={`faq-item ${openIndex === index ? 'open' : ''}`}
-                        >
-                            <button
-                                className="faq-question"
-                                onClick={() => toggleFaq(index)}
-                            >
-                                <span className="question-text">{faq.question}</span>
-                                <span className="toggle-icon">
-                                    {openIndex === index ? <FaChevronUp /> : <FaChevronDown />}
-                                </span>
-                            </button>
-
-                            <div className={`faq-answer ${openIndex === index ? 'expanded' : ''}`}>
-                                <div className="answer-content">
-                                    {faq.answer}
-                                </div>
-                            </div>
-                        </div>
-                    ))
-                )}
+              </div>
             </div>
+          ))
+        )}
+      </div>
 
-            <style jsx>{`
+      <style jsx>{`
         .faq-accordion {
           margin-top: 40px;
         }
@@ -76,7 +76,7 @@ export default function FAQAccordion({ faqs = [] }) {
         .faq-title {
           font-size: 1.5rem;
           font-weight: 700;
-          color: #111827;
+          color: #f1f5f9;
           margin-bottom: 20px;
         }
 
@@ -97,10 +97,12 @@ export default function FAQAccordion({ faqs = [] }) {
         .search-input {
           width: 100%;
           padding: 12px 16px 12px 45px;
-          border: 2px solid #e5e7eb;
+          border: 2px solid #334155;
           border-radius: 12px;
           font-size: 1rem;
           transition: all 0.3s ease;
+          background: #1e293b;
+          color: #e2e8f0;
         }
 
         .search-input:focus {
@@ -116,16 +118,16 @@ export default function FAQAccordion({ faqs = [] }) {
         }
 
         .faq-item {
-          background: white;
-          border: 2px solid #e5e7eb;
+          background: #1e293b;
+          border: 2px solid #334155;
           border-radius: 12px;
           overflow: hidden;
           transition: all 0.3s ease;
         }
 
         .faq-item:hover {
-          border-color: #d1d5db;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+          border-color: #475569;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
         .faq-item.open {
@@ -147,13 +149,13 @@ export default function FAQAccordion({ faqs = [] }) {
         }
 
         .faq-question:hover {
-          background: #f9fafb;
+          background: #334155;
         }
 
         .question-text {
           font-size: 1.05rem;
           font-weight: 600;
-          color: #111827;
+          color: #f1f5f9;
           flex: 1;
           padding-right: 20px;
         }
@@ -181,7 +183,7 @@ export default function FAQAccordion({ faqs = [] }) {
 
         .answer-content {
           padding: 0 20px 20px;
-          color: #4b5563;
+          color: #cbd5e1;
           line-height: 1.7;
           font-size: 0.95rem;
         }
@@ -212,6 +214,6 @@ export default function FAQAccordion({ faqs = [] }) {
           }
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

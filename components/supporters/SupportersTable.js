@@ -74,7 +74,7 @@ export default function SupportersTable({ supporters: initialSupporters }) {
     <div className="supporters-table">
       <div className="table-header">
         <div className="search-box">
-          <FaSearch className="search-icon" />
+          <FaSearch className="search-icon top-10 left-10" />
           <input
             type="text"
             placeholder="Search supporters..."
@@ -168,8 +168,8 @@ export default function SupportersTable({ supporters: initialSupporters }) {
 
       <style jsx>{`
         .supporters-table {
-          background: white;
-          border: 2px solid #e5e7eb;
+          background: #1e293b;
+          border: 2px solid #334155;
           border-radius: 16px;
           padding: 24px;
           margin-bottom: 30px;
@@ -195,16 +195,20 @@ export default function SupportersTable({ supporters: initialSupporters }) {
           left: 14px;
           top: 50%;
           transform: translateY(-50%);
-          color: #9ca3af;
+          color: #94a3b8;
+          z-index: 1;
+          pointer-events: none;
         }
 
         .search-input {
           width: 100%;
           padding: 10px 14px 10px 40px;
-          border: 2px solid #e5e7eb;
+          border: 2px solid #334155;
           border-radius: 10px;
           font-size: 0.95rem;
           transition: all 0.3s ease;
+          background: #0f172a;
+          color: #f1f5f9;
         }
 
         .search-input:focus {
@@ -241,7 +245,7 @@ export default function SupportersTable({ supporters: initialSupporters }) {
         }
 
         .table thead {
-          background: #f9fafb;
+          background: #0f172a;
         }
 
         .table th {
@@ -249,7 +253,7 @@ export default function SupportersTable({ supporters: initialSupporters }) {
           text-align: left;
           font-size: 0.85rem;
           font-weight: 600;
-          color: #6b7280;
+          color: #94a3b8;
           text-transform: uppercase;
           letter-spacing: 0.5px;
         }
@@ -261,17 +265,17 @@ export default function SupportersTable({ supporters: initialSupporters }) {
         }
 
         .table th.sortable:hover {
-          background: #f3f4f6;
-          color: #374151;
+          background: #1e293b;
+          color: #e2e8f0;
         }
 
         .table td {
           padding: 16px;
-          border-top: 1px solid #f3f4f6;
+          border-top: 1px solid #334155;
         }
 
         .table tbody tr:hover {
-          background: #f9fafb;
+          background: #0f172a;
         }
 
         .supporter-cell {
@@ -295,11 +299,11 @@ export default function SupportersTable({ supporters: initialSupporters }) {
 
         .supporter-name {
           font-weight: 600;
-          color: #111827;
+          color: #f1f5f9;
         }
 
         .email-cell {
-          color: #6b7280;
+          color: #94a3b8;
         }
 
         .amount-cell {
@@ -308,13 +312,13 @@ export default function SupportersTable({ supporters: initialSupporters }) {
         }
 
         .date-cell {
-          color: #6b7280;
+          color: #94a3b8;
           font-size: 0.9rem;
         }
 
         .count-cell {
           font-weight: 600;
-          color: #374151;
+          color: #e2e8f0;
         }
 
         .empty-state {
@@ -328,7 +332,7 @@ export default function SupportersTable({ supporters: initialSupporters }) {
         }
 
         .empty-state p {
-          color: #9ca3af;
+          color: #94a3b8;
           margin: 0;
         }
 
@@ -339,16 +343,16 @@ export default function SupportersTable({ supporters: initialSupporters }) {
           gap: 16px;
           margin-top: 20px;
           padding-top: 20px;
-          border-top: 1px solid #f3f4f6;
+          border-top: 1px solid #334155;
         }
 
         .page-btn {
           padding: 8px 16px;
-          background: white;
-          border: 2px solid #e5e7eb;
+          background: #0f172a;
+          border: 2px solid #334155;
           border-radius: 10px;
           font-weight: 600;
-          color: #374151;
+          color: #e2e8f0;
           cursor: pointer;
           transition: all 0.3s ease;
         }
@@ -365,7 +369,7 @@ export default function SupportersTable({ supporters: initialSupporters }) {
 
         .page-info {
           font-size: 0.9rem;
-          color: #6b7280;
+          color: #94a3b8;
         }
 
         @media (max-width: 768px) {

@@ -10,8 +10,6 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import SupportersTable from '@/components/supporters/SupportersTable';
 import SupporterFilters from '@/components/supporters/SupporterFilters';
 import TopSupporters from '@/components/supporters/TopSupporters';
-import BulkActions from '@/components/supporters/BulkActions';
-import ThankYouTemplates from '@/components/supporters/ThankYouTemplates';
 
 export const metadata = {
     title: 'Supporters - Get Me A Chai',
@@ -27,7 +25,7 @@ export default async function SupportersPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-6">
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black pt-20 p-6">
             {/* Header */}
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-white mb-2">Supporters</h1>
@@ -41,24 +39,14 @@ export default async function SupportersPage() {
                 <TopSupporters />
             </div>
 
-            {/* Filters and Bulk Actions */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                <div className="lg:col-span-2">
-                    <SupporterFilters />
-                </div>
-                <div>
-                    <BulkActions />
-                </div>
+            {/* Filters */}
+            <div className="mb-8">
+                <SupporterFilters />
             </div>
 
             {/* Supporters Table */}
             <div className="mb-8">
                 <SupportersTable />
-            </div>
-
-            {/* Thank You Templates */}
-            <div className="mb-8">
-                <ThankYouTemplates />
             </div>
 
             {/* Tips */}

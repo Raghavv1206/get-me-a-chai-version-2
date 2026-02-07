@@ -36,7 +36,7 @@ export default async function CampaignsPage() {
     const campaigns = await getCampaigns(session.user.id);
 
     return (
-        <div className="campaigns-page">
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black pt-20 p-6">
             <CampaignsList campaigns={campaigns} />
         </div>
     );

@@ -1,59 +1,59 @@
 'use client';
 
-export default function TopSupporters({ supporters }) {
-    const getMedal = (rank) => {
-        if (rank === 1) return '🥇';
-        if (rank === 2) return '🥈';
-        if (rank === 3) return '🥉';
-        return null;
-    };
+export default function TopSupporters({ supporters = [] }) {
+  const getMedal = (rank) => {
+    if (rank === 1) return '🥇';
+    if (rank === 2) return '🥈';
+    if (rank === 3) return '🥉';
+    return null;
+  };
 
-    return (
-        <div className="top-supporters">
-            <h3 className="supporters-title">Top Supporters</h3>
-            <p className="supporters-subtitle">Your most generous supporters</p>
+  return (
+    <div className="top-supporters">
+      <h3 className="supporters-title">Top Supporters</h3>
+      <p className="supporters-subtitle">Your most generous supporters</p>
 
-            <div className="supporters-list">
-                {supporters.length === 0 ? (
-                    <div className="empty-state">
-                        <div className="empty-icon">🏆</div>
-                        <p>No supporters yet</p>
+      <div className="supporters-list">
+        {supporters.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">🏆</div>
+            <p>No supporters yet</p>
+          </div>
+        ) : (
+          supporters.map((supporter, index) => {
+            const medal = getMedal(index + 1);
+
+            return (
+              <div key={supporter._id} className="supporter-item">
+                <div className="rank-badge">
+                  {medal || `#${index + 1}`}
+                </div>
+
+                <div className="supporter-info">
+                  <div className="supporter-avatar">
+                    {supporter.name?.charAt(0) || 'U'}
+                  </div>
+                  <div className="supporter-details">
+                    <div className="supporter-name">{supporter.name}</div>
+                    <div className="supporter-stats">
+                      {supporter.donationsCount} donation{supporter.donationsCount !== 1 ? 's' : ''}
                     </div>
-                ) : (
-                    supporters.map((supporter, index) => {
-                        const medal = getMedal(index + 1);
+                  </div>
+                </div>
 
-                        return (
-                            <div key={supporter._id} className="supporter-item">
-                                <div className="rank-badge">
-                                    {medal || `#${index + 1}`}
-                                </div>
+                <div className="supporter-amount">
+                  ₹{supporter.totalContributed.toLocaleString('en-IN')}
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
 
-                                <div className="supporter-info">
-                                    <div className="supporter-avatar">
-                                        {supporter.name?.charAt(0) || 'U'}
-                                    </div>
-                                    <div className="supporter-details">
-                                        <div className="supporter-name">{supporter.name}</div>
-                                        <div className="supporter-stats">
-                                            {supporter.donationsCount} donation{supporter.donationsCount !== 1 ? 's' : ''}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="supporter-amount">
-                                    ₹{supporter.totalContributed.toLocaleString('en-IN')}
-                                </div>
-                            </div>
-                        );
-                    })
-                )}
-            </div>
-
-            <style jsx>{`
+      <style jsx>{`
         .top-supporters {
-          background: white;
-          border: 2px solid #e5e7eb;
+          background: #1e293b;
+          border: 2px solid #334155;
           border-radius: 16px;
           padding: 24px;
           margin-bottom: 30px;
@@ -62,13 +62,13 @@ export default function TopSupporters({ supporters }) {
         .supporters-title {
           font-size: 1.25rem;
           font-weight: 700;
-          color: #111827;
+          color: #f1f5f9;
           margin: 0 0 4px 0;
         }
 
         .supporters-subtitle {
           font-size: 0.9rem;
-          color: #6b7280;
+          color: #94a3b8;
           margin: 0 0 20px 0;
         }
 
@@ -83,14 +83,14 @@ export default function TopSupporters({ supporters }) {
           align-items: center;
           gap: 16px;
           padding: 16px;
-          background: #f9fafb;
+          background: #0f172a;
           border-radius: 12px;
           transition: all 0.3s ease;
         }
 
         .supporter-item:hover {
-          background: white;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+          background: #1e293b;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
           transform: translateX(4px);
         }
 
@@ -135,13 +135,13 @@ export default function TopSupporters({ supporters }) {
         .supporter-name {
           font-size: 1rem;
           font-weight: 600;
-          color: #111827;
+          color: #f1f5f9;
           margin-bottom: 4px;
         }
 
         .supporter-stats {
           font-size: 0.85rem;
-          color: #6b7280;
+          color: #94a3b8;
         }
 
         .supporter-amount {
@@ -161,7 +161,7 @@ export default function TopSupporters({ supporters }) {
         }
 
         .empty-state p {
-          color: #9ca3af;
+          color: #94a3b8;
           margin: 0;
         }
 
@@ -174,10 +174,10 @@ export default function TopSupporters({ supporters }) {
             width: 100%;
             text-align: right;
             padding-top: 8px;
-            border-top: 1px solid #e5e7eb;
+            border-top: 1px solid #334155;
           }
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

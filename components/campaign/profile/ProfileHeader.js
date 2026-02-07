@@ -5,109 +5,109 @@ import Image from 'next/image';
 import { FaCheckCircle, FaTwitter, FaLinkedin, FaGithub, FaGlobe, FaMapMarkerAlt } from 'react-icons/fa';
 
 export default function ProfileHeader({
-    profilePic,
-    name,
-    username,
-    bio,
-    category,
-    location,
-    socialLinks,
-    verified
+  profilePic,
+  name,
+  username,
+  bio,
+  category,
+  location,
+  socialLinks,
+  verified
 }) {
-    const [bioExpanded, setBioExpanded] = useState(false);
-    const bioLimit = 150;
-    const shouldTruncate = bio && bio.length > bioLimit;
+  const [bioExpanded, setBioExpanded] = useState(false);
+  const bioLimit = 150;
+  const shouldTruncate = bio && bio.length > bioLimit;
 
-    return (
-        <div className="profile-header">
-            <div className="profile-header-container">
-                {/* Profile Picture */}
-                <div className="profile-picture-wrapper">
-                    <div className="profile-picture">
-                        <Image
-                            src={profilePic || '/images/default-profilepic.jpg'}
-                            alt={name}
-                            fill
-                            className="profile-image"
-                            sizes="(max-width: 768px) 120px, 150px"
-                        />
-                    </div>
-                </div>
+  return (
+    <div className="profile-header">
+      <div className="profile-header-container">
+        {/* Profile Picture */}
+        <div className="profile-picture-wrapper">
+          <div className="profile-picture">
+            <Image
+              src={profilePic || '/images/default-profilepic.jpg'}
+              alt={name}
+              fill
+              className="profile-image"
+              sizes="(max-width: 768px) 120px, 150px"
+            />
+          </div>
+        </div>
 
-                {/* Profile Info */}
-                <div className="profile-info">
-                    <div className="profile-name-section">
-                        <h1 className="profile-name">
-                            {name}
-                            {verified && (
-                                <FaCheckCircle className="verified-badge" title="Verified Creator" />
-                            )}
-                        </h1>
-                        <p className="profile-username">@{username}</p>
-                    </div>
+        {/* Profile Info */}
+        <div className="profile-info">
+          <div className="profile-name-section">
+            <h1 className="profile-name">
+              {name}
+              {verified && (
+                <FaCheckCircle className="verified-badge" title="Verified Creator" />
+              )}
+            </h1>
+            <p className="profile-username">@{username}</p>
+          </div>
 
-                    {/* Category and Location */}
-                    <div className="profile-meta">
-                        {category && (
-                            <span className="category-badge">{category}</span>
-                        )}
-                        {location && (
-                            <span className="location">
-                                <FaMapMarkerAlt className="location-icon" />
-                                {location}
-                            </span>
-                        )}
-                    </div>
+          {/* Category and Location */}
+          <div className="profile-meta">
+            {category && (
+              <span className="category-badge">{category}</span>
+            )}
+            {location && (
+              <span className="location">
+                <FaMapMarkerAlt className="location-icon" />
+                {location}
+              </span>
+            )}
+          </div>
 
-                    {/* Bio */}
-                    {bio && (
-                        <div className="profile-bio">
-                            <p className={bioExpanded ? 'bio-expanded' : 'bio-collapsed'}>
-                                {shouldTruncate && !bioExpanded
-                                    ? `${bio.substring(0, bioLimit)}...`
-                                    : bio
-                                }
-                            </p>
-                            {shouldTruncate && (
-                                <button
-                                    onClick={() => setBioExpanded(!bioExpanded)}
-                                    className="bio-toggle"
-                                >
-                                    {bioExpanded ? 'Show less' : 'Read more'}
-                                </button>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Social Links */}
-                    {socialLinks && Object.values(socialLinks).some(link => link) && (
-                        <div className="social-links">
-                            {socialLinks.twitter && (
-                                <a href={socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="social-link">
-                                    <FaTwitter />
-                                </a>
-                            )}
-                            {socialLinks.linkedin && (
-                                <a href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="social-link">
-                                    <FaLinkedin />
-                                </a>
-                            )}
-                            {socialLinks.github && (
-                                <a href={socialLinks.github} target="_blank" rel="noopener noreferrer" className="social-link">
-                                    <FaGithub />
-                                </a>
-                            )}
-                            {socialLinks.website && (
-                                <a href={socialLinks.website} target="_blank" rel="noopener noreferrer" className="social-link">
-                                    <FaGlobe />
-                                </a>
-                            )}
-                        </div>
-                    )}
-                </div>
+          {/* Bio */}
+          {bio && (
+            <div className="profile-bio">
+              <p className={bioExpanded ? 'bio-expanded' : 'bio-collapsed'}>
+                {shouldTruncate && !bioExpanded
+                  ? `${bio.substring(0, bioLimit)}...`
+                  : bio
+                }
+              </p>
+              {shouldTruncate && (
+                <button
+                  onClick={() => setBioExpanded(!bioExpanded)}
+                  className="bio-toggle"
+                >
+                  {bioExpanded ? 'Show less' : 'Read more'}
+                </button>
+              )}
             </div>
+          )}
 
-            <style jsx>{`
+          {/* Social Links */}
+          {socialLinks && Object.values(socialLinks).some(link => link) && (
+            <div className="social-links">
+              {socialLinks.twitter && (
+                <a href={socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="social-link">
+                  <FaTwitter />
+                </a>
+              )}
+              {socialLinks.linkedin && (
+                <a href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="social-link">
+                  <FaLinkedin />
+                </a>
+              )}
+              {socialLinks.github && (
+                <a href={socialLinks.github} target="_blank" rel="noopener noreferrer" className="social-link">
+                  <FaGithub />
+                </a>
+              )}
+              {socialLinks.website && (
+                <a href={socialLinks.website} target="_blank" rel="noopener noreferrer" className="social-link">
+                  <FaGlobe />
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <style jsx>{`
         .profile-header {
           position: relative;
           margin-top: -80px;
@@ -132,10 +132,10 @@ export default function ProfileHeader({
           width: 150px;
           height: 150px;
           border-radius: 50%;
-          border: 5px solid white;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+          border: 5px solid #1e293b;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
           overflow: hidden;
-          background: white;
+          background: #1e293b;
         }
 
         .profile-image {
@@ -298,6 +298,6 @@ export default function ProfileHeader({
           }
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

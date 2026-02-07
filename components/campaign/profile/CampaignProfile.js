@@ -98,7 +98,7 @@ export default function CampaignProfile({ campaign, creator, isSupporter = false
             <style jsx>{`
         .campaign-profile {
           min-height: 100vh;
-          background: #f9fafb;
+          background: #0f172a;
           padding-bottom: 60px;
         }
 

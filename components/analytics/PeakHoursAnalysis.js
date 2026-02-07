@@ -1,93 +1,93 @@
 'use client';
 
 export default function PeakHoursAnalysis({ data }) {
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const hours = Array.from({ length: 24 }, (_, i) => i);
+  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const hours = Array.from({ length: 24 }, (_, i) => i);
 
-    const getIntensityColor = (value) => {
-        if (value === 0) return '#f3f4f6';
-        if (value < 20) return '#ddd6fe';
-        if (value < 40) return '#c4b5fd';
-        if (value < 60) return '#a78bfa';
-        if (value < 80) return '#8b5cf6';
-        return '#7c3aed';
-    };
+  const getIntensityColor = (value) => {
+    if (value === 0) return '#0f172a';
+    if (value < 20) return '#312e81';
+    if (value < 40) return '#4c1d95';
+    if (value < 60) return '#6d28d9';
+    if (value < 80) return '#8b5cf6';
+    return '#a78bfa';
+  };
 
-    const getIntensityLabel = (value) => {
-        if (value === 0) return 'No activity';
-        if (value < 20) return 'Very low';
-        if (value < 40) return 'Low';
-        if (value < 60) return 'Medium';
-        if (value < 80) return 'High';
-        return 'Very high';
-    };
+  const getIntensityLabel = (value) => {
+    if (value === 0) return 'No activity';
+    if (value < 20) return 'Very low';
+    if (value < 40) return 'Low';
+    if (value < 60) return 'Medium';
+    if (value < 80) return 'High';
+    return 'Very high';
+  };
 
-    return (
-        <div className="peak-hours-analysis">
-            <h3 className="analysis-title">Peak Hours Analysis</h3>
-            <p className="analysis-subtitle">Best times to post and engage</p>
+  return (
+    <div className="peak-hours-analysis">
+      <h3 className="analysis-title">Peak Hours Analysis</h3>
+      <p className="analysis-subtitle">Best times to post and engage</p>
 
-            <div className="heatmap-container">
-                <div className="heatmap-grid">
-                    {/* Hour labels */}
-                    <div className="hour-labels">
-                        <div className="corner-cell"></div>
-                        {hours.map(hour => (
-                            <div key={hour} className="hour-label">
-                                {hour.toString().padStart(2, '0')}
-                            </div>
-                        ))}
-                    </div>
+      <div className="heatmap-container">
+        <div className="heatmap-grid">
+          {/* Hour labels */}
+          <div className="hour-labels">
+            <div className="corner-cell"></div>
+            {hours.map(hour => (
+              <div key={hour} className="hour-label">
+                {hour.toString().padStart(2, '0')}
+              </div>
+            ))}
+          </div>
 
-                    {/* Day rows */}
-                    {days.map((day, dayIndex) => (
-                        <div key={day} className="day-row">
-                            <div className="day-label">{day}</div>
-                            {hours.map((hour) => {
-                                const value = data[dayIndex]?.[hour] || 0;
+          {/* Day rows */}
+          {days.map((day, dayIndex) => (
+            <div key={day} className="day-row">
+              <div className="day-label">{day}</div>
+              {hours.map((hour) => {
+                const value = data[dayIndex]?.[hour] || 0;
 
-                                return (
-                                    <div
-                                        key={`${day}-${hour}`}
-                                        className="heat-cell"
-                                        style={{ backgroundColor: getIntensityColor(value) }}
-                                        title={`${day} ${hour}:00 - ${getIntensityLabel(value)} (${value}%)`}
-                                    >
-                                        {value > 0 && <span className="cell-value">{value}</span>}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    ))}
-                </div>
+                return (
+                  <div
+                    key={`${day}-${hour}`}
+                    className="heat-cell"
+                    style={{ backgroundColor: getIntensityColor(value) }}
+                    title={`${day} ${hour}:00 - ${getIntensityLabel(value)} (${value}%)`}
+                  >
+                    {value > 0 && <span className="cell-value">{value}</span>}
+                  </div>
+                );
+              })}
             </div>
+          ))}
+        </div>
+      </div>
 
-            <div className="legend">
-                <span className="legend-label">Engagement Level:</span>
-                <div className="legend-scale">
-                    <div className="legend-item">
-                        <div className="legend-color" style={{ backgroundColor: '#f3f4f6' }}></div>
-                        <span>None</span>
-                    </div>
-                    <div className="legend-item">
-                        <div className="legend-color" style={{ backgroundColor: '#ddd6fe' }}></div>
-                        <span>Low</span>
-                    </div>
-                    <div className="legend-item">
-                        <div className="legend-color" style={{ backgroundColor: '#a78bfa' }}></div>
-                        <span>Medium</span>
-                    </div>
-                    <div className="legend-item">
-                        <div className="legend-color" style={{ backgroundColor: '#7c3aed' }}></div>
-                        <span>High</span>
-                    </div>
-                </div>
-            </div>
+      <div className="legend">
+        <span className="legend-label">Engagement Level:</span>
+        <div className="legend-scale">
+          <div className="legend-item">
+            <div className="legend-color" style={{ backgroundColor: '#f3f4f6' }}></div>
+            <span>None</span>
+          </div>
+          <div className="legend-item">
+            <div className="legend-color" style={{ backgroundColor: '#ddd6fe' }}></div>
+            <span>Low</span>
+          </div>
+          <div className="legend-item">
+            <div className="legend-color" style={{ backgroundColor: '#a78bfa' }}></div>
+            <span>Medium</span>
+          </div>
+          <div className="legend-item">
+            <div className="legend-color" style={{ backgroundColor: '#7c3aed' }}></div>
+            <span>High</span>
+          </div>
+        </div>
+      </div>
 
-            <style jsx>{`
+      <style jsx>{`
         .peak-hours-analysis {
-          background: white;
-          border: 2px solid #e5e7eb;
+          background: #1e293b;
+          border: 2px solid #334155;
           border-radius: 16px;
           padding: 24px;
           margin-bottom: 30px;
@@ -96,13 +96,13 @@ export default function PeakHoursAnalysis({ data }) {
         .analysis-title {
           font-size: 1.25rem;
           font-weight: 700;
-          color: #111827;
+          color: #f1f5f9;
           margin: 0 0 4px 0;
         }
 
         .analysis-subtitle {
           font-size: 0.9rem;
-          color: #6b7280;
+          color: #94a3b8;
           margin: 0 0 24px 0;
         }
 
@@ -129,7 +129,7 @@ export default function PeakHoursAnalysis({ data }) {
 
         .hour-label {
           font-size: 0.7rem;
-          color: #6b7280;
+          color: #94a3b8;
           text-align: center;
           padding: 4px 0;
         }
@@ -144,7 +144,7 @@ export default function PeakHoursAnalysis({ data }) {
         .day-label {
           font-size: 0.85rem;
           font-weight: 600;
-          color: #374151;
+          color: #e2e8f0;
           display: flex;
           align-items: center;
           padding-right: 8px;
@@ -179,14 +179,14 @@ export default function PeakHoursAnalysis({ data }) {
           align-items: center;
           gap: 16px;
           padding: 16px;
-          background: #f9fafb;
+          background: #0f172a;
           border-radius: 12px;
         }
 
         .legend-label {
           font-size: 0.9rem;
           font-weight: 600;
-          color: #374151;
+          color: #e2e8f0;
         }
 
         .legend-scale {
@@ -204,12 +204,12 @@ export default function PeakHoursAnalysis({ data }) {
           width: 20px;
           height: 20px;
           border-radius: 4px;
-          border: 1px solid #e5e7eb;
+          border: 1px solid #334155;
         }
 
         .legend-item span {
           font-size: 0.85rem;
-          color: #6b7280;
+          color: #94a3b8;
         }
 
         @media (max-width: 768px) {
@@ -232,6 +232,6 @@ export default function PeakHoursAnalysis({ data }) {
           }
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

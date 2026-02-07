@@ -4,17 +4,17 @@ import { useState } from 'react';
 import { FaEnvelope, FaPaperPlane, FaEye } from 'react-icons/fa';
 
 export default function ThankYouTemplates({ supporter, onSend, onClose }) {
-    const [selectedTemplate, setSelectedTemplate] = useState('basic');
-    const [customMessage, setCustomMessage] = useState('');
-    const [showPreview, setShowPreview] = useState(false);
-    const [sending, setSending] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState('basic');
+  const [customMessage, setCustomMessage] = useState('');
+  const [showPreview, setShowPreview] = useState(false);
+  const [sending, setSending] = useState(false);
 
-    const templates = [
-        {
-            id: 'basic',
-            name: 'Basic Thank You',
-            subject: 'Thank you for your support!',
-            content: `Dear {name},
+  const templates = [
+    {
+      id: 'basic',
+      name: 'Basic Thank You',
+      subject: 'Thank you for your support!',
+      content: `Dear {name},
 
 Thank you so much for your generous donation of ₹{amount} to {campaign}!
 
@@ -22,12 +22,12 @@ Your support means the world to us and will help us achieve our goals.
 
 With gratitude,
 The Team`
-        },
-        {
-            id: 'detailed',
-            name: 'Detailed Appreciation',
-            subject: 'Your support is making a difference!',
-            content: `Hi {name},
+    },
+    {
+      id: 'detailed',
+      name: 'Detailed Appreciation',
+      subject: 'Your support is making a difference!',
+      content: `Hi {name},
 
 We wanted to take a moment to express our heartfelt gratitude for your contribution of ₹{amount} to {campaign}.
 
@@ -39,12 +39,12 @@ Thank you for believing in our mission!
 
 Warm regards,
 The Team`
-        },
-        {
-            id: 'milestone',
-            name: 'Milestone Celebration',
-            subject: 'We did it - thanks to you!',
-            content: `Dear {name},
+    },
+    {
+      id: 'milestone',
+      name: 'Milestone Celebration',
+      subject: 'We did it - thanks to you!',
+      content: `Dear {name},
 
 Amazing news! Thanks to your generous support of ₹{amount}, we've reached an important milestone in our {campaign} campaign!
 
@@ -54,136 +54,141 @@ Stay tuned for more updates as we continue working towards our goal.
 
 With immense gratitude,
 The Team`
-        },
-        {
-            id: 'custom',
-            name: 'Custom Message',
-            subject: 'Thank you!',
-            content: ''
-        }
-    ];
+    },
+    {
+      id: 'custom',
+      name: 'Custom Message',
+      subject: 'Thank you!',
+      content: ''
+    }
+  ];
 
-    const selectedTemplateData = templates.find(t => t.id === selectedTemplate);
+  const selectedTemplateData = templates.find(t => t.id === selectedTemplate);
 
-    const replacePlaceholders = (text) => {
-        if (!supporter) return text;
+  const replacePlaceholders = (text) => {
+    if (!supporter) return text;
 
-        return text
-            .replace(/{name}/g, supporter.name || 'Supporter')
-            .replace(/{amount}/g, supporter.lastAmount?.toLocaleString('en-IN') || '0')
-            .replace(/{campaign}/g, supporter.lastCampaign || 'our campaign')
-            .replace(/{progress}/g, '75'); // Would be calculated dynamically
-    };
+    return text
+      .replace(/{name}/g, supporter.name || 'Supporter')
+      .replace(/{amount}/g, supporter.lastAmount?.toLocaleString('en-IN') || '0')
+      .replace(/{campaign}/g, supporter.lastCampaign || 'our campaign')
+      .replace(/{progress}/g, '75'); // Would be calculated dynamically
+  };
 
-    const getMessage = () => {
-        if (selectedTemplate === 'custom') {
-            return customMessage;
-        }
-        return selectedTemplateData?.content || '';
-    };
+  const getMessage = () => {
+    if (selectedTemplate === 'custom') {
+      return customMessage;
+    }
+    return selectedTemplateData?.content || '';
+  };
 
-    const handleSend = async () => {
-        setSending(true);
-        try {
-            await onSend({
-                to: supporter.email,
-                subject: selectedTemplateData.subject,
-                message: replacePlaceholders(getMessage())
-            });
-            onClose();
-        } catch (error) {
-            console.error('Error sending email:', error);
-            alert('Failed to send email');
-        } finally {
-            setSending(false);
-        }
-    };
+  const handleSend = async () => {
+    if (!supporter || !supporter.email) {
+      alert('Supporter email not available');
+      return;
+    }
 
-    return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                <h2 className="modal-title">
-                    <FaEnvelope /> Send Thank You Email
-                </h2>
-                <p className="modal-subtitle">To: {supporter?.email}</p>
+    setSending(true);
+    try {
+      await onSend({
+        to: supporter.email,
+        subject: selectedTemplateData.subject,
+        message: replacePlaceholders(getMessage())
+      });
+      onClose();
+    } catch (error) {
+      console.error('Error sending email:', error);
+      alert('Failed to send email');
+    } finally {
+      setSending(false);
+    }
+  };
 
-                <div className="template-selector">
-                    <label className="selector-label">Choose Template:</label>
-                    <div className="template-buttons">
-                        {templates.map((template) => (
-                            <button
-                                key={template.id}
-                                className={`template-btn ${selectedTemplate === template.id ? 'active' : ''}`}
-                                onClick={() => setSelectedTemplate(template.id)}
-                            >
-                                {template.name}
-                            </button>
-                        ))}
-                    </div>
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <h2 className="modal-title">
+          <FaEnvelope /> Send Thank You Email
+        </h2>
+        <p className="modal-subtitle">To: {supporter?.email}</p>
+
+        <div className="template-selector">
+          <label className="selector-label">Choose Template:</label>
+          <div className="template-buttons">
+            {templates.map((template) => (
+              <button
+                key={template.id}
+                className={`template-btn ${selectedTemplate === template.id ? 'active' : ''}`}
+                onClick={() => setSelectedTemplate(template.id)}
+              >
+                {template.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {selectedTemplate === 'custom' ? (
+          <div className="custom-editor">
+            <label className="editor-label">Your Message:</label>
+            <textarea
+              value={customMessage}
+              onChange={(e) => setCustomMessage(e.target.value)}
+              placeholder="Write your custom message here..."
+              className="message-textarea"
+              rows="10"
+            />
+            <p className="editor-hint">
+              Use placeholders: {'{name}'}, {'{amount}'}, {'{campaign}'}
+            </p>
+          </div>
+        ) : (
+          <div className="template-preview">
+            <div className="preview-header">
+              <label className="preview-label">Message Preview:</label>
+              <button
+                className="preview-toggle"
+                onClick={() => setShowPreview(!showPreview)}
+              >
+                <FaEye /> {showPreview ? 'Hide' : 'Show'} Preview
+              </button>
+            </div>
+
+            {showPreview && (
+              <div className="preview-box">
+                <div className="preview-subject">
+                  <strong>Subject:</strong> {selectedTemplateData.subject}
                 </div>
-
-                {selectedTemplate === 'custom' ? (
-                    <div className="custom-editor">
-                        <label className="editor-label">Your Message:</label>
-                        <textarea
-                            value={customMessage}
-                            onChange={(e) => setCustomMessage(e.target.value)}
-                            placeholder="Write your custom message here..."
-                            className="message-textarea"
-                            rows="10"
-                        />
-                        <p className="editor-hint">
-                            Use placeholders: {'{name}'}, {'{amount}'}, {'{campaign}'}
-                        </p>
-                    </div>
-                ) : (
-                    <div className="template-preview">
-                        <div className="preview-header">
-                            <label className="preview-label">Message Preview:</label>
-                            <button
-                                className="preview-toggle"
-                                onClick={() => setShowPreview(!showPreview)}
-                            >
-                                <FaEye /> {showPreview ? 'Hide' : 'Show'} Preview
-                            </button>
-                        </div>
-
-                        {showPreview && (
-                            <div className="preview-box">
-                                <div className="preview-subject">
-                                    <strong>Subject:</strong> {selectedTemplateData.subject}
-                                </div>
-                                <div className="preview-message">
-                                    {replacePlaceholders(selectedTemplateData.content)}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                <div className="modal-actions">
-                    <button className="cancel-btn" onClick={onClose} disabled={sending}>
-                        Cancel
-                    </button>
-                    <button
-                        className="send-btn"
-                        onClick={handleSend}
-                        disabled={sending || (selectedTemplate === 'custom' && !customMessage.trim())}
-                    >
-                        {sending ? (
-                            <>
-                                <div className="spinner"></div>
-                                Sending...
-                            </>
-                        ) : (
-                            <>
-                                <FaPaperPlane /> Send Email
-                            </>
-                        )}
-                    </button>
+                <div className="preview-message">
+                  {replacePlaceholders(selectedTemplateData.content)}
                 </div>
+              </div>
+            )}
+          </div>
+        )}
 
-                <style jsx>{`
+        <div className="modal-actions">
+          <button className="cancel-btn" onClick={onClose} disabled={sending}>
+            Cancel
+          </button>
+          <button
+            className="send-btn"
+            onClick={handleSend}
+            disabled={sending || (selectedTemplate === 'custom' && !customMessage.trim())}
+          >
+            {sending ? (
+              <>
+                <div className="spinner"></div>
+                Sending...
+              </>
+            ) : (
+              <>
+                <FaPaperPlane /> Send Email
+              </>
+            )}
+          </button>
+        </div>
+
+        <style jsx>{`
           .modal-overlay {
             position: fixed;
             top: 0;
@@ -200,7 +205,7 @@ The Team`
           }
 
           .modal-content {
-            background: white;
+            background: #1e293b;
             border-radius: 24px;
             max-width: 700px;
             width: 100%;
@@ -215,13 +220,13 @@ The Team`
             gap: 12px;
             font-size: 1.75rem;
             font-weight: 700;
-            color: #111827;
+            color: #f1f5f9;
             margin: 0 0 8px 0;
           }
 
           .modal-subtitle {
             font-size: 1rem;
-            color: #6b7280;
+            color: #94a3b8;
             margin: 0 0 24px 0;
           }
 
@@ -233,7 +238,7 @@ The Team`
             display: block;
             font-size: 0.95rem;
             font-weight: 600;
-            color: #374151;
+            color: #e2e8f0;
             margin-bottom: 12px;
           }
 
@@ -245,19 +250,19 @@ The Team`
 
           .template-btn {
             padding: 12px 16px;
-            background: white;
-            border: 2px solid #e5e7eb;
+            background: #0f172a;
+            border: 2px solid #334155;
             border-radius: 10px;
             font-size: 0.9rem;
             font-weight: 600;
-            color: #374151;
+            color: #e2e8f0;
             cursor: pointer;
             transition: all 0.3s ease;
           }
 
           .template-btn:hover {
-            border-color: #d1d5db;
-            background: #f9fafb;
+            border-color: #475569;
+            background: #1e293b;
           }
 
           .template-btn.active {
@@ -274,19 +279,21 @@ The Team`
             display: block;
             font-size: 0.95rem;
             font-weight: 600;
-            color: #374151;
+            color: #e2e8f0;
             margin-bottom: 12px;
           }
 
           .message-textarea {
             width: 100%;
             padding: 14px;
-            border: 2px solid #e5e7eb;
+            border: 2px solid #334155;
             border-radius: 12px;
             font-size: 0.95rem;
             font-family: inherit;
             resize: vertical;
             transition: all 0.3s ease;
+            background: #0f172a;
+            color: #f1f5f9;
           }
 
           .message-textarea:focus {
@@ -314,7 +321,7 @@ The Team`
           .preview-label {
             font-size: 0.95rem;
             font-weight: 600;
-            color: #374151;
+            color: #e2e8f0;
           }
 
           .preview-toggle {
@@ -322,38 +329,38 @@ The Team`
             align-items: center;
             gap: 6px;
             padding: 6px 12px;
-            background: #f9fafb;
-            border: 2px solid #e5e7eb;
+            background: #0f172a;
+            border: 2px solid #334155;
             border-radius: 8px;
             font-size: 0.85rem;
             font-weight: 600;
-            color: #6b7280;
+            color: #94a3b8;
             cursor: pointer;
             transition: all 0.3s ease;
           }
 
           .preview-toggle:hover {
-            background: #f3f4f6;
+            background: #1e293b;
           }
 
           .preview-box {
             padding: 20px;
-            background: #f9fafb;
-            border: 2px solid #e5e7eb;
+            background: #0f172a;
+            border: 2px solid #334155;
             border-radius: 12px;
           }
 
           .preview-subject {
             font-size: 0.95rem;
-            color: #374151;
+            color: #e2e8f0;
             margin-bottom: 16px;
             padding-bottom: 16px;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1px solid #334155;
           }
 
           .preview-message {
             font-size: 0.95rem;
-            color: #374151;
+            color: #e2e8f0;
             line-height: 1.8;
             white-space: pre-wrap;
           }
@@ -379,13 +386,13 @@ The Team`
           }
 
           .cancel-btn {
-            background: white;
-            color: #6b7280;
-            border: 2px solid #e5e7eb;
+            background: #0f172a;
+            color: #94a3b8;
+            border: 2px solid #334155;
           }
 
           .cancel-btn:hover:not(:disabled) {
-            background: #f9fafb;
+            background: #1e293b;
           }
 
           .send-btn {
@@ -434,7 +441,7 @@ The Team`
             }
           }
         `}</style>
-            </div>
-        </div>
-    );
+      </div>
+    </div>
+  );
 }

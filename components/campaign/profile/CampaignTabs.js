@@ -3,48 +3,48 @@
 import { useState } from 'react';
 
 export default function CampaignTabs({
-    activeTab: initialTab = 'about',
-    onTabChange,
-    children
+  activeTab: initialTab = 'about',
+  onTabChange,
+  children
 }) {
-    const [activeTab, setActiveTab] = useState(initialTab);
+  const [activeTab, setActiveTab] = useState(initialTab);
 
-    const tabs = [
-        { id: 'about', label: 'About', icon: '📖' },
-        { id: 'updates', label: 'Updates', icon: '📢' },
-        { id: 'supporters', label: 'Supporters', icon: '❤️' },
-        { id: 'discussion', label: 'Discussion', icon: '💬' }
-    ];
+  const tabs = [
+    { id: 'about', label: 'About', icon: '📖' },
+    { id: 'updates', label: 'Updates', icon: '📢' },
+    { id: 'supporters', label: 'Supporters', icon: '❤️' },
+    { id: 'discussion', label: 'Discussion', icon: '💬' }
+  ];
 
-    const handleTabClick = (tabId) => {
-        setActiveTab(tabId);
-        if (onTabChange) {
-            onTabChange(tabId);
-        }
-    };
+  const handleTabClick = (tabId) => {
+    setActiveTab(tabId);
+    if (onTabChange) {
+      onTabChange(tabId);
+    }
+  };
 
-    return (
-        <div className="campaign-tabs">
-            <div className="tabs-header">
-                <div className="tabs-nav">
-                    {tabs.map((tab) => (
-                        <button
-                            key={tab.id}
-                            className={`tab-button ${activeTab === tab.id ? 'active' : ''}`}
-                            onClick={() => handleTabClick(tab.id)}
-                        >
-                            <span className="tab-icon">{tab.icon}</span>
-                            <span className="tab-label">{tab.label}</span>
-                        </button>
-                    ))}
-                </div>
-            </div>
+  return (
+    <div className="campaign-tabs">
+      <div className="tabs-header">
+        <div className="tabs-nav">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              className={`tab-button ${activeTab === tab.id ? 'active' : ''}`}
+              onClick={() => handleTabClick(tab.id)}
+            >
+              <span className="tab-icon">{tab.icon}</span>
+              <span className="tab-label">{tab.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
 
-            <div className="tabs-content">
-                {children}
-            </div>
+      <div className="tabs-content">
+        {children}
+      </div>
 
-            <style jsx>{`
+      <style jsx>{`
         .campaign-tabs {
           max-width: 1200px;
           margin: 0 auto;
@@ -54,11 +54,11 @@ export default function CampaignTabs({
         .tabs-header {
           position: sticky;
           top: 70px;
-          background: white;
+          background: #0f172a;
           z-index: 20;
           padding: 20px 0 0;
           margin-bottom: 30px;
-          border-bottom: 2px solid #f3f4f6;
+          border-bottom: 2px solid #1e293b;
         }
 
         .tabs-nav {
@@ -81,7 +81,7 @@ export default function CampaignTabs({
           background: none;
           border: none;
           border-bottom: 3px solid transparent;
-          color: #6b7280;
+          color: #94a3b8;
           font-size: 1rem;
           font-weight: 600;
           cursor: pointer;
@@ -91,8 +91,8 @@ export default function CampaignTabs({
         }
 
         .tab-button:hover {
-          color: #374151;
-          background: #f9fafb;
+          color: #e2e8f0;
+          background: #1e293b;
           border-radius: 8px 8px 0 0;
         }
 
@@ -170,6 +170,6 @@ export default function CampaignTabs({
           }
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

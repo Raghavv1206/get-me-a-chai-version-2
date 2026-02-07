@@ -5,84 +5,84 @@ import { FaHeart, FaRegHeart, FaShare, FaEnvelope } from 'react-icons/fa';
 import ShareModal from './ShareModal';
 
 export default function ActionButtons({
-    campaignId,
-    campaignTitle,
-    creatorUsername,
-    isFollowing: initialFollowing = false,
-    onSupportClick
+  campaignId,
+  campaignTitle,
+  creatorUsername,
+  isFollowing: initialFollowing = false,
+  onSupportClick
 }) {
-    const [isFollowing, setIsFollowing] = useState(initialFollowing);
-    const [showShareModal, setShowShareModal] = useState(false);
-    const [isFollowLoading, setIsFollowLoading] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(initialFollowing);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [isFollowLoading, setIsFollowLoading] = useState(false);
 
-    const handleFollowToggle = async () => {
-        setIsFollowLoading(true);
-        try {
-            const response = await fetch('/api/follow', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    username: creatorUsername,
-                    action: isFollowing ? 'unfollow' : 'follow'
-                })
-            });
+  const handleFollowToggle = async () => {
+    setIsFollowLoading(true);
+    try {
+      const response = await fetch('/api/follow', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: creatorUsername,
+          action: isFollowing ? 'unfollow' : 'follow'
+        })
+      });
 
-            if (response.ok) {
-                setIsFollowing(!isFollowing);
-            }
-        } catch (error) {
-            console.error('Error toggling follow:', error);
-        } finally {
-            setIsFollowLoading(false);
-        }
-    };
+      if (response.ok) {
+        setIsFollowing(!isFollowing);
+      }
+    } catch (error) {
+      console.error('Error toggling follow:', error);
+    } finally {
+      setIsFollowLoading(false);
+    }
+  };
 
-    return (
-        <>
-            <div className="action-buttons">
-                <div className="action-buttons-container">
-                    <button
-                        className="btn-primary btn-support"
-                        onClick={onSupportClick}
-                    >
-                        <FaHeart className="btn-icon" />
-                        Support Now
-                    </button>
+  return (
+    <>
+      <div className="action-buttons">
+        <div className="action-buttons-container">
+          <button
+            className="btn-primary btn-support"
+            onClick={onSupportClick}
+          >
+            <FaHeart className="btn-icon" />
+            Support Now
+          </button>
 
-                    <button
-                        className={`btn-secondary btn-follow ${isFollowing ? 'following' : ''}`}
-                        onClick={handleFollowToggle}
-                        disabled={isFollowLoading}
-                    >
-                        {isFollowing ? <FaHeart className="btn-icon" /> : <FaRegHeart className="btn-icon" />}
-                        {isFollowing ? 'Following' : 'Follow'}
-                    </button>
+          <button
+            className={`btn-secondary btn-follow ${isFollowing ? 'following' : ''}`}
+            onClick={handleFollowToggle}
+            disabled={isFollowLoading}
+          >
+            {isFollowing ? <FaHeart className="btn-icon" /> : <FaRegHeart className="btn-icon" />}
+            {isFollowing ? 'Following' : 'Follow'}
+          </button>
 
-                    <button
-                        className="btn-secondary btn-share"
-                        onClick={() => setShowShareModal(true)}
-                    >
-                        <FaShare className="btn-icon" />
-                        Share
-                    </button>
+          <button
+            className="btn-secondary btn-share"
+            onClick={() => setShowShareModal(true)}
+          >
+            <FaShare className="btn-icon" />
+            Share
+          </button>
 
-                    <button className="btn-secondary btn-message">
-                        <FaEnvelope className="btn-icon" />
-                        Message
-                    </button>
-                </div>
-            </div>
+          <button className="btn-secondary btn-message">
+            <FaEnvelope className="btn-icon" />
+            Message
+          </button>
+        </div>
+      </div>
 
-            {showShareModal && (
-                <ShareModal
-                    campaignId={campaignId}
-                    campaignTitle={campaignTitle}
-                    creatorUsername={creatorUsername}
-                    onClose={() => setShowShareModal(false)}
-                />
-            )}
+      {showShareModal && (
+        <ShareModal
+          campaignId={campaignId}
+          campaignTitle={campaignTitle}
+          creatorUsername={creatorUsername}
+          onClose={() => setShowShareModal(false)}
+        />
+      )}
 
-            <style jsx>{`
+      <style jsx>{`
         .action-buttons {
           padding: 0 20px 20px;
           max-width: 1200px;
@@ -134,17 +134,17 @@ export default function ActionButtons({
         }
 
         .btn-secondary {
-          background: white;
-          color: #374151;
-          border: 2px solid #e5e7eb;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+          background: #1e293b;
+          color: #e2e8f0;
+          border: 2px solid #334155;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
 
         .btn-secondary:hover:not(:disabled) {
-          background: #f9fafb;
-          border-color: #d1d5db;
+          background: #334155;
+          border-color: #475569;
           transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
         .btn-follow.following {
@@ -199,6 +199,6 @@ export default function ActionButtons({
           }
         }
       `}</style>
-        </>
-    );
+    </>
+  );
 }

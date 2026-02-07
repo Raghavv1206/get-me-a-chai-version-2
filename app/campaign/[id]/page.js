@@ -12,7 +12,7 @@ import CampaignProfile from '@/components/campaign/profile/CampaignProfile';
  * Accessible at /campaign/[campaignId]
  */
 export default async function CampaignPage({ params }) {
-    const { id } = params;
+    const { id } = await params;
 
     try {
         await connectDb();
@@ -74,7 +74,7 @@ export default async function CampaignPage({ params }) {
  * Generate metadata for SEO
  */
 export async function generateMetadata({ params }) {
-    const { id } = params;
+    const { id } = await params;
 
     try {
         await connectDb();

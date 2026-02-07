@@ -2,54 +2,54 @@
 
 import { FaEnvelope, FaDownload, FaTag, FaTimes } from 'react-icons/fa';
 
-export default function BulkActions({ selectedSupporters, onAction, onClear }) {
-    if (selectedSupporters.length === 0) return null;
+export default function BulkActions({ selectedSupporters = [], onAction, onClear }) {
+  if (selectedSupporters.length === 0) return null;
 
-    return (
-        <div className="bulk-actions">
-            <div className="actions-info">
-                <span className="selected-count">
-                    {selectedSupporters.length} supporter{selectedSupporters.length !== 1 ? 's' : ''} selected
-                </span>
-                <button className="clear-selection" onClick={onClear}>
-                    <FaTimes /> Clear
-                </button>
-            </div>
+  return (
+    <div className="bulk-actions">
+      <div className="actions-info">
+        <span className="selected-count">
+          {selectedSupporters.length} supporter{selectedSupporters.length !== 1 ? 's' : ''} selected
+        </span>
+        <button className="clear-selection" onClick={onClear}>
+          <FaTimes /> Clear
+        </button>
+      </div>
 
-            <div className="actions-buttons">
-                <button
-                    className="action-btn email-btn"
-                    onClick={() => onAction('email')}
-                >
-                    <FaEnvelope /> Send Email
-                </button>
+      <div className="actions-buttons">
+        <button
+          className="action-btn email-btn"
+          onClick={() => onAction('email')}
+        >
+          <FaEnvelope /> Send Email
+        </button>
 
-                <button
-                    className="action-btn export-btn"
-                    onClick={() => onAction('export')}
-                >
-                    <FaDownload /> Export Selected
-                </button>
+        <button
+          className="action-btn export-btn"
+          onClick={() => onAction('export')}
+        >
+          <FaDownload /> Export Selected
+        </button>
 
-                <button
-                    className="action-btn tag-btn"
-                    onClick={() => onAction('tag')}
-                >
-                    <FaTag /> Add Tag
-                </button>
-            </div>
+        <button
+          className="action-btn tag-btn"
+          onClick={() => onAction('tag')}
+        >
+          <FaTag /> Add Tag
+        </button>
+      </div>
 
-            <style jsx>{`
+      <style jsx>{`
         .bulk-actions {
           position: fixed;
           bottom: 30px;
           left: 50%;
           transform: translateX(-50%);
-          background: white;
-          border: 2px solid #e5e7eb;
+          background: #1e293b;
+          border: 2px solid #334155;
           border-radius: 16px;
           padding: 20px 24px;
-          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
           z-index: 1000;
           animation: slideUp 0.3s ease;
           max-width: 90vw;
@@ -73,13 +73,13 @@ export default function BulkActions({ selectedSupporters, onAction, onClear }) {
           gap: 16px;
           margin-bottom: 16px;
           padding-bottom: 16px;
-          border-bottom: 2px solid #f3f4f6;
+          border-bottom: 2px solid #334155;
         }
 
         .selected-count {
           font-size: 0.95rem;
           font-weight: 600;
-          color: #374151;
+          color: #e2e8f0;
         }
 
         .clear-selection {
@@ -87,19 +87,19 @@ export default function BulkActions({ selectedSupporters, onAction, onClear }) {
           align-items: center;
           gap: 6px;
           padding: 6px 12px;
-          background: #f9fafb;
-          border: 2px solid #e5e7eb;
+          background: #0f172a;
+          border: 2px solid #334155;
           border-radius: 8px;
           font-size: 0.85rem;
           font-weight: 600;
-          color: #6b7280;
+          color: #94a3b8;
           cursor: pointer;
           transition: all 0.3s ease;
         }
 
         .clear-selection:hover {
-          background: #f3f4f6;
-          color: #374151;
+          background: #1e293b;
+          color: #e2e8f0;
         }
 
         .actions-buttons {
@@ -122,35 +122,35 @@ export default function BulkActions({ selectedSupporters, onAction, onClear }) {
         }
 
         .email-btn {
-          background: white;
+          background: #0f172a;
           color: #667eea;
           border-color: #667eea;
         }
 
         .email-btn:hover {
-          background: #f0f9ff;
+          background: #1e293b;
           transform: translateY(-2px);
         }
 
         .export-btn {
-          background: white;
+          background: #0f172a;
           color: #10b981;
           border-color: #10b981;
         }
 
         .export-btn:hover {
-          background: #f0fdf4;
+          background: #1e293b;
           transform: translateY(-2px);
         }
 
         .tag-btn {
-          background: white;
+          background: #0f172a;
           color: #f59e0b;
           border-color: #f59e0b;
         }
 
         .tag-btn:hover {
-          background: #fffbeb;
+          background: #1e293b;
           transform: translateY(-2px);
         }
 
@@ -173,6 +173,6 @@ export default function BulkActions({ selectedSupporters, onAction, onClear }) {
           }
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }
