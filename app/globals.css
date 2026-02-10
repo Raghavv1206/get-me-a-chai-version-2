@@ -88,3 +88,34 @@
 .text-gradient-primary {
   @apply bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-blue-500;
 }
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease;
+}
+
+.animate-slideUp {
+  animation: slideUp 0.3s ease;
+}

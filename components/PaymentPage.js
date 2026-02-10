@@ -1,40 +1,20 @@
-// C:\Users\ragha\project\get-me-a-chai\components\PaymentPage.js
+// components/PaymentPage.js
 "use client"
 import React, { useEffect, useState } from 'react'
 import Script from 'next/script'
-import { useSession } from 'next-auth/react'
 import { fetchuser, fetchpayments, initiate } from '@/actions/useractions'
 import { useSearchParams } from 'next/navigation'
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer, toast, Bounce } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { Bounce } from 'react-toastify';
 import { useRouter } from 'next/navigation'
-import { notFound } from "next/navigation"
 
 const PaymentPage = ({ username }) => {
-
-  // const { data: session } = useSession()
 
   const [paymentform, setPaymentform] = useState({ name: "", message: "", amount: "" })
   const [currentUser, setcurrentUser] = useState({})
   const [payments, setPayments] = useState([])
-  const [stars, setStars] = useState([]); // Hydration-safe star field
   const searchParams = useSearchParams()
   const router = useRouter()
-
-  useEffect(() => {
-    // Only generate stars on client
-    const generatedStars = Array.from({ length: 120 }, () => ({
-      left: `${Math.random() * 100}%`,
-      top: `${Math.random() * 100}%`,
-      width: `${Math.random() * 2 + 1}px`,
-      height: `${Math.random() * 2 + 1}px`,
-      background: `rgba(255,255,255,${Math.random() * 0.7 + 0.3})`,
-      opacity: Math.random() * 0.7 + 0.3,
-      filter: 'blur(0.5px)'
-    }));
-    setStars(generatedStars);
-  }, []);
 
   useEffect(() => {
     getData()
@@ -180,53 +160,43 @@ const PaymentPage = ({ username }) => {
 
 
   return (
-    <>
-      <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-[#111]">
-        {/* Starry Night Background */}
-        <div className="absolute inset-0 pointer-events-none z-0">
-          {/* Star field */}
-          <div className="absolute inset-0">
-            {stars.map((star, i) => (
-              <div
-                key={i}
-                className="absolute rounded-full"
-                style={star}
-              ></div>
-            ))}
-          </div>
-          {/* Subtle nebula shapes */}
-          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-gray-800/30 rounded-full blur-3xl"></div>
-          <div className="absolute top-3/4 right-1/4 w-96 h-96 bg-gray-900/20 rounded-full blur-3xl"></div>
-          <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-gray-700/30 rounded-full blur-2xl"></div>
-        </div>
-        <ToastContainer
-          position="top-right"
-          autoClose={5000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="light" />
-        <Script src="https://checkout.razorpay.com/v1/checkout.js"></Script>
+    <div className="min-h-screen bg-black text-gray-100">
+      {/* Background Ambient Effects - Same as Dashboard */}
+      <div className="fixed top-20 right-0 w-[500px] h-[500px] bg-purple-900/10 blur-[100px] rounded-full pointer-events-none z-0" />
+      <div className="fixed bottom-0 left-20 w-[400px] h-[400px] bg-blue-900/10 blur-[100px] rounded-full pointer-events-none z-0" />
+
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light" />
+      <Script src="https://checkout.razorpay.com/v1/checkout.js"></Script>
 
 
+      <div className="relative z-10">
         <div className="cover w-full relative">
           {(currentUser.coverpic || "/images/default-coverpic.jpg") && (
-            <img
-              className="object-cover w-full h-48 md:h-[350px] shadow-blue-700 shadow-sm"
-              src={currentUser.coverpic || "/images/default-coverpic.jpg"}
-              alt="coverimg"
-            />
+            <div className="w-full h-48 md:h-[350px] overflow-hidden relative">
+              <img
+                className="object-cover w-full h-full"
+                src={currentUser.coverpic || "/images/default-coverpic.jpg"}
+                alt="coverimg"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80" />
+            </div>
           )}
-          <div className="absolute -bottom-20 right-[33%] md:right-[46%] border-white overflow-hidden border-2 rounded-full size-36">
+          <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 border-4 border-black overflow-hidden rounded-full w-32 h-32 md:w-40 md:h-40 shadow-2xl shadow-purple-900/50">
             {(currentUser.profilepic || "/images/default-profilepic.jpg") && (
               <img
-                className="rounded-full object-cover size-36"
-                width={128}
-                height={128}
+                className="rounded-full object-cover w-full h-full bg-black"
+                width={160}
+                height={160}
                 src={currentUser.profilepic || "/images/default-profilepic.jpg"}
                 alt="profileimg"
               />
@@ -234,151 +204,136 @@ const PaymentPage = ({ username }) => {
           </div>
         </div>
 
-        <div className="info flex justify-center items-center my-24 mb-32 flex-col gap-2 relative z-10">
-          <div className="font-bold text-2xl text-white tracking-wide">@{username}</div>
-          <div className="text-gray-400 text-lg">Lets help {username} get a chai!</div>
-          <div className="text-gray-400 text-lg">{payments.length} Payments · ₹{payments.reduce((a, b) => a + b.amount, 0)} raised</div>
+        <div className="info flex flex-col items-center mt-20 mb-8 gap-2 px-4 text-center">
+          <div className="font-bold text-3xl text-white tracking-tight flex items-center gap-2">
+            @{username}
+            {currentUser.verified && <span className="text-blue-500 text-xl" title="Verified">✓</span>}
+          </div>
+          <div className="text-gray-400 text-lg font-light">Lets help {username} get a chai!</div>
+          <div className="text-purple-400 font-medium bg-purple-900/20 px-4 py-1 rounded-full border border-purple-500/20">
+            {payments.length} Payments · ₹{payments.reduce((a, b) => a + b.amount, 0)} raised
+          </div>
+        </div>
 
-          <div className="payment flex gap-8 w-full max-w-5xl mt-11 flex-col md:flex-row">
-            <div className="supporters w-full md:w-1/2 bg-gray-900/80 rounded-2xl text-white px-2 md:p-10 shadow-xl border border-gray-800 backdrop-blur-md">
-              <h2 className="text-2xl font-bold my-5 text-gray-100">Top 10 Supporters</h2>
-              <ul className="mx-5 text-lg">
-                {payments.length == 0 && <li className="text-gray-500">No payments yet</li>}
+        <div className="max-w-6xl mx-auto px-4 pb-20">
+          <div className="flex flex-col md:flex-row gap-6">
+
+            {/* Supporters List */}
+            <div className="w-full md:w-1/2 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 hover:bg-white/10 transition-all duration-300">
+              <h2 className="text-2xl font-bold mb-6 text-white flex items-center gap-2">
+                <span>🏆</span> Top Supporters
+              </h2>
+              <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+                {payments.length === 0 && (
+                  <div className="text-center py-10 text-gray-500 italic bg-black/20 rounded-xl border border-white/5">
+                    No payments yet. Be the first to support!
+                  </div>
+                )}
                 {payments.map((p, i) => (
-                  <li key={i} className="my-4 flex gap-3 items-center">
-                    <img width={40} className="rounded-full grayscale border border-gray-700" src="avatar.gif" alt="user avatar" />
-                    <span className="text-gray-200">
-                      {p.name} donated <span className="font-bold text-gray-100">₹{p.amount}</span> with a message &quot;{p.message}&quot;
-                    </span>
-                  </li>
+                  <div key={i} className="flex gap-4 items-start p-4 rounded-xl bg-black/20 border border-white/5 hover:border-purple-500/30 transition-all">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-600 to-blue-600 flex items-center justify-center text-white font-bold flex-shrink-0">
+                      {p.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start">
+                        <span className="font-semibold text-white truncate">{p.name || 'Anonymous'}</span>
+                        <span className="font-bold text-green-400 whitespace-nowrap">₹{p.amount}</span>
+                      </div>
+                      <p className="text-gray-400 text-sm mt-1 leading-relaxed break-words">
+                        &quot;{p.message}&quot;
+                      </p>
+                    </div>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
 
-            <div className="makePayment w-full md:w-1/2 bg-gray-900/80 rounded-2xl text-white px-2 md:p-10 shadow-xl border border-gray-800 backdrop-blur-md">
-              <h2 className="text-2xl font-bold my-5 text-gray-100">Make a Payment</h2>
+            {/* Make Payment Form */}
+            <div className="w-full md:w-1/2 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 sticky top-24 h-fit hover:bg-white/10 transition-all duration-300">
+              <h2 className="text-2xl font-bold mb-6 text-white flex items-center gap-2">
+                <span>⚡</span> Make a Payment
+              </h2>
               <div className="flex gap-4 flex-col">
-                <input onChange={handleChange} value={paymentform.name} name="name" type="text" className="w-full p-3 rounded-lg bg-gray-800 text-gray-100 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600" placeholder="Enter Name" />
-                <input onChange={handleChange} value={paymentform.message} name="message" type="text" className="w-full p-3 rounded-lg bg-gray-800 text-gray-100 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600" placeholder="Enter Message" />
-                <input onChange={handleChange} value={paymentform.amount} name="amount" type="number" min="1" className="w-full p-3 rounded-lg bg-gray-800 text-gray-100 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600" placeholder="Enter Amount (₹)" />
-                <button onClick={() => {
-                  const amount = Number.parseInt(paymentform.amount);
-                  if (!paymentform.amount || isNaN(amount) || amount < 1) {
-                    toast.error('Please enter a valid amount (minimum ₹1)', {
-                      position: "top-right",
-                      autoClose: 3000,
-                      hideProgressBar: false,
-                      closeOnClick: true,
-                      pauseOnHover: true,
-                      draggable: true,
-                      theme: "dark",
-                      transition: Bounce,
-                    });
-                    return;
-                  }
-                  pay(amount * 100);
-                }} type="button" className="text-gray-100 bg-gray-800 hover:bg-gray-700 focus:ring-2 focus:outline-none focus:ring-gray-600 font-medium rounded-lg text-base px-5 py-2.5 text-center mb-2 border border-gray-700 transition-all duration-150 disabled:bg-slate-600 disabled:from-purple-100" disabled={paymentform.name?.length < 3 || paymentform.message?.length < 4 || paymentform.amount?.length < 1}>Pay</button>
-              </div>
-              <div className="flex flex-col md:flex-row gap-3 mt-5">
-                <button className="bg-gray-800 text-gray-100 p-3 rounded-lg border border-gray-700 hover:bg-gray-700 transition" onClick={() => {
-                  if (!paymentform.name || paymentform.name.trim().length < 1) {
-                    toast.error('Please fill your name before making a payment!', {
-                      position: "top-right",
-                      autoClose: 3000,
-                      hideProgressBar: false,
-                      closeOnClick: true,
-                      pauseOnHover: true,
-                      draggable: true,
-                      progress: undefined,
-                      theme: "dark",
-                      transition: Bounce,
-                    });
-                    return;
-                  }
-                  if (!paymentform.message || paymentform.message.trim().length < 1) {
-                    toast.error('Please fill your message before making a payment!', {
-                      position: "top-right",
-                      autoClose: 3000,
-                      hideProgressBar: false,
-                      closeOnClick: true,
-                      pauseOnHover: true,
-                      draggable: true,
-                      progress: undefined,
-                      theme: "dark",
-                      transition: Bounce,
-                    });
-                    return;
-                  }
-                  pay(1000);
-                }}>Pay ₹10</button>
-                <button className="bg-gray-800 text-gray-100 p-3 rounded-lg border border-gray-700 hover:bg-gray-700 transition" onClick={() => {
-                  if (!paymentform.name || paymentform.name.trim().length < 1) {
-                    toast.error('Please fill your name before making a payment!', {
-                      position: "top-right",
-                      autoClose: 3000,
-                      hideProgressBar: false,
-                      closeOnClick: true,
-                      pauseOnHover: true,
-                      draggable: true,
-                      progress: undefined,
-                      theme: "dark",
-                      transition: Bounce,
-                    });
-                    return;
-                  }
-                  if (!paymentform.message || paymentform.message.trim().length < 1) {
-                    toast.error('Please fill your message before making a payment!', {
-                      position: "top-right",
-                      autoClose: 3000,
-                      hideProgressBar: false,
-                      closeOnClick: true,
-                      pauseOnHover: true,
-                      draggable: true,
-                      progress: undefined,
-                      theme: "dark",
-                      transition: Bounce,
-                    });
-                    return;
-                  }
-                  pay(2000);
-                }}>Pay ₹20</button>
-                <button className="bg-gray-800 text-gray-100 p-3 rounded-lg border border-gray-700 hover:bg-gray-700 transition" onClick={() => {
-                  if (!paymentform.name || paymentform.name.trim().length < 1) {
-                    toast.error('Please fill your name before making a payment!', {
-                      position: "top-right",
-                      autoClose: 3000,
-                      hideProgressBar: false,
-                      closeOnClick: true,
-                      pauseOnHover: true,
-                      draggable: true,
-                      progress: undefined,
-                      theme: "dark",
-                      transition: Bounce,
-                    });
-                    return;
-                  }
-                  if (!paymentform.message || paymentform.message.trim().length < 1) {
-                    toast.error('Please fill your message before making a payment!', {
-                      position: "top-right",
-                      autoClose: 3000,
-                      hideProgressBar: false,
-                      closeOnClick: true,
-                      pauseOnHover: true,
-                      draggable: true,
-                      progress: undefined,
-                      theme: "dark",
-                      transition: Bounce,
-                    });
-                    return;
-                  }
-                  pay(3000);
-                }}>Pay ₹30</button>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 uppercase mb-1 ml-1">Name</label>
+                  <input
+                    onChange={handleChange}
+                    value={paymentform.name}
+                    name="name"
+                    type="text"
+                    className="w-full p-4 rounded-xl bg-black/40 text-white border border-white/10 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all placeholder-gray-600"
+                    placeholder="Enter your name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 uppercase mb-1 ml-1">Message</label>
+                  <input
+                    onChange={handleChange}
+                    value={paymentform.message}
+                    name="message"
+                    type="text"
+                    className="w-full p-4 rounded-xl bg-black/40 text-white border border-white/10 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all placeholder-gray-600"
+                    placeholder="Say something nice..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 uppercase mb-1 ml-1">Amount</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">₹</span>
+                    <input
+                      onChange={handleChange}
+                      value={paymentform.amount}
+                      name="amount"
+                      type="number"
+                      min="1"
+                      className="w-full p-4 pl-8 rounded-xl bg-black/40 text-white border border-white/10 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all placeholder-gray-600"
+                      placeholder="Enter Amount"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3 my-2">
+                  {[100, 500, 1000].map((amt) => (
+                    <button
+                      key={amt}
+                      type="button" // Prevent form submission if in form
+                      className="py-2 px-3 bg-white/5 hover:bg-purple-600/20 text-gray-300 hover:text-purple-300 border border-white/10 hover:border-purple-500/50 rounded-lg text-sm transition-all"
+                      onClick={() => {
+                        setPaymentform({ ...paymentform, amount: amt })
+                        pay(amt * 100);
+                      }}
+                    >
+                      Pay ₹{amt}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => {
+                    const amount = Number.parseInt(paymentform.amount);
+                    if (!paymentform.amount || isNaN(amount) || amount < 1) {
+                      toast.error('Please enter a valid amount (minimum ₹1)', {
+                        position: "top-right",
+                        autoClose: 3000,
+                        theme: "dark",
+                        transition: Bounce,
+                      });
+                      return;
+                    }
+                    pay(amount * 100);
+                  }}
+                  type="button"
+                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold rounded-xl text-lg px-5 py-4 text-center mt-2 shadow-lg shadow-purple-900/20 hover:shadow-purple-900/40 transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={paymentform.name?.length < 3 || paymentform.message?.length < 3 || !paymentform.amount}
+                >
+                  Pay Now
+                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   )
 }
 

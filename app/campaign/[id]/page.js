@@ -1,5 +1,6 @@
 // app/campaign/[id]/page.js
 import { notFound } from 'next/navigation';
+import mongoose from 'mongoose';
 import connectDb from '@/db/connectDb';
 import Campaign from '@/models/Campaign';
 import User from '@/models/User';
@@ -13,6 +14,11 @@ import CampaignProfile from '@/components/campaign/profile/CampaignProfile';
  */
 export default async function CampaignPage({ params }) {
     const { id } = await params;
+
+    // Validate that the ID is a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        notFound();
+    }
 
     try {
         await connectDb();
@@ -75,6 +81,13 @@ export default async function CampaignPage({ params }) {
  */
 export async function generateMetadata({ params }) {
     const { id } = await params;
+
+    // Validate ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return {
+            title: 'Campaign Not Found | Get Me A Chai',
+        };
+    }
 
     try {
         await connectDb();

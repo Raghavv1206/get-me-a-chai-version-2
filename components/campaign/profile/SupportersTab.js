@@ -26,7 +26,7 @@ export default function SupportersTab({ campaignId }) {
         if (page === 1) {
           setTopSupporters(data.topSupporters || []);
         }
-        setSupport(prev => page === 1 ? data.supporters : [...prev, ...data.supporters]);
+        setSupporters(prev => page === 1 ? data.supporters : [...prev, ...data.supporters]);
         setHasMore(data.hasMore);
         setTotalCount(data.total);
       }
@@ -58,61 +58,77 @@ export default function SupportersTab({ campaignId }) {
 
   if (loading && page === 1) {
     return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Loading supporters...</p>
+      <div className="text-center py-12">
+        <div className="w-12 h-12 border-4 border-gray-700 border-t-purple-500 rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-gray-400">Loading supporters...</p>
       </div>
     );
   }
 
   return (
-    <div className="supporters-tab">
+    <div className="space-y-6">
       {/* Total Count */}
-      <div className="supporters-header">
-        <h3 className="supporters-count">
-          <FaHeart className="count-icon" />
+      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+        <h3 className="text-2xl font-bold text-white flex items-center gap-3">
+          <FaHeart className="text-red-400" />
           {totalCount} {totalCount === 1 ? 'Supporter' : 'Supporters'}
         </h3>
       </div>
 
       {/* Top Supporters Leaderboard */}
       {topSupporters.length > 0 && (
-        <div className="top-supporters-section">
-          <h3 className="section-title">
-            <FaTrophy className="title-icon" />
+        <div>
+          <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+            <FaTrophy className="text-yellow-400" />
             Top Supporters
           </h3>
 
-          <div className="leaderboard">
+          <div className="space-y-4">
             {topSupporters.map((supporter, index) => (
-              <div key={supporter._id} className={`leaderboard-item rank-${index + 1}`}>
-                <div className="rank-badge">
+              <div
+                key={supporter._id}
+                className={`flex items-center gap-4 p-5 rounded-2xl border-2 transition-all duration-300 hover:scale-[1.02] ${index === 0
+                    ? 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-yellow-500/30'
+                    : index === 1
+                      ? 'bg-gradient-to-r from-gray-500/20 to-gray-400/20 border-gray-400/30'
+                      : index === 2
+                        ? 'bg-gradient-to-r from-orange-500/20 to-red-500/20 border-orange-500/30'
+                        : 'bg-white/5 border-white/10'
+                  }`}
+              >
+                {/* Rank Badge */}
+                <div className="text-3xl min-w-[50px] text-center">
                   {index === 0 && '🥇'}
                   {index === 1 && '🥈'}
                   {index === 2 && '🥉'}
-                  {index > 2 && `#${index + 1}`}
+                  {index > 2 && <span className="text-gray-400 font-bold">#{index + 1}</span>}
                 </div>
 
-                <div className="supporter-avatar">
+                {/* Avatar */}
+                <div className="relative w-14 h-14 rounded-full overflow-hidden flex-shrink-0 bg-gray-700 border-2 border-white/20">
                   <Image
                     src={supporter.anonymous ? '/images/anonymous-avatar.png' : (supporter.profilePic || '/images/default-profilepic.jpg')}
                     alt={supporter.name}
                     fill
-                    className="avatar-image"
-                    sizes="60px"
+                    className="object-cover"
+                    sizes="56px"
                   />
                 </div>
 
-                <div className="supporter-info">
-                  <div className="supporter-name">
+                {/* Info */}
+                <div className="flex-1">
+                  <div className="font-semibold text-white">
                     {supporter.anonymous ? 'Anonymous Supporter' : supporter.name}
                   </div>
                   {supporter.message && !supporter.anonymous && (
-                    <div className="supporter-message">{supporter.message}</div>
+                    <div className="text-sm text-gray-400 italic mt-1">
+                      "{supporter.message}"
+                    </div>
                   )}
                 </div>
 
-                <div className="supporter-amount">
+                {/* Amount */}
+                <div className="text-xl font-bold text-green-400">
                   {formatAmount(supporter.totalAmount, supporter.hideAmount)}
                 </div>
               </div>
@@ -122,46 +138,51 @@ export default function SupportersTab({ campaignId }) {
       )}
 
       {/* Recent Supporters */}
-      <div className="recent-supporters-section">
-        <h3 className="section-title">Recent Supporters</h3>
+      <div>
+        <h3 className="text-xl font-bold text-white mb-4">Recent Supporters</h3>
 
         {supporters.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">💝</div>
-            <p>No supporters yet. Be the first to support this campaign!</p>
+          <div className="text-center py-16 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl">
+            <div className="text-6xl mb-4">💝</div>
+            <p className="text-gray-400">No supporters yet. Be the first to support this campaign!</p>
           </div>
         ) : (
-          <div className="supporters-list">
+          <div className="space-y-4">
             {supporters.map((supporter) => (
-              <div key={supporter._id} className="supporter-card">
-                <div className="supporter-avatar-small">
+              <div
+                key={supporter._id}
+                className="flex gap-4 p-5 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl hover:bg-white/10 transition-all"
+              >
+                {/* Avatar */}
+                <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-gray-700">
                   <Image
                     src={supporter.anonymous ? '/images/anonymous-avatar.png' : (supporter.profilePic || '/images/default-profilepic.jpg')}
                     alt={supporter.name}
                     fill
-                    className="avatar-image"
-                    sizes="50px"
+                    className="object-cover"
+                    sizes="48px"
                   />
                 </div>
 
-                <div className="supporter-details">
-                  <div className="supporter-header">
-                    <span className="supporter-name">
+                {/* Details */}
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-semibold text-white">
                       {supporter.anonymous ? 'Anonymous Supporter' : supporter.name}
                     </span>
-                    <span className="support-amount">
+                    <span className="font-bold text-green-400">
                       {formatAmount(supporter.amount, supporter.hideAmount)}
                     </span>
                   </div>
 
                   {supporter.message && (
-                    <div className="support-message">
+                    <div className="text-gray-300 text-sm mb-2 italic">
                       "{supporter.message}"
                     </div>
                   )}
 
-                  <div className="support-time">
-                    <FaClock className="time-icon" />
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <FaClock className="w-3 h-3" />
                     {formatTimeAgo(supporter.createdAt)}
                   </div>
                 </div>
@@ -170,9 +191,10 @@ export default function SupportersTab({ campaignId }) {
           </div>
         )}
 
+        {/* Load More */}
         {hasMore && (
           <button
-            className="load-more-btn"
+            className="w-full mt-4 py-4 bg-white/5 border border-white/10 rounded-xl text-purple-400 font-semibold hover:bg-white/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => setPage(prev => prev + 1)}
             disabled={loading}
           >
@@ -180,289 +202,6 @@ export default function SupportersTab({ campaignId }) {
           </button>
         )}
       </div>
-
-      <style jsx>{`
-        .supporters-tab {
-          max-width: 800px;
-          margin: 0 auto;
-        }
-
-        .loading-container {
-          text-align: center;
-          padding: 60px 20px;
-        }
-
-        .loading-spinner {
-          width: 50px;
-          height: 50px;
-          border: 4px solid #f3f4f6;
-          border-top-color: #667eea;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-          margin: 0 auto 20px;
-        }
-
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        .supporters-header {
-          background: white;
-          border-radius: 16px;
-          padding: 24px;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-          margin-bottom: 30px;
-        }
-
-        .supporters-count {
-          font-size: 1.5rem;
-          font-weight: 700;
-          color: #111827;
-          margin: 0;
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .count-icon {
-          color: #ef4444;
-          font-size: 1.4rem;
-        }
-
-        .top-supporters-section,
-        .recent-supporters-section {
-          background: white;
-          border-radius: 16px;
-          padding: 30px;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-          margin-bottom: 30px;
-        }
-
-        .section-title {
-          font-size: 1.25rem;
-          font-weight: 700;
-          color: #111827;
-          margin: 0 0 24px 0;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-
-        .title-icon {
-          color: #f59e0b;
-        }
-
-        .leaderboard {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-        }
-
-        .leaderboard-item {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          padding: 20px;
-          border-radius: 12px;
-          transition: all 0.3s ease;
-        }
-
-        .leaderboard-item.rank-1 {
-          background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-          border: 2px solid #fbbf24;
-        }
-
-        .leaderboard-item.rank-2 {
-          background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-          border: 2px solid #d1d5db;
-        }
-
-        .leaderboard-item.rank-3 {
-          background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-          border: 2px solid #fca5a5;
-        }
-
-        .leaderboard-item:not(.rank-1):not(.rank-2):not(.rank-3) {
-          background: white;
-          border: 2px solid #e5e7eb;
-        }
-
-        .leaderboard-item:hover {
-          transform: translateX(8px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .rank-badge {
-          font-size: 1.5rem;
-          font-weight: 700;
-          min-width: 40px;
-          text-align: center;
-        }
-
-        .supporter-avatar,
-        .supporter-avatar-small {
-          position: relative;
-          border-radius: 50%;
-          overflow: hidden;
-          flex-shrink: 0;
-          background: #f3f4f6;
-        }
-
-        .supporter-avatar {
-          width: 60px;
-          height: 60px;
-        }
-
-        .supporter-avatar-small {
-          width: 50px;
-          height: 50px;
-        }
-
-        .avatar-image {
-          object-fit: cover;
-        }
-
-        .supporter-info {
-          flex: 1;
-        }
-
-        .supporter-name {
-          font-size: 1.05rem;
-          font-weight: 600;
-          color: #111827;
-        }
-
-        .supporter-message {
-          font-size: 0.9rem;
-          color: #6b7280;
-          margin-top: 4px;
-          font-style: italic;
-        }
-
-        .supporter-amount {
-          font-size: 1.25rem;
-          font-weight: 700;
-          color: #10b981;
-        }
-
-        .supporters-list {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-        }
-
-        .supporter-card {
-          display: flex;
-          gap: 16px;
-          padding: 20px;
-          background: white;
-          border: 2px solid #e5e7eb;
-          border-radius: 12px;
-          transition: all 0.3s ease;
-        }
-
-        .supporter-card:hover {
-          border-color: #d1d5db;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        }
-
-        .supporter-details {
-          flex: 1;
-        }
-
-        .supporter-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 8px;
-        }
-
-        .support-amount {
-          font-weight: 700;
-          color: #10b981;
-        }
-
-        .support-message {
-          color: #4b5563;
-          font-size: 0.95rem;
-          line-height: 1.5;
-          margin-bottom: 8px;
-          font-style: italic;
-        }
-
-        .support-time {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          color: #9ca3af;
-          font-size: 0.85rem;
-        }
-
-        .time-icon {
-          font-size: 0.8rem;
-        }
-
-        .empty-state {
-          text-align: center;
-          padding: 60px 20px;
-        }
-
-        .empty-icon {
-          font-size: 4rem;
-          margin-bottom: 16px;
-        }
-
-        .empty-state p {
-          color: #6b7280;
-          font-size: 1rem;
-        }
-
-        .load-more-btn {
-          width: 100%;
-          padding: 14px;
-          margin-top: 20px;
-          background: white;
-          border: 2px solid #e5e7eb;
-          border-radius: 12px;
-          color: #667eea;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.3s ease;
-        }
-
-        .load-more-btn:hover:not(:disabled) {
-          background: #f9fafb;
-          border-color: #667eea;
-        }
-
-        .load-more-btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-
-        @media (max-width: 768px) {
-          .top-supporters-section,
-          .recent-supporters-section {
-            padding: 20px;
-          }
-
-          .leaderboard-item {
-            padding: 16px;
-          }
-
-          .supporter-card {
-            padding: 16px;
-          }
-
-          .supporter-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 4px;
-          }
-        }
-      `}</style>
     </div>
   );
 }

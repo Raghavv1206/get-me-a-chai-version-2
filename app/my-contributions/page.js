@@ -149,18 +149,22 @@ Thank you for your generous support!
 
     if (status === 'loading' || loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-950 dark:to-black">
-                <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
-                    <div className="animate-pulse space-y-8">
-                        <div className="h-12 w-64 bg-gray-200 dark:bg-gray-700 rounded" />
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                            {[...Array(4)].map((_, i) => (
-                                <div key={i} className="h-40 bg-gray-200 dark:bg-gray-700 rounded-2xl" />
-                            ))}
+            <div className="min-h-screen bg-black text-gray-100">
+                <div className="fixed top-20 right-0 w-[500px] h-[500px] bg-purple-900/10 blur-[100px] rounded-full pointer-events-none -z-10" />
+                <div className="fixed bottom-0 left-20 w-[400px] h-[400px] bg-blue-900/10 blur-[100px] rounded-full pointer-events-none -z-10" />
+                <main className="pt-24 px-4 md:px-8 pb-8 min-h-screen relative">
+                    <div className="max-w-7xl mx-auto space-y-6">
+                        <div className="animate-pulse space-y-8">
+                            <div className="h-12 w-64 bg-white/5 rounded" />
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                {[...Array(4)].map((_, i) => (
+                                    <div key={i} className="h-40 bg-white/5 rounded-2xl" />
+                                ))}
+                            </div>
+                            <div className="h-96 bg-white/5 rounded-2xl" />
                         </div>
-                        <div className="h-96 bg-gray-200 dark:bg-gray-700 rounded-2xl" />
                     </div>
-                </div>
+                </main>
             </div>
         );
     }
@@ -171,13 +175,15 @@ Thank you for your generous support!
 
     if (error) {
         return (
-            <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-950 dark:to-black">
-                <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
-                    <div className="max-w-2xl mx-auto bg-red-50 dark:bg-red-900/20 rounded-2xl p-8 border-2 border-red-200 dark:border-red-800 text-center">
-                        <h2 className="text-2xl font-bold text-red-900 dark:text-red-200 mb-4">
+            <div className="min-h-screen bg-black text-gray-100">
+                <div className="fixed top-20 right-0 w-[500px] h-[500px] bg-purple-900/10 blur-[100px] rounded-full pointer-events-none -z-10" />
+                <div className="fixed bottom-0 left-20 w-[400px] h-[400px] bg-blue-900/10 blur-[100px] rounded-full pointer-events-none -z-10" />
+                <main className="pt-24 px-4 md:px-8 pb-8 min-h-screen relative">
+                    <div className="max-w-2xl mx-auto bg-red-900/20 rounded-2xl p-8 border-2 border-red-900/50 text-center backdrop-blur-xl">
+                        <h2 className="text-2xl font-bold text-red-200 mb-4">
                             Error Loading Contributions
                         </h2>
-                        <p className="text-red-700 dark:text-red-300 mb-6">{error}</p>
+                        <p className="text-red-300 mb-6">{error}</p>
                         <button
                             onClick={handleRefresh}
                             className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
@@ -186,7 +192,7 @@ Thank you for your generous support!
                             Try Again
                         </button>
                     </div>
-                </div>
+                </main>
             </div>
         );
     }
@@ -196,16 +202,22 @@ Thank you for your generous support!
     // ========================================================================
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-950 dark:to-black">
-            <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
-                {/* Header */}
-                <div className="mb-8 sm:mb-12">
+        <div className="min-h-screen bg-black text-gray-100">
+            {/* Background Ambient Effects - Same as Dashboard */}
+            <div className="fixed top-20 right-0 w-[500px] h-[500px] bg-purple-900/10 blur-[100px] rounded-full pointer-events-none -z-10" />
+            <div className="fixed bottom-0 left-20 w-[400px] h-[400px] bg-blue-900/10 blur-[100px] rounded-full pointer-events-none -z-10" />
+
+            {/* Main Content */}
+            <main className="pt-24 px-4 md:px-8 pb-8 min-h-screen relative">
+                <div className="max-w-7xl mx-auto space-y-6">
+
+                    {/* Header */}
                     <div className="flex items-center justify-between">
                         <div>
-                            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">
+                            <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-2">
                                 💝 My Contributions
                             </h1>
-                            <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400">
+                            <p className="text-gray-400">
                                 Track your impact and support history
                             </p>
                         </div>
@@ -213,69 +225,71 @@ Thank you for your generous support!
                         <button
                             onClick={handleRefresh}
                             disabled={refreshing}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-purple-300 dark:hover:border-purple-600 transition-colors disabled:opacity-50"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:border-white/20 transition-all disabled:opacity-50 text-gray-300 hover:text-white"
                         >
                             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
                             <span className="hidden sm:inline">Refresh</span>
                         </button>
                     </div>
-                </div>
 
-                {/* Summary Cards */}
-                <div className="mb-12">
-                    <ContributionsSummary
-                        summary={contributionsData?.summary}
-                        badges={badgesData?.badges}
-                        impactScore={badgesData?.impactScore || 0}
-                        loading={loading}
-                    />
-                </div>
-
-                {/* Badges */}
-                <div className="mb-12">
-                    <BadgesDisplay
-                        badges={badgesData?.badges}
-                        loading={loading}
-                    />
-                </div>
-
-                {/* Timeline */}
-                <div className="mb-12">
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-                        Contribution History
-                    </h2>
-                    <ContributionsTimeline
-                        groupedByMonth={contributionsData?.groupedByMonth}
-                        loading={loading}
-                        onDownloadReceipt={handleDownloadReceipt}
-                    />
-                </div>
-
-                {/* Impact Story */}
-                {contributionsData?.summary?.totalAmount > 0 && (
-                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-2xl p-8 border-2 border-purple-200 dark:border-purple-800">
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                            🌟 Your Impact
-                        </h2>
-                        <div className="prose dark:prose-invert max-w-none">
-                            <p className="text-gray-700 dark:text-gray-300 text-lg">
-                                You've contributed <strong>₹{contributionsData.summary.totalAmount.toLocaleString()}</strong> across{' '}
-                                <strong>{contributionsData.summary.campaignsSupported}</strong> campaign{contributionsData.summary.campaignsSupported !== 1 ? 's' : ''}.
-                                Your generosity has helped creators bring their ideas to life and make a real difference in the community.
-                            </p>
-                            {badgesData?.badges?.length > 0 && (
-                                <p className="text-gray-700 dark:text-gray-300">
-                                    You've earned <strong>{badgesData.badges.length}</strong> achievement badge{badgesData.badges.length !== 1 ? 's' : ''} and
-                                    have an impact score of <strong>{badgesData.impactScore.toLocaleString()}</strong> points!
-                                </p>
-                            )}
-                            <p className="text-gray-600 dark:text-gray-400">
-                                Thank you for being an amazing supporter! Every contribution, no matter the size, makes a meaningful impact.
-                            </p>
-                        </div>
+                    {/* Summary Cards */}
+                    <div className="mb-12">
+                        <ContributionsSummary
+                            summary={contributionsData?.summary}
+                            badges={badgesData?.badges}
+                            impactScore={badgesData?.impactScore || 0}
+                            loading={loading}
+                        />
                     </div>
-                )}
-            </div>
+
+                    {/* Badges */}
+                    <div className="mb-12">
+                        <BadgesDisplay
+                            badges={badgesData?.badges}
+                            loading={loading}
+                        />
+                    </div>
+
+                    {/* Timeline */}
+                    <div className="mb-12">
+                        <h2 className="text-2xl font-bold text-white mb-6">
+                            Contribution History
+                        </h2>
+                        <ContributionsTimeline
+                            groupedByMonth={contributionsData?.groupedByMonth}
+                            loading={loading}
+                            onDownloadReceipt={handleDownloadReceipt}
+                        />
+                    </div>
+
+                    {/* Impact Story */}
+                    {contributionsData?.summary?.totalAmount > 0 && (
+                        <div className="bg-gradient-to-br from-purple-900/20 to-blue-900/20 rounded-2xl p-8 border border-white/10 backdrop-blur-xl">
+                            <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                                <span>🌟</span>
+                                <span>Your Impact</span>
+                            </h2>
+                            <div className="prose prose-invert max-w-none">
+                                <p className="text-gray-300 text-lg leading-relaxed">
+                                    You've contributed <strong className="text-purple-400">₹{contributionsData.summary.totalAmount.toLocaleString()}</strong> across{' '}
+                                    <strong className="text-purple-400">{contributionsData.summary.campaignsSupported}</strong> campaign{contributionsData.summary.campaignsSupported !== 1 ? 's' : ''}.
+                                    Your generosity has helped creators bring their ideas to life and make a real difference in the community.
+                                </p>
+                                {badgesData?.badges?.length > 0 && (
+                                    <p className="text-gray-300 leading-relaxed mt-4">
+                                        You've earned <strong className="text-blue-400">{badgesData.badges.length}</strong> achievement badge{badgesData.badges.length !== 1 ? 's' : ''} and
+                                        have an impact score of <strong className="text-blue-400">{badgesData.impactScore.toLocaleString()}</strong> points!
+                                    </p>
+                                )}
+                                <p className="text-gray-400 mt-4 italic">
+                                    Thank you for being an amazing supporter! Every contribution, no matter the size, makes a meaningful impact.
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
+                </div>
+            </main>
         </div>
     );
 }

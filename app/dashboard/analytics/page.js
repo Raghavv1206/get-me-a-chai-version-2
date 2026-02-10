@@ -30,78 +30,80 @@ export default async function AnalyticsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black pt-20 p-6">
-            {/* Header */}
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-white mb-2">Analytics Dashboard</h1>
-                <p className="text-gray-400">
-                    Track your campaign performance and get AI-powered insights
-                </p>
-            </div>
+        <div className="min-h-screen bg-black text-gray-100">
+            {/* Background Ambient Effects - Same as Dashboard */}
+            <div className="fixed top-20 right-0 w-[500px] h-[500px] bg-purple-900/10 blur-[100px] rounded-full pointer-events-none -z-10" />
+            <div className="fixed bottom-0 left-20 w-[400px] h-[400px] bg-blue-900/10 blur-[100px] rounded-full pointer-events-none -z-10" />
 
-            {/* Analytics Overview */}
-            <div className="mb-8">
-                <AnalyticsOverview />
-            </div>
+            {/* Main Content */}
+            <main className="pt-24 px-4 md:px-8 pb-8 min-h-screen relative">
+                <div className="max-w-7xl mx-auto space-y-6">
 
-            {/* AI Insights */}
-            <div className="mb-8">
-                <AIInsightsPanel />
-            </div>
+                    {/* Header */}
+                    <div>
+                        <h1 className="text-3xl font-bold text-white tracking-tight">Analytics</h1>
+                        <p className="text-gray-400 mt-1">
+                            Track your campaign performance and get AI-powered insights
+                        </p>
+                    </div>
 
-            {/* Charts Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                {/* Visitor Chart */}
-                <div className="lg:col-span-2">
-                    <VisitorChart />
+                    {/* Analytics Overview */}
+                    <AnalyticsOverview />
+
+                    {/* AI Insights */}
+                    <AIInsightsPanel />
+
+                    {/* Charts Grid */}
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
+                        {/* Visitor Chart - Full Width */}
+                        <div className="xl:col-span-2">
+                            <VisitorChart />
+                        </div>
+
+                        {/* Traffic Sources */}
+                        <TrafficSources />
+
+                        {/* Device Breakdown */}
+                        <DeviceBreakdown />
+
+                        {/* Conversion Funnel */}
+                        <ConversionFunnel />
+
+                        {/* Revenue Chart */}
+                        <RevenueChart />
+                    </div>
+
+                    {/* Export Reports */}
+                    <ExportReports />
+
+                    {/* Help Text */}
+                    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+                        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                            <span>📊</span>
+                            <span>Understanding Your Analytics</span>
+                        </h3>
+                        <div className="text-gray-300 text-sm space-y-3">
+                            <div className="flex gap-3">
+                                <span className="font-semibold text-purple-400 min-w-[140px]">Visitors:</span>
+                                <span>Unique people who viewed your campaign page</span>
+                            </div>
+                            <div className="flex gap-3">
+                                <span className="font-semibold text-purple-400 min-w-[140px]">Conversion Rate:</span>
+                                <span>Percentage of visitors who made a donation</span>
+                            </div>
+                            <div className="flex gap-3">
+                                <span className="font-semibold text-purple-400 min-w-[140px]">Traffic Sources:</span>
+                                <span>Where your visitors are coming from (social media, search, direct, etc.)</span>
+                            </div>
+                            <div className="flex gap-3">
+                                <span className="font-semibold text-purple-400 min-w-[140px]">AI Insights:</span>
+                                <span>Personalized recommendations to improve your campaign performance</span>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
-
-                {/* Traffic Sources */}
-                <div>
-                    <TrafficSources />
-                </div>
-
-                {/* Device Breakdown */}
-                <div>
-                    <DeviceBreakdown />
-                </div>
-
-                {/* Conversion Funnel */}
-                <div>
-                    <ConversionFunnel />
-                </div>
-
-                {/* Revenue Chart */}
-                <div>
-                    <RevenueChart />
-                </div>
-            </div>
-
-            {/* Export Reports */}
-            <div className="mb-8">
-                <ExportReports />
-            </div>
-
-            {/* Help Text */}
-            <div className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 rounded-xl p-6 border border-blue-500/20">
-                <h3 className="text-lg font-semibold text-white mb-2">
-                    📊 Understanding Your Analytics
-                </h3>
-                <div className="text-gray-300 text-sm space-y-2">
-                    <p>
-                        <strong>Visitors:</strong> Unique people who viewed your campaign page
-                    </p>
-                    <p>
-                        <strong>Conversion Rate:</strong> Percentage of visitors who made a donation
-                    </p>
-                    <p>
-                        <strong>Traffic Sources:</strong> Where your visitors are coming from (social media, search, direct, etc.)
-                    </p>
-                    <p>
-                        <strong>AI Insights:</strong> Personalized recommendations to improve your campaign performance
-                    </p>
-                </div>
-            </div>
+            </main>
         </div>
     );
 }

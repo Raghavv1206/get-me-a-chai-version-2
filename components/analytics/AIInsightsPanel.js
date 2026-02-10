@@ -42,77 +42,93 @@ export default function AIInsightsPanel({ campaignId }) {
     }
   };
 
-  const getInsightColor = (priority) => {
+  const getInsightStyles = (priority) => {
     switch (priority) {
       case 'high':
-        return { bg: '#1e1b1b', color: '#ef4444', border: '#7f1d1d' };
+        return 'bg-rose-500/10 border-rose-500/20 hover:bg-rose-500/20 text-rose-400';
       case 'medium':
-        return { bg: '#1e1a13', color: '#f59e0b', border: '#78350f' };
+        return 'bg-amber-500/10 border-amber-500/20 hover:bg-amber-500/20 text-amber-400';
       default:
-        return { bg: '#172554', color: '#3b82f6', border: '#1e3a8a' };
+        return 'bg-blue-500/10 border-blue-500/20 hover:bg-blue-500/20 text-blue-400';
     }
   };
 
   return (
-    <div className="ai-insights-panel">
-      <div className="panel-header">
-        <div className="header-left">
-          <FaLightbulb className="header-icon" />
+    <div className="bg-gradient-to-br from-purple-900/10 to-blue-900/10 backdrop-blur-xl border border-white/10 rounded-2xl p-6 lg:p-8 relative overflow-hidden group">
+      {/* Decorative gradient blob */}
+      <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 blur-[80px] rounded-full pointer-events-none -z-10 group-hover:bg-purple-500/20 transition-all duration-700" />
+
+      <div className="flex justify-between items-start mb-6">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center shadow-lg shadow-purple-900/30">
+            <FaLightbulb className="text-white text-xl" />
+          </div>
           <div>
-            <h3 className="panel-title">AI Insights</h3>
-            <p className="panel-subtitle">
+            <h3 className="text-xl font-bold text-white flex items-center gap-2">
+              AI Insights
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 text-white">BETA</span>
+            </h3>
+            <p className="text-sm text-gray-400 flex items-center gap-1">
               {lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString()}` : 'Powered by AI'}
             </p>
           </div>
         </div>
+
         <button
-          className="refresh-btn"
+          className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all active:scale-95"
           onClick={fetchInsights}
           disabled={loading}
+          title="Refresh Insights"
         >
-          <FaSync className={loading ? 'spinning' : ''} />
+          <FaSync className={loading ? 'animate-spin' : ''} />
         </button>
       </div>
 
       {loading ? (
-        <div className="loading-state">
-          <div className="loading-spinner"></div>
-          <p>Generating insights...</p>
+        <div className="py-12 flex flex-col items-center justify-center bg-black/20 rounded-xl border border-white/5 animate-pulse">
+          <div className="w-12 h-12 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mb-4"></div>
+          <p className="text-gray-400 font-medium">Analyzing campaign data...</p>
         </div>
       ) : insights.length === 0 ? (
-        <div className="empty-state">
-          <FaLightbulb className="empty-icon" />
-          <p>No insights available yet. Check back later!</p>
+        <div className="py-12 flex flex-col items-center justify-center bg-black/20 rounded-xl border border-white/5 text-center px-4">
+          <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4 text-gray-500">
+            <FaLightbulb className="text-2xl" />
+          </div>
+          <p className="text-gray-300 font-medium text-lg mb-1">No insights available yet</p>
+          <p className="text-gray-500 text-sm">Our AI needs more data to generate recommendations. Check back later!</p>
         </div>
       ) : (
-        <div className="insights-list">
+        <div className="grid gap-4">
           {insights.map((insight, index) => {
             const Icon = getInsightIcon(insight.type);
-            const colors = getInsightColor(insight.priority);
+            const styleClass = getInsightStyles(insight.priority);
 
             return (
               <div
                 key={index}
-                className="insight-card"
-                style={{
-                  backgroundColor: colors.bg,
-                  borderColor: colors.border
-                }}
+                className={`flex gap-4 p-5 rounded-xl border transition-all duration-300 ${styleClass}`}
               >
-                <div
-                  className="insight-icon"
-                  style={{ color: colors.color }}
-                >
-                  <Icon />
+                <div className="shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-black/20 flex items-center justify-center text-current border border-white/5">
+                    <Icon className="text-lg" />
+                  </div>
                 </div>
 
-                <div className="insight-content">
-                  <h4 className="insight-title">{insight.title}</h4>
-                  <p className="insight-message">{insight.message}</p>
+                <div className="flex-1">
+                  <h4 className="font-bold text-white mb-1.5 flex items-center gap-2">
+                    {insight.title}
+                    {insight.priority === 'high' && (
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-rose-500 text-white">High Priority</span>
+                    )}
+                  </h4>
+                  <p className="text-gray-300 text-sm leading-relaxed mb-3">
+                    {insight.message}
+                  </p>
 
                   {insight.action && (
-                    <button className="insight-action">
-                      {insight.action}
+                    <button className="text-xs font-bold uppercase tracking-wider px-4 py-2 bg-black/20 hover:bg-black/40 border border-white/10 rounded-lg transition-colors flex items-center gap-2">
+                      <span>Take Action</span>
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                     </button>
                   )}
                 </div>
@@ -121,183 +137,6 @@ export default function AIInsightsPanel({ campaignId }) {
           })}
         </div>
       )}
-
-      <style jsx>{`
-        .ai-insights-panel {
-          background: #1e293b;
-          border: 2px solid #334155;
-          border-radius: 16px;
-          padding: 24px;
-          margin-bottom: 30px;
-        }
-
-        .panel-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 24px;
-        }
-
-        .header-left {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .header-icon {
-          font-size: 1.5rem;
-          color: #f59e0b;
-        }
-
-        .panel-title {
-          font-size: 1.25rem;
-          font-weight: 700;
-          color: #f1f5f9;
-          margin: 0;
-        }
-
-        .panel-subtitle {
-          font-size: 0.85rem;
-          color: #94a3b8;
-          margin: 4px 0 0 0;
-        }
-
-        .refresh-btn {
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          background: #0f172a;
-          border: 2px solid #334155;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          color: #94a3b8;
-        }
-
-        .refresh-btn:hover:not(:disabled) {
-          background: #1e293b;
-          border-color: #667eea;
-          color: #667eea;
-        }
-
-        .refresh-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .spinning {
-          animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        .loading-state,
-        .empty-state {
-          text-align: center;
-          padding: 40px 20px;
-        }
-
-        .loading-spinner {
-          width: 40px;
-          height: 40px;
-          border: 4px solid #334155;
-          border-top-color: #667eea;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-          margin: 0 auto 16px;
-        }
-
-        .loading-state p,
-        .empty-state p {
-          color: #94a3b8;
-          margin: 0;
-        }
-
-        .empty-icon {
-          font-size: 3rem;
-          color: #475569;
-          margin-bottom: 16px;
-        }
-
-        .insights-list {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-        }
-
-        .insight-card {
-          display: flex;
-          gap: 16px;
-          padding: 20px;
-          border: 2px solid;
-          border-radius: 12px;
-          transition: all 0.3s ease;
-        }
-
-        .insight-card:hover {
-          transform: translateX(4px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-        }
-
-        .insight-icon {
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          background: #0f172a;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 1.25rem;
-          flex-shrink: 0;
-        }
-
-        .insight-content {
-          flex: 1;
-        }
-
-        .insight-title {
-          font-size: 1rem;
-          font-weight: 700;
-          color: #f1f5f9;
-          margin: 0 0 8px 0;
-        }
-
-        .insight-message {
-          font-size: 0.95rem;
-          color: #e2e8f0;
-          line-height: 1.6;
-          margin: 0 0 12px 0;
-        }
-
-        .insight-action {
-          padding: 8px 16px;
-          background: #0f172a;
-          border: 2px solid #334155;
-          border-radius: 8px;
-          font-size: 0.85rem;
-          font-weight: 600;
-          color: #667eea;
-          cursor: pointer;
-          transition: all 0.3s ease;
-        }
-
-        .insight-action:hover {
-          background: #1e293b;
-          border-color: #667eea;
-        }
-
-        @media (max-width: 768px) {
-          .insight-card {
-            flex-direction: column;
-          }
-        }
-      `}</style>
     </div>
   );
 }

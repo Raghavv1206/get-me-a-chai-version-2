@@ -6,457 +6,274 @@ import { FaEllipsisV, FaEdit, FaEye, FaPause, FaPlay, FaChartLine, FaTrash, FaCo
 import DeleteConfirmationModal from './DeleteConfirmationModal';
 
 export default function CampaignListCard({ campaign, viewMode = 'grid', onUpdate, onDelete }) {
-    const [showMenu, setShowMenu] = useState(false);
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [isProcessing, setIsProcessing] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'active':
-                return '#10b981';
-            case 'paused':
-                return '#f59e0b';
-            case 'completed':
-                return '#3b82f6';
-            case 'draft':
-                return '#6b7280';
-            default:
-                return '#6b7280';
-        }
-    };
+  const getStatusStyles = (status) => {
+    switch (status) {
+      case 'active':
+        return 'bg-green-500/20 text-green-400 border-green-500/30';
+      case 'paused':
+        return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+      case 'completed':
+        return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+      case 'draft':
+        return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+      default:
+        return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+    }
+  };
 
-    const getStatusLabel = (status) => {
-        return status.charAt(0).toUpperCase() + status.slice(1);
-    };
+  const getStatusLabel = (status) => {
+    return status.charAt(0).toUpperCase() + status.slice(1);
+  };
 
-    const calculateProgress = () => {
-        if (!campaign.goalAmount) return 0;
-        return Math.min(((campaign.currentAmount || 0) / campaign.goalAmount) * 100, 100);
-    };
+  const calculateProgress = () => {
+    if (!campaign.goalAmount) return 0;
+    return Math.min(((campaign.currentAmount || 0) / campaign.goalAmount) * 100, 100);
+  };
 
-    const handleAction = async (action) => {
-        setShowMenu(false);
-        setIsProcessing(true);
+  const handleAction = async (action) => {
+    setShowMenu(false);
+    setIsProcessing(true);
 
-        try {
-            switch (action) {
-                case 'edit':
-                    window.location.href = `/dashboard/campaigns/${campaign._id}/edit`;
-                    break;
+    try {
+      switch (action) {
+        case 'edit':
+          window.location.href = `/dashboard/campaigns/${campaign._id}/edit`;
+          break;
 
-                case 'view':
-                    window.location.href = `/${campaign.creator?.username || 'campaign'}`;
-                    break;
+        case 'view':
+          window.location.href = `/${campaign.creator?.username || 'campaign'}`;
+          break;
 
-                case 'pause':
-                case 'resume':
-                    const newStatus = action === 'pause' ? 'paused' : 'active';
-                    const response = await fetch(`/api/campaigns/${campaign._id}/status`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ status: newStatus })
-                    });
+        case 'pause':
+        case 'resume':
+          const newStatus = action === 'pause' ? 'paused' : 'active';
+          const response = await fetch(`/api/campaigns/${campaign._id}/status`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus })
+          });
 
-                    if (response.ok) {
-                        const data = await response.json();
-                        onUpdate({ ...campaign, status: newStatus });
-                    }
-                    break;
+          if (response.ok) {
+            onUpdate({ ...campaign, status: newStatus });
+          }
+          break;
 
-                case 'analytics':
-                    window.location.href = `/dashboard/campaigns/${campaign._id}/analytics`;
-                    break;
+        case 'analytics':
+          window.location.href = `/dashboard/campaigns/${campaign._id}/analytics`;
+          break;
 
-                case 'delete':
-                    setShowDeleteModal(true);
-                    break;
+        case 'delete':
+          setShowDeleteModal(true);
+          break;
 
-                case 'duplicate':
-                    const dupResponse = await fetch(`/api/campaigns/${campaign._id}/duplicate`, {
-                        method: 'POST'
-                    });
+        case 'duplicate':
+          const dupResponse = await fetch(`/api/campaigns/${campaign._id}/duplicate`, {
+            method: 'POST'
+          });
 
-                    if (dupResponse.ok) {
-                        const data = await dupResponse.json();
-                        window.location.href = `/dashboard/campaigns/${data.campaign._id}/edit`;
-                    }
-                    break;
-            }
-        } catch (error) {
-            console.error('Error performing action:', error);
-            alert('Failed to perform action. Please try again.');
-        } finally {
-            setIsProcessing(false);
-        }
-    };
+          if (dupResponse.ok) {
+            const data = await dupResponse.json();
+            window.location.href = `/dashboard/campaigns/${data.campaign._id}/edit`;
+          }
+          break;
+      }
+    } catch (error) {
+      console.error('Error performing action:', error);
+      alert('Failed to perform action. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
-    const handleDelete = async () => {
-        setIsProcessing(true);
-        try {
-            const response = await fetch(`/api/campaigns/${campaign._id}`, {
-                method: 'DELETE'
-            });
+  const handleDelete = async () => {
+    setIsProcessing(true);
+    try {
+      const response = await fetch(`/api/campaigns/${campaign._id}`, {
+        method: 'DELETE'
+      });
 
-            if (response.ok) {
-                onDelete(campaign._id);
-                setShowDeleteModal(false);
-            } else {
-                alert('Failed to delete campaign');
-            }
-        } catch (error) {
-            console.error('Error deleting campaign:', error);
-            alert('Failed to delete campaign');
-        } finally {
-            setIsProcessing(false);
-        }
-    };
+      if (response.ok) {
+        onDelete(campaign._id);
+        setShowDeleteModal(false);
+      } else {
+        alert('Failed to delete campaign');
+      }
+    } catch (error) {
+      console.error('Error deleting campaign:', error);
+      alert('Failed to delete campaign');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
-    const progress = calculateProgress();
+  const progress = calculateProgress();
 
-    return (
-        <>
-            <div className={`campaign-card ${viewMode}`}>
-                {/* Thumbnail */}
-                <div className="card-thumbnail">
-                    <Image
-                        src={campaign.coverImage || '/images/default-campaign.jpg'}
-                        alt={campaign.title}
-                        fill
-                        className="thumbnail-image"
-                        sizes={viewMode === 'grid' ? '350px' : '200px'}
-                    />
-                    <div
-                        className="status-badge"
-                        style={{ backgroundColor: `${getStatusColor(campaign.status)}20`, color: getStatusColor(campaign.status) }}
+  return (
+    <>
+      <div className={`bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden transition-all hover:bg-white/10 hover:border-white/20 ${viewMode === 'grid' ? 'flex flex-col' : 'flex flex-col md:flex-row'
+        }`}>
+        {/* Thumbnail */}
+        <div className={`relative bg-gray-800 flex-shrink-0 ${viewMode === 'grid' ? 'w-full h-48' : 'w-full md:w-48 h-48 md:h-auto'
+          }`}>
+          <Image
+            src={campaign.coverImage || '/images/default-campaign.jpg'}
+            alt={campaign.title}
+            fill
+            className="object-cover"
+            sizes={viewMode === 'grid' ? '350px' : '200px'}
+          />
+          <div className={`absolute top-3 right-3 px-3 py-1.5 rounded-full text-xs font-semibold border backdrop-blur-md ${getStatusStyles(campaign.status)}`}>
+            {getStatusLabel(campaign.status)}
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-5 flex-1 flex flex-col">
+          {/* Header */}
+          <div className="flex items-start justify-between mb-4">
+            <h3 className="text-lg font-bold text-white line-clamp-2 flex-1 pr-2">
+              {campaign.title}
+            </h3>
+
+            {/* Actions Menu */}
+            <div className="relative">
+              <button
+                className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+                onClick={() => setShowMenu(!showMenu)}
+              >
+                <FaEllipsisV className="w-4 h-4" />
+              </button>
+
+              {showMenu && (
+                <>
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setShowMenu(false)}
+                  />
+                  <div className="absolute top-full right-0 mt-2 w-48 bg-gray-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-20">
+                    <button
+                      className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-all"
+                      onClick={() => handleAction('edit')}
                     >
-                        {getStatusLabel(campaign.status)}
-                    </div>
-                </div>
-
-                {/* Content */}
-                <div className="card-content">
-                    <div className="card-header">
-                        <h3 className="campaign-title">{campaign.title}</h3>
-
-                        <div className="actions-menu">
-                            <button
-                                className="menu-trigger"
-                                onClick={() => setShowMenu(!showMenu)}
-                            >
-                                <FaEllipsisV />
-                            </button>
-
-                            {showMenu && (
-                                <div className="menu-dropdown">
-                                    <button onClick={() => handleAction('edit')}>
-                                        <FaEdit /> Edit
-                                    </button>
-                                    <button onClick={() => handleAction('view')}>
-                                        <FaEye /> View
-                                    </button>
-                                    {campaign.status === 'active' && (
-                                        <button onClick={() => handleAction('pause')}>
-                                            <FaPause /> Pause
-                                        </button>
-                                    )}
-                                    {campaign.status === 'paused' && (
-                                        <button onClick={() => handleAction('resume')}>
-                                            <FaPlay /> Resume
-                                        </button>
-                                    )}
-                                    <button onClick={() => handleAction('analytics')}>
-                                        <FaChartLine /> Analytics
-                                    </button>
-                                    <button onClick={() => handleAction('duplicate')}>
-                                        <FaCopy /> Duplicate
-                                    </button>
-                                    <button onClick={() => handleAction('delete')} className="danger">
-                                        <FaTrash /> Delete
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Progress */}
-                    <div className="progress-section">
-                        <div className="progress-bar-container">
-                            <div
-                                className="progress-bar-fill"
-                                style={{ width: `${progress}%` }}
-                            ></div>
-                        </div>
-                        <div className="progress-stats">
-                            <span className="raised">
-                                ₹{(campaign.currentAmount || 0).toLocaleString('en-IN')}
-                            </span>
-                            <span className="goal">
-                                of ₹{campaign.goalAmount.toLocaleString('en-IN')}
-                            </span>
-                            <span className="percentage">
-                                {progress.toFixed(0)}%
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Stats */}
-                    <div className="card-stats">
-                        <div className="stat-item">
-                            <span className="stat-value">{campaign.stats?.supporters || 0}</span>
-                            <span className="stat-label">Supporters</span>
-                        </div>
-                        <div className="stat-item">
-                            <span className="stat-value">{campaign.stats?.views || 0}</span>
-                            <span className="stat-label">Views</span>
-                        </div>
-                        <div className="stat-item">
-                            <span className="stat-value">{campaign.daysRemaining || 0}</span>
-                            <span className="stat-label">Days Left</span>
-                        </div>
-                    </div>
-                </div>
+                      <FaEdit className="w-4 h-4" />
+                      <span>Edit</span>
+                    </button>
+                    <button
+                      className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-all"
+                      onClick={() => handleAction('view')}
+                    >
+                      <FaEye className="w-4 h-4" />
+                      <span>View</span>
+                    </button>
+                    {campaign.status === 'active' && (
+                      <button
+                        className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-all"
+                        onClick={() => handleAction('pause')}
+                      >
+                        <FaPause className="w-4 h-4" />
+                        <span>Pause</span>
+                      </button>
+                    )}
+                    {campaign.status === 'paused' && (
+                      <button
+                        className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-all"
+                        onClick={() => handleAction('resume')}
+                      >
+                        <FaPlay className="w-4 h-4" />
+                        <span>Resume</span>
+                      </button>
+                    )}
+                    <button
+                      className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-all"
+                      onClick={() => handleAction('analytics')}
+                    >
+                      <FaChartLine className="w-4 h-4" />
+                      <span>Analytics</span>
+                    </button>
+                    <button
+                      className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-all"
+                      onClick={() => handleAction('duplicate')}
+                    >
+                      <FaCopy className="w-4 h-4" />
+                      <span>Duplicate</span>
+                    </button>
+                    <button
+                      className="flex items-center gap-3 w-full px-4 py-3 text-sm text-red-400 hover:bg-red-500/20 transition-all"
+                      onClick={() => handleAction('delete')}
+                    >
+                      <FaTrash className="w-4 h-4" />
+                      <span>Delete</span>
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
+          </div>
 
-            {/* Delete Confirmation Modal */}
-            {showDeleteModal && (
-                <DeleteConfirmationModal
-                    campaign={campaign}
-                    onConfirm={handleDelete}
-                    onCancel={() => setShowDeleteModal(false)}
-                    isProcessing={isProcessing}
-                />
-            )}
+          {/* Progress */}
+          <div className="mb-4">
+            <div className="h-2 bg-gray-800 rounded-full overflow-hidden mb-2">
+              <div
+                className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full transition-all duration-500"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <span className="font-bold text-purple-400">
+                ₹{(campaign.currentAmount || 0).toLocaleString('en-IN')}
+              </span>
+              <span className="text-gray-500">
+                of ₹{campaign.goalAmount.toLocaleString('en-IN')}
+              </span>
+              <span className="ml-auto font-semibold text-gray-300">
+                {progress.toFixed(0)}%
+              </span>
+            </div>
+          </div>
 
-            <style jsx>{`
-        .campaign-card {
-          background: white;
-          border-radius: 16px;
-          border: 2px solid #e5e7eb;
-          overflow: hidden;
-          transition: all 0.3s ease;
-          position: relative;
-        }
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-4 mt-auto">
+            <div className="text-center">
+              <div className="text-xl font-bold text-white">
+                {campaign.stats?.supporters || 0}
+              </div>
+              <div className="text-xs text-gray-400 mt-1">
+                Supporters
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="text-xl font-bold text-white">
+                {campaign.stats?.views || 0}
+              </div>
+              <div className="text-xs text-gray-400 mt-1">
+                Views
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="text-xl font-bold text-white">
+                {campaign.daysRemaining || 0}
+              </div>
+              <div className="text-xs text-gray-400 mt-1">
+                Days Left
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-        .campaign-card:hover {
-          border-color: #d1d5db;
-          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-          transform: translateY(-2px);
-        }
-
-        .campaign-card.grid {
-          display: flex;
-          flex-direction: column;
-        }
-
-        .campaign-card.list {
-          display: flex;
-          flex-direction: row;
-        }
-
-        .card-thumbnail {
-          position: relative;
-          width: 100%;
-          height: 200px;
-          background: #f3f4f6;
-          flex-shrink: 0;
-        }
-
-        .campaign-card.list .card-thumbnail {
-          width: 200px;
-          height: auto;
-        }
-
-        .thumbnail-image {
-          object-fit: cover;
-        }
-
-        .status-badge {
-          position: absolute;
-          top: 12px;
-          right: 12px;
-          padding: 6px 14px;
-          border-radius: 20px;
-          font-size: 0.85rem;
-          font-weight: 600;
-          text-transform: capitalize;
-          backdrop-filter: blur(8px);
-        }
-
-        .card-content {
-          padding: 20px;
-          flex: 1;
-        }
-
-        .card-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          margin-bottom: 16px;
-        }
-
-        .campaign-title {
-          font-size: 1.25rem;
-          font-weight: 700;
-          color: #111827;
-          margin: 0;
-          flex: 1;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-        }
-
-        .actions-menu {
-          position: relative;
-          margin-left: 12px;
-        }
-
-        .menu-trigger {
-          padding: 8px;
-          background: none;
-          border: none;
-          color: #6b7280;
-          cursor: pointer;
-          border-radius: 8px;
-          transition: all 0.3s ease;
-        }
-
-        .menu-trigger:hover {
-          background: #f3f4f6;
-          color: #374151;
-        }
-
-        .menu-dropdown {
-          position: absolute;
-          top: 100%;
-          right: 0;
-          background: white;
-          border: 2px solid #e5e7eb;
-          border-radius: 12px;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-          min-width: 160px;
-          z-index: 10;
-          overflow: hidden;
-        }
-
-        .menu-dropdown button {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          width: 100%;
-          padding: 12px 16px;
-          background: none;
-          border: none;
-          color: #374151;
-          font-size: 0.95rem;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          text-align: left;
-        }
-
-        .menu-dropdown button:hover {
-          background: #f9fafb;
-        }
-
-        .menu-dropdown button.danger {
-          color: #ef4444;
-        }
-
-        .menu-dropdown button.danger:hover {
-          background: #fef2f2;
-        }
-
-        .progress-section {
-          margin-bottom: 16px;
-        }
-
-        .progress-bar-container {
-          width: 100%;
-          height: 8px;
-          background: #e5e7eb;
-          border-radius: 4px;
-          overflow: hidden;
-          margin-bottom: 8px;
-        }
-
-        .progress-bar-fill {
-          height: 100%;
-          background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-          transition: width 0.3s ease;
-        }
-
-        .progress-stats {
-          display: flex;
-          gap: 8px;
-          align-items: center;
-          font-size: 0.9rem;
-        }
-
-        .raised {
-          font-weight: 700;
-          color: #667eea;
-        }
-
-        .goal {
-          color: #6b7280;
-        }
-
-        .percentage {
-          margin-left: auto;
-          font-weight: 600;
-          color: #374151;
-        }
-
-        .card-stats {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 16px;
-        }
-
-        .stat-item {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          text-align: center;
-        }
-
-        .stat-value {
-          font-size: 1.25rem;
-          font-weight: 700;
-          color: #111827;
-        }
-
-        .stat-label {
-          font-size: 0.85rem;
-          color: #6b7280;
-          margin-top: 4px;
-        }
-
-        @media (max-width: 768px) {
-          .campaign-card.list {
-            flex-direction: column;
-          }
-
-          .campaign-card.list .card-thumbnail {
-            width: 100%;
-            height: 200px;
-          }
-
-          .campaign-title {
-            font-size: 1.1rem;
-          }
-
-          .card-stats {
-            gap: 12px;
-          }
-
-          .stat-value {
-            font-size: 1.1rem;
-          }
-        }
-      `}</style>
-        </>
-    );
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <DeleteConfirmationModal
+          campaign={campaign}
+          onConfirm={handleDelete}
+          onCancel={() => setShowDeleteModal(false)}
+          isProcessing={isProcessing}
+        />
+      )}
+    </>
+  );
 }

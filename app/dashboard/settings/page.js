@@ -42,59 +42,77 @@ export default async function SettingsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black pt-20 p-6">
-            {/* Header */}
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-white mb-2">Settings</h1>
-                <p className="text-gray-400">
-                    Manage your account settings and preferences
-                </p>
-            </div>
+        <div className="min-h-screen bg-black text-gray-100">
+            {/* Background Ambient Effects - Same as Dashboard */}
+            <div className="fixed top-20 right-0 w-[500px] h-[500px] bg-purple-900/10 blur-[100px] rounded-full pointer-events-none -z-10" />
+            <div className="fixed bottom-0 left-20 w-[400px] h-[400px] bg-blue-900/10 blur-[100px] rounded-full pointer-events-none -z-10" />
 
-            {/* Profile & Payment Settings */}
-            <div className="mb-8">
-                <div className="bg-gray-900/50 backdrop-blur-md rounded-xl border border-gray-800 p-6">
-                    <h2 className="text-xl font-semibold text-white mb-4">
-                        Profile & Payment Settings
-                    </h2>
-                    <SettingsForm user={userData} />
-                </div>
-            </div>
+            {/* Main Content */}
+            <main className="pt-24 px-4 md:px-8 pb-8 min-h-screen relative">
+                <div className="max-w-7xl mx-auto space-y-6">
 
-            {/* Notification Preferences */}
-            <div className="mb-8">
-                <NotificationPreferences />
-            </div>
-
-            {/* Account Actions */}
-            <div className="mb-8">
-                <div className="bg-gray-900/50 backdrop-blur-md rounded-xl border border-gray-800 p-6">
-                    <h2 className="text-xl font-semibold text-white mb-4">
-                        Account Actions
-                    </h2>
-                    <div className="space-y-4">
-                        <button className="w-full sm:w-auto px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors">
-                            Change Password
-                        </button>
-                        <button className="w-full sm:w-auto px-6 py-2 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600/30 transition-colors border border-red-500/30 ml-0 sm:ml-4">
-                            Delete Account
-                        </button>
+                    {/* Header */}
+                    <div>
+                        <h1 className="text-3xl font-bold text-white tracking-tight">Settings</h1>
+                        <p className="text-gray-400 mt-1">
+                            Manage your account settings and preferences
+                        </p>
                     </div>
-                </div>
-            </div>
 
-            {/* Security Notice */}
-            <div className="bg-gradient-to-r from-yellow-900/20 to-orange-900/20 rounded-xl p-6 border border-yellow-500/20">
-                <h3 className="text-lg font-semibold text-white mb-2">
-                    🔒 Security & Privacy
-                </h3>
-                <ul className="text-gray-300 text-sm space-y-2">
-                    <li>• Your payment credentials are encrypted and stored securely</li>
-                    <li>• We never share your personal information with third parties</li>
-                    <li>• Enable two-factor authentication for added security (coming soon)</li>
-                    <li>• Review your connected apps and sessions regularly</li>
-                </ul>
-            </div>
+                    {/* Profile & Payment Settings */}
+                    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+                        <h2 className="text-xl font-bold text-white mb-4">
+                            Profile & Payment Settings
+                        </h2>
+                        <SettingsForm user={userData} />
+                    </div>
+
+                    {/* Notification Preferences */}
+                    <NotificationPreferences />
+
+                    {/* Account Actions */}
+                    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+                        <h2 className="text-xl font-bold text-white mb-4">
+                            Account Actions
+                        </h2>
+                        <div className="space-y-4">
+                            <button className="w-full sm:w-auto px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors border border-gray-700">
+                                Change Password
+                            </button>
+                            <button className="w-full sm:w-auto px-6 py-2 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600/30 transition-colors border border-red-500/30 ml-0 sm:ml-4">
+                                Delete Account
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Security Notice */}
+                    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+                        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                            <span>🔒</span>
+                            <span>Security & Privacy</span>
+                        </h3>
+                        <ul className="text-gray-300 text-sm space-y-2">
+                            <li className="flex items-start gap-2">
+                                <span className="text-yellow-500/70 mt-0.5">•</span>
+                                <span>Your payment credentials are encrypted and stored securely</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="text-yellow-500/70 mt-0.5">•</span>
+                                <span>We never share your personal information with third parties</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="text-yellow-500/70 mt-0.5">•</span>
+                                <span>Enable two-factor authentication for added security (coming soon)</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="text-yellow-500/70 mt-0.5">•</span>
+                                <span>Review your connected apps and sessions regularly</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                </div>
+            </main>
         </div>
     );
 }

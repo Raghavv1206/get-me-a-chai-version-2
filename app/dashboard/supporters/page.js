@@ -25,43 +25,64 @@ export default async function SupportersPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black pt-20 p-6">
-            {/* Header */}
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-white mb-2">Supporters</h1>
-                <p className="text-gray-400">
-                    View and engage with people who support your campaigns
-                </p>
-            </div>
+        <div className="min-h-screen bg-black text-gray-100">
+            {/* Background Ambient Effects - Same as Dashboard */}
+            <div className="fixed top-20 right-0 w-[500px] h-[500px] bg-purple-900/10 blur-[100px] rounded-full pointer-events-none -z-10" />
+            <div className="fixed bottom-0 left-20 w-[400px] h-[400px] bg-blue-900/10 blur-[100px] rounded-full pointer-events-none -z-10" />
 
-            {/* Top Supporters */}
-            <div className="mb-8">
-                <TopSupporters />
-            </div>
+            {/* Main Content */}
+            <main className="pt-24 px-4 md:px-8 pb-8 min-h-screen relative">
+                <div className="max-w-7xl mx-auto space-y-6">
 
-            {/* Filters */}
-            <div className="mb-8">
-                <SupporterFilters />
-            </div>
+                    {/* Header */}
+                    <div>
+                        <h1 className="text-3xl font-bold text-white tracking-tight">Supporters</h1>
+                        <p className="text-gray-400 mt-1">
+                            View and engage with people who support your campaigns
+                        </p>
+                    </div>
 
-            {/* Supporters Table */}
-            <div className="mb-8">
-                <SupportersTable />
-            </div>
+                    {/* Top Supporters */}
+                    <TopSupporters />
 
-            {/* Tips */}
-            <div className="bg-gradient-to-r from-green-900/20 to-blue-900/20 rounded-xl p-6 border border-green-500/20">
-                <h3 className="text-lg font-semibold text-white mb-2">
-                    💚 Building Supporter Relationships
-                </h3>
-                <ul className="text-gray-300 text-sm space-y-2">
-                    <li>• Send personalized thank you messages to show appreciation</li>
-                    <li>• Keep supporters updated on campaign progress</li>
-                    <li>• Recognize top supporters publicly (with their permission)</li>
-                    <li>• Respond to messages and comments promptly</li>
-                    <li>• Deliver rewards on time and communicate any delays</li>
-                </ul>
-            </div>
+                    {/* Filters */}
+                    <SupporterFilters />
+
+                    {/* Supporters Table */}
+                    <SupportersTable />
+
+                    {/* Tips */}
+                    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+                        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                            <span>💚</span>
+                            <span>Building Supporter Relationships</span>
+                        </h3>
+                        <ul className="text-gray-300 text-sm space-y-2">
+                            <li className="flex items-start gap-2">
+                                <span className="text-green-400 mt-0.5">•</span>
+                                <span>Send personalized thank you messages to show appreciation</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="text-green-400 mt-0.5">•</span>
+                                <span>Keep supporters updated on campaign progress</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="text-green-400 mt-0.5">•</span>
+                                <span>Recognize top supporters publicly (with their permission)</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="text-green-400 mt-0.5">•</span>
+                                <span>Respond to messages and comments promptly</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="text-green-400 mt-0.5">•</span>
+                                <span>Deliver rewards on time and communicate any delays</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                </div>
+            </main>
         </div>
     );
 }

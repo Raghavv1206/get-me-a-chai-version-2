@@ -4,11 +4,10 @@ import { useState } from 'react';
 import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import ProgressBar from './ProgressBar';
 import MilestonesSection from './MilestonesSection';
 import RewardTiers from './RewardTiers';
 import FAQAccordion from './FAQAccordion';
-import { FaClock, FaImage } from 'react-icons/fa';
+import { FaClock, FaImage, FaHeart, FaEye, FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 export default function AboutTab({ campaign, onSelectReward }) {
   const [lightboxIndex, setLightboxIndex] = useState(null);
@@ -29,90 +28,74 @@ export default function AboutTab({ campaign, onSelectReward }) {
   };
 
   return (
-    <div className="about-tab">
-      {/* Campaign Overview Card */}
-      <div className="overview-card">
-        <ProgressBar
-          current={campaign.currentAmount || 0}
-          goal={campaign.goalAmount}
-          milestones={campaign.milestones}
-          animated={true}
-        />
-
-        <div className="overview-meta">
-          <div className="meta-item">
-            <FaClock className="meta-icon" />
-            <div>
-              <div className="meta-value">{daysLeft}</div>
-              <div className="meta-label">Days Left</div>
-            </div>
-          </div>
-
-          <div className="meta-item">
-            <div className="meta-icon">❤️</div>
-            <div>
-              <div className="meta-value">{campaign.stats?.supporters || 0}</div>
-              <div className="meta-label">Supporters</div>
-            </div>
-          </div>
-
-          <div className="meta-item">
-            <div className="meta-icon">👁️</div>
-            <div>
-              <div className="meta-value">{campaign.stats?.views || 0}</div>
-              <div className="meta-label">Views</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
+    <div className="space-y-8">
       {/* Campaign Story */}
-      <div className="story-section">
-        <h2 className="section-title">Campaign Story</h2>
+      <div>
+        <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+          <span className="text-purple-400">📖</span>
+          Campaign Story
+        </h2>
 
         {campaign.hook && (
-          <div className="story-hook">
-            {campaign.hook}
+          <div className="mb-6 p-6 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border-l-4 border-purple-500 rounded-lg">
+            <p className="text-lg text-gray-200 leading-relaxed font-medium">
+              {campaign.hook}
+            </p>
           </div>
         )}
 
-        <div className="story-content">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {campaign.story}
-          </ReactMarkdown>
+        <div className="prose prose-invert prose-lg max-w-none">
+          <div className="text-gray-300 leading-relaxed">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                h1: ({ node, ...props }) => <h1 className="text-3xl font-bold text-white mt-8 mb-4" {...props} />,
+                h2: ({ node, ...props }) => <h2 className="text-2xl font-bold text-white mt-6 mb-3" {...props} />,
+                h3: ({ node, ...props }) => <h3 className="text-xl font-bold text-white mt-4 mb-2" {...props} />,
+                p: ({ node, ...props }) => <p className="mb-4 text-gray-300" {...props} />,
+                strong: ({ node, ...props }) => <strong className="font-bold text-white" {...props} />,
+                a: ({ node, ...props }) => <a className="text-purple-400 hover:text-purple-300 underline" {...props} />,
+                ul: ({ node, ...props }) => <ul className="list-disc list-inside mb-4 space-y-2" {...props} />,
+                ol: ({ node, ...props }) => <ol className="list-decimal list-inside mb-4 space-y-2" {...props} />,
+              }}
+            >
+              {campaign.story}
+            </ReactMarkdown>
+          </div>
         </div>
 
         {campaign.aiGenerated && (
-          <div className="ai-badge">
-            ✨ Enhanced with AI
+          <div className="inline-flex items-center gap-2 mt-6 px-4 py-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-full">
+            <span className="text-yellow-400">✨</span>
+            <span className="text-sm font-semibold text-yellow-300">Enhanced with AI</span>
           </div>
         )}
       </div>
 
       {/* Media Gallery */}
       {images.length > 0 && (
-        <div className="media-gallery">
-          <h3 className="section-title">
-            <FaImage className="title-icon" />
+        <div>
+          <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+            <FaImage className="text-purple-400" />
             Media Gallery ({images.length})
           </h3>
 
-          <div className="gallery-grid">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {displayImages.map((image, index) => (
               <div
                 key={index}
-                className="gallery-item"
+                className="relative aspect-square rounded-xl overflow-hidden cursor-pointer group"
                 onClick={() => setLightboxIndex(index)}
               >
                 <Image
                   src={image}
                   alt={`Campaign image ${index + 1}`}
                   fill
-                  className="gallery-image"
+                  className="object-cover transition-transform duration-300 group-hover:scale-110"
                   sizes="(max-width: 768px) 50vw, 33vw"
                 />
-                <div className="gallery-overlay">
-                  <span>View</span>
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                  <span className="text-white font-semibold">View</span>
                 </div>
               </div>
             ))}
@@ -120,7 +103,7 @@ export default function AboutTab({ campaign, onSelectReward }) {
 
           {images.length > 6 && !showAllImages && (
             <button
-              className="show-more-btn"
+              className="mt-4 w-full py-3 bg-white/5 border border-white/10 rounded-xl text-purple-400 font-semibold hover:bg-white/10 transition-all"
               onClick={() => setShowAllImages(true)}
             >
               Show All {images.length} Images
@@ -131,17 +114,17 @@ export default function AboutTab({ campaign, onSelectReward }) {
 
       {/* Video */}
       {campaign.videoUrl && (
-        <div className="video-section">
-          <h3 className="section-title">Campaign Video</h3>
-          <div className="video-wrapper">
+        <div>
+          <h3 className="text-xl font-bold text-white mb-4">Campaign Video</h3>
+          <div className="relative pb-[56.25%] h-0 overflow-hidden rounded-xl">
             <iframe
               src={campaign.videoUrl}
               title="Campaign Video"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
-              className="video-iframe"
-            ></iframe>
+              className="absolute top-0 left-0 w-full h-full"
+            />
           </div>
         </div>
       )}
@@ -169,359 +152,49 @@ export default function AboutTab({ campaign, onSelectReward }) {
 
       {/* Lightbox */}
       {lightboxIndex !== null && (
-        <div className="lightbox" onClick={closeLightbox}>
-          <button className="lightbox-close" onClick={closeLightbox}>×</button>
-          <button className="lightbox-prev" onClick={(e) => { e.stopPropagation(); prevImage(); }}>‹</button>
-          <button className="lightbox-next" onClick={(e) => { e.stopPropagation(); nextImage(); }}>›</button>
-          <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 bg-black/95 z-[2000] flex items-center justify-center p-4"
+          onClick={closeLightbox}
+        >
+          <button
+            className="absolute top-4 right-4 p-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white hover:bg-white/20 transition-all z-[2001]"
+            onClick={closeLightbox}
+          >
+            <FaTimes className="w-6 h-6" />
+          </button>
+
+          <button
+            className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white hover:bg-white/20 transition-all z-[2001]"
+            onClick={(e) => { e.stopPropagation(); prevImage(); }}
+          >
+            <FaChevronLeft className="w-6 h-6" />
+          </button>
+
+          <button
+            className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white hover:bg-white/20 transition-all z-[2001]"
+            onClick={(e) => { e.stopPropagation(); nextImage(); }}
+          >
+            <FaChevronRight className="w-6 h-6" />
+          </button>
+
+          <div
+            className="relative max-w-[90vw] max-h-[90vh] aspect-video"
+            onClick={(e) => e.stopPropagation()}
+          >
             <Image
               src={images[lightboxIndex]}
               alt={`Campaign image ${lightboxIndex + 1}`}
               fill
-              className="lightbox-image"
+              className="object-contain"
               sizes="100vw"
             />
           </div>
-          <div className="lightbox-counter">
+
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white font-semibold">
             {lightboxIndex + 1} / {images.length}
           </div>
         </div>
       )}
-
-      <style jsx>{`
-        .about-tab {
-          display: flex;
-          flex-direction: column;
-          gap: 40px;
-        }
-
-        .overview-card {
-          background: #1e293b;
-          border-radius: 16px;
-          padding: 30px;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .overview-meta {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 20px;
-          margin-top: 30px;
-          padding-top: 30px;
-          border-top: 2px solid #334155;
-        }
-
-        .meta-item {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .meta-icon {
-          font-size: 1.5rem;
-          color: #667eea;
-        }
-
-        .meta-value {
-          font-size: 1.5rem;
-          font-weight: 700;
-          color: #f1f5f9;
-        }
-
-        .meta-label {
-          font-size: 0.85rem;
-          color: #94a3b8;
-        }
-
-        .story-section {
-          background: #1e293b;
-          border-radius: 16px;
-          padding: 30px;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .section-title {
-          font-size: 1.5rem;
-          font-weight: 700;
-          color: #f1f5f9;
-          margin: 0 0 20px 0;
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .title-icon {
-          color: #667eea;
-        }
-
-        .story-hook {
-          font-size: 1.25rem;
-          font-weight: 600;
-          color: #e2e8f0;
-          line-height: 1.7;
-          margin-bottom: 20px;
-          padding: 20px;
-          background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%);
-          border-left: 4px solid #667eea;
-          border-radius: 8px;
-        }
-
-        .story-content {
-          color: #cbd5e1;
-          line-height: 1.8;
-          font-size: 1.05rem;
-        }
-
-        .story-content :global(h1),
-        .story-content :global(h2),
-        .story-content :global(h3) {
-          font-weight: 700;
-          color: #f1f5f9;
-          margin-top: 24px;
-          margin-bottom: 12px;
-        }
-
-        .story-content :global(h1) {
-          font-size: 1.75rem;
-        }
-
-        .story-content :global(h2) {
-          font-size: 1.5rem;
-        }
-
-        .story-content :global(h3) {
-          font-size: 1.25rem;
-        }
-
-        .story-content :global(p) {
-          margin-bottom: 16px;
-        }
-
-        .story-content :global(strong) {
-          font-weight: 700;
-          color: #f1f5f9;
-        }
-
-        .story-content :global(ul),
-        .story-content :global(ol) {
-          margin-left: 24px;
-          margin-bottom: 16px;
-        }
-
-        .story-content :global(li) {
-          margin-bottom: 8px;
-        }
-
-        .story-content :global(a) {
-          color: #667eea;
-          text-decoration: underline;
-        }
-
-        .story-content :global(a:hover) {
-          color: #5568d3;
-        }
-
-        .ai-badge {
-          display: inline-block;
-          margin-top: 20px;
-          padding: 8px 16px;
-          background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-          color: #92400e;
-          border-radius: 20px;
-          font-size: 0.85rem;
-          font-weight: 600;
-        }
-
-        .media-gallery {
-          background: #1e293b;
-          border-radius: 16px;
-          padding: 30px;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .gallery-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-          gap: 16px;
-        }
-
-        .gallery-item {
-          position: relative;
-          aspect-ratio: 1;
-          border-radius: 12px;
-          overflow: hidden;
-          cursor: pointer;
-          transition: transform 0.3s ease;
-        }
-
-        .gallery-item:hover {
-          transform: scale(1.05);
-        }
-
-        .gallery-image {
-          object-fit: cover;
-        }
-
-        .gallery-overlay {
-          position: absolute;
-          inset: 0;
-          background: rgba(0, 0, 0, 0.5);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          font-weight: 600;
-          opacity: 0;
-          transition: opacity 0.3s ease;
-        }
-
-        .gallery-item:hover .gallery-overlay {
-          opacity: 1;
-        }
-
-        .show-more-btn {
-          margin-top: 20px;
-          width: 100%;
-          padding: 12px;
-          background: #0f172a;
-          border: 2px solid #334155;
-          border-radius: 12px;
-          color: #667eea;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.3s ease;
-        }
-
-        .show-more-btn:hover {
-          background: #334155;
-          border-color: #667eea;
-        }
-
-        .video-section {
-          background: #1e293b;
-          border-radius: 16px;
-          padding: 30px;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .video-wrapper {
-          position: relative;
-          padding-bottom: 56.25%;
-          height: 0;
-          overflow: hidden;
-          border-radius: 12px;
-        }
-
-        .video-iframe {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-        }
-
-        .lightbox {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0, 0, 0, 0.95);
-          z-index: 2000;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 20px;
-        }
-
-        .lightbox-content {
-          position: relative;
-          max-width: 90vw;
-          max-height: 90vh;
-          aspect-ratio: 16/9;
-        }
-
-        .lightbox-image {
-          object-fit: contain;
-        }
-
-        .lightbox-close,
-        .lightbox-prev,
-        .lightbox-next {
-          position: absolute;
-          background: rgba(255, 255, 255, 0.2);
-          backdrop-filter: blur(10px);
-          border: none;
-          color: white;
-          font-size: 2rem;
-          cursor: pointer;
-          padding: 12px 20px;
-          border-radius: 8px;
-          transition: all 0.3s ease;
-          z-index: 2001;
-        }
-
-        .lightbox-close {
-          top: 20px;
-          right: 20px;
-        }
-
-        .lightbox-prev {
-          left: 20px;
-          top: 50%;
-          transform: translateY(-50%);
-        }
-
-        .lightbox-next {
-          right: 20px;
-          top: 50%;
-          transform: translateY(-50%);
-        }
-
-        .lightbox-close:hover,
-        .lightbox-prev:hover,
-        .lightbox-next:hover {
-          background: rgba(255, 255, 255, 0.3);
-        }
-
-        .lightbox-counter {
-          position: absolute;
-          bottom: 20px;
-          left: 50%;
-          transform: translateX(-50%);
-          background: rgba(255, 255, 255, 0.2);
-          backdrop-filter: blur(10px);
-          color: white;
-          padding: 8px 16px;
-          border-radius: 20px;
-          font-weight: 600;
-        }
-
-        @media (max-width: 768px) {
-          .overview-meta {
-            grid-template-columns: 1fr;
-            gap: 16px;
-          }
-
-          .gallery-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-          }
-
-          .story-hook {
-            font-size: 1.1rem;
-            padding: 16px;
-          }
-
-          .story-content {
-            font-size: 1rem;
-          }
-        }
-      `}</style>
     </div>
   );
 }

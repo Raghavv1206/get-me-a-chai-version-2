@@ -79,30 +79,35 @@ export const authOptions = {
   callbacks: {
     async signIn({ user, account, profile }) {
       if (account?.provider === "github") {
-        await connectDb();
+        try {
+          await connectDb();
 
-        // Check if user exists
-        const existingUser = await User.findOne({ email: user.email });
+          // Check if user exists
+          const existingUser = await User.findOne({ email: user.email });
 
-        if (!existingUser) {
-          // Create new user
-          let username = user.email.split("@")[0].toLowerCase();
+          if (!existingUser) {
+            // Create new user
+            let username = user.email.split("@")[0].toLowerCase();
 
-          // Make username unique
-          let usernameExists = await User.findOne({ username });
-          let counter = 1;
-          while (usernameExists) {
-            username = `${user.email.split("@")[0].toLowerCase()}${counter}`;
-            usernameExists = await User.findOne({ username });
-            counter++;
+            // Make username unique
+            let usernameExists = await User.findOne({ username });
+            let counter = 1;
+            while (usernameExists) {
+              username = `${user.email.split("@")[0].toLowerCase()}${counter}`;
+              usernameExists = await User.findOne({ username });
+              counter++;
+            }
+
+            await User.create({
+              email: user.email,
+              name: user.name || username,
+              username: username,
+              profilepic: user.image || "/images/default-profilepic.jpg"
+            });
           }
-
-          await User.create({
-            email: user.email,
-            name: user.name || username,
-            username: username,
-            profilepic: user.image || "/images/default-profilepic.jpg"
-          });
+        } catch (error) {
+          console.error('Error in GitHub signIn callback:', error);
+          // Allow sign-in to continue even if user creation fails
         }
       }
       return true;
@@ -116,13 +121,18 @@ export const authOptions = {
 
       // Fetch latest user data and ensure we have the correct MongoDB _id
       if (token.email) {
-        await connectDb();
-        const dbUser = await User.findOne({ email: token.email });
-        if (dbUser) {
-          token.id = dbUser._id.toString(); // Always use MongoDB _id
-          token.username = dbUser.username;
-          token.role = dbUser.role;
-          token.verified = dbUser.verified;
+        try {
+          await connectDb();
+          const dbUser = await User.findOne({ email: token.email });
+          if (dbUser) {
+            token.id = dbUser._id.toString(); // Always use MongoDB _id
+            token.username = dbUser.username;
+            token.role = dbUser.role;
+            token.verified = dbUser.verified;
+          }
+        } catch (error) {
+          console.error('Error fetching user in JWT callback:', error);
+          // Continue with existing token data if DB fetch fails
         }
       }
 

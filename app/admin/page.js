@@ -127,13 +127,15 @@ export default function AdminPage() {
 
     if (status === 'loading' || (status === 'authenticated' && loading && !dashboardStats && !usersData && !campaignsData)) {
         return (
-            <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-950 dark:to-black">
-                <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
-                    <div className="animate-pulse space-y-8">
-                        <div className="h-12 w-64 bg-gray-200 dark:bg-gray-700 rounded" />
-                        <div className="h-96 bg-gray-200 dark:bg-gray-700 rounded-2xl" />
+            <div className="min-h-screen bg-black text-gray-100">
+                <main className="pt-24 px-4 md:px-8 pb-8 min-h-screen relative">
+                    <div className="max-w-7xl mx-auto space-y-6">
+                        <div className="animate-pulse space-y-8">
+                            <div className="h-12 w-64 bg-white/5 rounded" />
+                            <div className="h-96 bg-white/5 rounded-2xl" />
+                        </div>
                     </div>
-                </div>
+                </main>
             </div>
         );
     }
@@ -144,13 +146,17 @@ export default function AdminPage() {
 
     if (status === 'authenticated' && !session?.user?.isAdmin) {
         return (
-            <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-950 dark:to-black flex items-center justify-center">
-                <div className="max-w-md mx-auto bg-red-50 dark:bg-red-900/20 rounded-2xl p-8 border-2 border-red-200 dark:border-red-800 text-center">
-                    <Shield className="w-16 h-16 text-red-600 dark:text-red-400 mx-auto mb-4" />
-                    <h2 className="text-2xl font-bold text-red-900 dark:text-red-200 mb-4">
+            <div className="min-h-screen bg-black text-gray-100 flex items-center justify-center">
+                {/* Background Ambient Effects - Same as Dashboard */}
+                <div className="fixed top-20 right-0 w-[500px] h-[500px] bg-purple-900/10 blur-[100px] rounded-full pointer-events-none -z-10" />
+                <div className="fixed bottom-0 left-20 w-[400px] h-[400px] bg-blue-900/10 blur-[100px] rounded-full pointer-events-none -z-10" />
+
+                <div className="max-w-md mx-auto bg-red-900/20 rounded-2xl p-8 border border-red-900/50 text-center backdrop-blur-xl">
+                    <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                    <h2 className="text-2xl font-bold text-red-200 mb-4">
                         Access Denied
                     </h2>
-                    <p className="text-red-700 dark:text-red-300 mb-6">
+                    <p className="text-red-300 mb-6">
                         You don't have permission to access the admin panel.
                     </p>
                     <button
@@ -181,116 +187,124 @@ export default function AdminPage() {
     // ========================================================================
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-950 dark:to-black">
-            <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
-                {/* Header */}
-                <div className="mb-8">
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
-                                <Shield className="w-6 h-6 text-white" />
+        <div className="min-h-screen bg-black text-gray-100">
+            {/* Background Ambient Effects - Same as Dashboard */}
+            <div className="fixed top-20 right-0 w-[500px] h-[500px] bg-purple-900/10 blur-[100px] rounded-full pointer-events-none -z-10" />
+            <div className="fixed bottom-0 left-20 w-[400px] h-[400px] bg-blue-900/10 blur-[100px] rounded-full pointer-events-none -z-10" />
+
+            {/* Main Content */}
+            <main className="pt-24 px-4 md:px-8 pb-8 min-h-screen relative">
+                <div className="max-w-7xl mx-auto space-y-6">
+
+                    {/* Header */}
+                    <div className="mb-8">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-900/20">
+                                    <Shield className="w-6 h-6 text-white" />
+                                </div>
+                                <div>
+                                    <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+                                        Admin Panel
+                                    </h1>
+                                    <p className="text-gray-400 mt-1">
+                                        Platform management and moderation
+                                    </p>
+                                </div>
                             </div>
-                            <div>
-                                <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
-                                    Admin Panel
-                                </h1>
-                                <p className="text-gray-600 dark:text-gray-400 mt-1">
-                                    Platform management and moderation
+
+                            <button
+                                onClick={handleRefresh}
+                                disabled={refreshing}
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:border-white/20 transition-all disabled:opacity-50 text-gray-300 hover:text-white"
+                            >
+                                <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                                <span className="hidden sm:inline">Refresh</span>
+                            </button>
+                        </div>
+
+                        {/* Tabs */}
+                        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+                            {tabs.map((tab) => {
+                                const Icon = tab.icon;
+                                const isActive = activeTab === tab.id;
+
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => {
+                                            setActiveTab(tab.id);
+                                            setCurrentPage(1);
+                                        }}
+                                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${isActive
+                                            ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 border border-white/5'
+                                            }`}
+                                    >
+                                        <Icon className="w-4 h-4" />
+                                        {tab.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Content */}
+                    <div>
+                        {error && (
+                            <div className="bg-red-900/20 rounded-xl p-6 border border-red-900/50 mb-6 backdrop-blur-xl">
+                                <p className="text-red-300">{error}</p>
+                            </div>
+                        )}
+
+                        {activeTab === 'dashboard' && (
+                            <AdminDashboard stats={dashboardStats} loading={loading} />
+                        )}
+
+                        {activeTab === 'users' && (
+                            <UserManagement
+                                users={usersData?.users}
+                                total={usersData?.total || 0}
+                                page={currentPage}
+                                totalPages={usersData?.totalPages || 1}
+                                onPageChange={setCurrentPage}
+                                onRefresh={handleRefresh}
+                            />
+                        )}
+
+                        {activeTab === 'campaigns' && (
+                            <CampaignModeration
+                                campaigns={campaignsData}
+                                onRefresh={handleRefresh}
+                            />
+                        )}
+
+                        {activeTab === 'payments' && (
+                            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-12 text-center">
+                                <DollarSign className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                                <h3 className="text-xl font-bold text-white mb-2">
+                                    Payment Logs
+                                </h3>
+                                <p className="text-gray-400">
+                                    Coming soon - View and manage all platform transactions
                                 </p>
                             </div>
-                        </div>
+                        )}
 
-                        <button
-                            onClick={handleRefresh}
-                            disabled={refreshing}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-purple-300 dark:hover:border-purple-600 transition-colors disabled:opacity-50"
-                        >
-                            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-                            <span className="hidden sm:inline">Refresh</span>
-                        </button>
-                    </div>
-
-                    {/* Tabs */}
-                    <div className="flex gap-2 overflow-x-auto pb-2">
-                        {tabs.map((tab) => {
-                            const Icon = tab.icon;
-                            const isActive = activeTab === tab.id;
-
-                            return (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => {
-                                        setActiveTab(tab.id);
-                                        setCurrentPage(1);
-                                    }}
-                                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${isActive
-                                            ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
-                                            : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600'
-                                        }`}
-                                >
-                                    <Icon className="w-4 h-4" />
-                                    {tab.label}
-                                </button>
-                            );
-                        })}
+                        {activeTab === 'settings' && (
+                            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-12 text-center">
+                                <Settings className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                                <h3 className="text-xl font-bold text-white mb-2">
+                                    System Settings
+                                </h3>
+                                <p className="text-gray-400">
+                                    Coming soon - Configure platform settings and features
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
-
-                {/* Content */}
-                <div>
-                    {error && (
-                        <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-6 border-2 border-red-200 dark:border-red-800 mb-6">
-                            <p className="text-red-700 dark:text-red-300">{error}</p>
-                        </div>
-                    )}
-
-                    {activeTab === 'dashboard' && (
-                        <AdminDashboard stats={dashboardStats} loading={loading} />
-                    )}
-
-                    {activeTab === 'users' && (
-                        <UserManagement
-                            users={usersData?.users}
-                            total={usersData?.total || 0}
-                            page={currentPage}
-                            totalPages={usersData?.totalPages || 1}
-                            onPageChange={setCurrentPage}
-                            onRefresh={handleRefresh}
-                        />
-                    )}
-
-                    {activeTab === 'campaigns' && (
-                        <CampaignModeration
-                            campaigns={campaignsData}
-                            onRefresh={handleRefresh}
-                        />
-                    )}
-
-                    {activeTab === 'payments' && (
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 border border-gray-200 dark:border-gray-700 text-center">
-                            <DollarSign className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
-                            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                                Payment Logs
-                            </h3>
-                            <p className="text-gray-600 dark:text-gray-400">
-                                Coming soon - View and manage all platform transactions
-                            </p>
-                        </div>
-                    )}
-
-                    {activeTab === 'settings' && (
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 border border-gray-200 dark:border-gray-700 text-center">
-                            <Settings className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
-                            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                                System Settings
-                            </h3>
-                            <p className="text-gray-600 dark:text-gray-400">
-                                Coming soon - Configure platform settings and features
-                            </p>
-                        </div>
-                    )}
-                </div>
-            </div>
+            </main>
         </div>
     );
 }

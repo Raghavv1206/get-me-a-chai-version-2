@@ -134,20 +134,24 @@ export default function ExportReports({ data }) {
   };
 
   return (
-    <div className="export-reports">
-      <h3 className="export-title">Export Reports</h3>
-      <p className="export-subtitle">Download your data in various formats</p>
+    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 lg:p-8">
+      <div className="mb-6">
+        <h3 className="text-xl font-bold text-white mb-1 flex items-center gap-2">
+          <span>📥</span> Export Reports
+        </h3>
+        <p className="text-sm text-gray-400">Download your data in various formats for offline analysis</p>
+      </div>
 
-      <div className="export-options">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {/* Date Range Selector */}
-        <div className="option-group">
-          <label className="option-label">
-            <FaCalendar /> Date Range
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+            <FaCalendar className="text-purple-400" /> Date Range
           </label>
           <select
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
-            className="option-select"
+            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500 transition-colors"
           >
             <option value="7">Last 7 Days</option>
             <option value="30">Last 30 Days</option>
@@ -157,211 +161,61 @@ export default function ExportReports({ data }) {
         </div>
 
         {/* Report Type Selector */}
-        <div className="option-group">
-          <label className="option-label">Report Type</label>
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-300">Report Type</label>
           <select
             value={reportType}
             onChange={(e) => setReportType(e.target.value)}
-            className="option-select"
+            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500 transition-colors"
           >
-            <option value="analytics">Analytics</option>
-            <option value="transactions">Transactions</option>
-            <option value="supporters">Supporters</option>
+            <option value="analytics">Analytics Summary</option>
+            <option value="transactions">Transactions Detailed</option>
+            <option value="supporters">Supporters List</option>
           </select>
         </div>
       </div>
 
-      <div className="export-buttons">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <button
-          className="export-btn pdf-btn"
+          className="group flex flex-col items-center justify-center gap-3 p-6 rounded-xl bg-white/5 border border-white/10 hover:bg-rose-500/10 hover:border-rose-500/30 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={exportToPDF}
           disabled={exporting}
         >
-          <FaFilePdf />
-          <span>Export as PDF</span>
+          <div className="w-12 h-12 rounded-full bg-black/20 flex items-center justify-center group-hover:bg-rose-500/20 transition-colors">
+            <FaFilePdf className="text-2xl text-gray-400 group-hover:text-rose-500 transition-colors" />
+          </div>
+          <span className="font-medium text-gray-300 group-hover:text-rose-400">Export PDF</span>
         </button>
 
         <button
-          className="export-btn csv-btn"
+          className="group flex flex-col items-center justify-center gap-3 p-6 rounded-xl bg-white/5 border border-white/10 hover:bg-emerald-500/10 hover:border-emerald-500/30 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={exportToCSV}
           disabled={exporting}
         >
-          <FaFileCsv />
-          <span>Export as CSV</span>
+          <div className="w-12 h-12 rounded-full bg-black/20 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors">
+            <FaFileCsv className="text-2xl text-gray-400 group-hover:text-emerald-500 transition-colors" />
+          </div>
+          <span className="font-medium text-gray-300 group-hover:text-emerald-400">Export CSV</span>
         </button>
 
         <button
-          className="export-btn excel-btn"
+          className="group flex flex-col items-center justify-center gap-3 p-6 rounded-xl bg-white/5 border border-white/10 hover:bg-blue-500/10 hover:border-blue-500/30 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={exportToExcel}
           disabled={exporting}
         >
-          <FaFileExcel />
-          <span>Export as Excel</span>
+          <div className="w-12 h-12 rounded-full bg-black/20 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
+            <FaFileExcel className="text-2xl text-gray-400 group-hover:text-blue-500 transition-colors" />
+          </div>
+          <span className="font-medium text-gray-300 group-hover:text-blue-400">Export Excel</span>
         </button>
       </div>
 
       {exporting && (
-        <div className="exporting-indicator">
-          <div className="spinner"></div>
-          <span>Generating report...</span>
+        <div className="mt-6 flex items-center justify-center gap-3 text-purple-400 animate-pulse">
+          <div className="w-5 h-5 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+          <span className="font-medium">Generating your report...</span>
         </div>
       )}
-
-      <style jsx>{`
-        .export-reports {
-          background: #1e293b;
-          border: 2px solid #334155;
-          border-radius: 16px;
-          padding: 24px;
-          margin-bottom: 30px;
-        }
-
-        .export-title {
-          font-size: 1.25rem;
-          font-weight: 700;
-          color: #f1f5f9;
-          margin: 0 0 4px 0;
-        }
-
-        .export-subtitle {
-          font-size: 0.9rem;
-          color: #94a3b8;
-          margin: 0 0 24px 0;
-        }
-
-        .export-options {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 16px;
-          margin-bottom: 24px;
-        }
-
-        .option-group {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-
-        .option-label {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 0.9rem;
-          font-weight: 600;
-          color: #e2e8f0;
-        }
-
-        .option-select {
-          padding: 10px 14px;
-          border: 2px solid #334155;
-          border-radius: 10px;
-          font-size: 0.95rem;
-          color: #f1f5f9;
-          background: #0f172a;
-          cursor: pointer;
-          transition: all 0.3s ease;
-        }
-
-        .option-select:hover {
-          border-color: #475569;
-        }
-
-        .option-select:focus {
-          outline: none;
-          border-color: #667eea;
-        }
-
-        .export-buttons {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-          gap: 12px;
-        }
-
-        .export-btn {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 10px;
-          padding: 14px 20px;
-          border: 2px solid;
-          border-radius: 12px;
-          font-size: 0.95rem;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.3s ease;
-        }
-
-        .export-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .pdf-btn {
-          background: #0f172a;
-          color: #ef4444;
-          border-color: #ef4444;
-        }
-
-        .pdf-btn:hover:not(:disabled) {
-          background: #1e293b;
-          transform: translateY(-2px);
-        }
-
-        .csv-btn {
-          background: #0f172a;
-          color: #10b981;
-          border-color: #10b981;
-        }
-
-        .csv-btn:hover:not(:disabled) {
-          background: #1e293b;
-          transform: translateY(-2px);
-        }
-
-        .excel-btn {
-          background: #0f172a;
-          color: #3b82f6;
-          border-color: #3b82f6;
-        }
-
-        .excel-btn:hover:not(:disabled) {
-          background: #1e293b;
-          transform: translateY(-2px);
-        }
-
-        .exporting-indicator {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 12px;
-          margin-top: 20px;
-          padding: 16px;
-          background: #0f172a;
-          border-radius: 12px;
-          color: #94a3b8;
-        }
-
-        .spinner {
-          width: 20px;
-          height: 20px;
-          border: 3px solid #334155;
-          border-top-color: #667eea;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        @media (max-width: 768px) {
-          .export-buttons {
-            grid-template-columns: 1fr;
-          }
-        }
-      `}</style>
     </div>
   );
 }

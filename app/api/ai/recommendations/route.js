@@ -46,16 +46,27 @@ async function handleRecommendations(req) {
 
         logger.info('Fetching recommendations', { userId });
 
-        // Get user's past contributions
+        // Get user's past contributions (optimized - no populate)
         const userPayments = await Payment.find({ from_user: userObjectId })
-            .populate('to_campaign')
+            .select('to_campaign')
             .limit(20)
             .lean();
 
-        // Extract categories from past contributions
-        const contributedCategories = userPayments
-            .map(p => p.to_campaign?.category)
+        // Get campaign IDs from payments
+        const campaignIds = userPayments
+            .map(p => p.to_campaign)
             .filter(Boolean);
+
+        // Get categories from those campaigns (batch query)
+        const contributedCampaigns = campaignIds.length > 0
+            ? await Campaign.find({ _id: { $in: campaignIds } })
+                .select('category')
+                .lean()
+            : [];
+
+        const contributedCategories = [...new Set(
+            contributedCampaigns.map(c => c.category).filter(Boolean)
+        )];
 
         logger.debug('User contribution history', {
             userId,
@@ -73,6 +84,7 @@ async function handleRecommendations(req) {
                 category: { $in: contributedCategories },
                 creator: { $ne: userObjectId }, // Exclude user's own campaigns
             })
+                .select('title category shortDescription story goalAmount currentAmount endDate coverImage stats featured creator username')
                 .sort({ 'stats.views': -1, createdAt: -1 })
                 .limit(10)
                 .lean();
@@ -88,6 +100,7 @@ async function handleRecommendations(req) {
                 status: 'active',
                 creator: { $ne: userObjectId },
             })
+                .select('title category shortDescription story goalAmount currentAmount endDate coverImage stats featured creator username')
                 .sort({ 'stats.views': -1, featured: -1 })
                 .limit(10)
                 .lean();

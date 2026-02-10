@@ -4,9 +4,9 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 export default function DeviceBreakdown({ data = [] }) {
   const COLORS = {
-    mobile: '#667eea',
-    desktop: '#10b981',
-    tablet: '#f59e0b'
+    mobile: '#667eea', // indigo
+    desktop: '#10b981', // emerald
+    tablet: '#f59e0b'  // amber
   };
 
   // Ensure data is an array
@@ -15,11 +15,16 @@ export default function DeviceBreakdown({ data = [] }) {
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="custom-tooltip">
-          <p className="tooltip-label">{payload[0].payload.name}</p>
-          <p className="tooltip-value">
-            {payload[0].value.toLocaleString()} visits ({payload[0].payload.percentage}%)
-          </p>
+        <div className="bg-black/80 backdrop-blur-xl border border-white/10 rounded-xl p-3 shadow-xl">
+          <p className="text-gray-400 text-xs mb-1 uppercase tracking-wider">{payload[0].payload.name}</p>
+          <div className="flex items-center gap-2">
+            <span className="text-white font-bold text-lg">
+              {payload[0].value.toLocaleString()}
+            </span>
+            <span className="text-gray-400 text-sm">
+              ({payload[0].payload.percentage}%)
+            </span>
+          </div>
         </div>
       );
     }
@@ -31,54 +36,45 @@ export default function DeviceBreakdown({ data = [] }) {
   // Show message if no data
   if (deviceData.length === 0) {
     return (
-      <div className="device-breakdown">
-        <h3 className="device-title">Device Breakdown</h3>
-        <div className="no-data">
-          <p>No device data available yet.</p>
-        </div>
-        <style jsx>{`
-                    .device-breakdown {
-                        background: #1e293b;
-                        border: 2px solid #334155;
-                        border-radius: 16px;
-                        padding: 24px;
-                        margin-bottom: 30px;
-                    }
-                    .device-title {
-                        font-size: 1.25rem;
-                        font-weight: 700;
-                        color: #f1f5f9;
-                        margin: 0 0 24px 0;
-                    }
-                    .no-data {
-                        text-align: center;
-                        padding: 40px 20px;
-                        color: #94a3b8;
-                    }
-                `}</style>
+      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 lg:p-8 h-full flex flex-col items-center justify-center min-h-[300px]">
+        <h3 className="text-xl font-bold text-white mb-2">Device Breakdown</h3>
+        <p className="text-gray-500">No device data available yet.</p>
       </div>
     );
   }
 
   return (
-    <div className="device-breakdown">
-      <h3 className="device-title">Device Breakdown</h3>
+    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 lg:p-8 h-full">
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-xl font-bold text-white flex items-center gap-2">
+          <span>📱</span> Device Breakdown
+        </h3>
+        <span className="bg-white/5 text-gray-400 text-xs font-medium px-2 py-1 rounded-lg border border-white/5">
+          Total: {total.toLocaleString()}
+        </span>
+      </div>
 
-      <div className="chart-container">
-        <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={deviceData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+      <div className="h-[250px] w-full mb-6">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={deviceData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.4} vertical={false} />
             <XAxis
               dataKey="name"
               stroke="#94a3b8"
-              style={{ fontSize: '0.85rem', fill: '#94a3b8' }}
+              fontSize={12}
+              tickLine={false}
+              axisLine={false}
+              dy={10}
             />
             <YAxis
               stroke="#94a3b8"
-              style={{ fontSize: '0.85rem', fill: '#94a3b8' }}
+              fontSize={12}
+              tickLine={false}
+              axisLine={false}
+              dx={-10}
             />
-            <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+            <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={60}>
               {deviceData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={COLORS[entry.device] || '#6b7280'} />
               ))}
@@ -87,142 +83,26 @@ export default function DeviceBreakdown({ data = [] }) {
         </ResponsiveContainer>
       </div>
 
-      <div className="device-stats">
+      <div className="space-y-3">
         {deviceData.map((device) => (
-          <div key={device.device} className="stat-item">
-            <div className="stat-header">
+          <div key={device.device} className="flex justify-between items-center p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all group">
+            <div className="flex items-center gap-3">
               <div
-                className="stat-dot"
+                className="w-3 h-3 rounded-full shadow-sm shadow-black/50"
                 style={{ backgroundColor: COLORS[device.device] }}
               ></div>
-              <span className="stat-name">{device.name}</span>
+              <span className="text-gray-300 font-medium capitalize group-hover:text-white transition-colors">{device.name}</span>
             </div>
-            <div className="stat-values">
-              <span className="stat-count">{device.value.toLocaleString()}</span>
-              <span className="stat-percentage">{device.percentage}%</span>
+
+            <div className="flex items-center gap-3">
+              <span className="text-white font-bold">{device.value.toLocaleString()}</span>
+              <span className="text-xs font-medium px-2 py-1 rounded-md bg-black/20 text-gray-400 border border-white/5">
+                {device.percentage}%
+              </span>
             </div>
           </div>
         ))}
       </div>
-
-      <div className="total-summary">
-        <span className="summary-label">Total Visits</span>
-        <span className="summary-value">{total.toLocaleString()}</span>
-      </div>
-
-      <style jsx>{`
-        .device-breakdown {
-          background: #1e293b;
-          border: 2px solid #334155;
-          border-radius: 16px;
-          padding: 24px;
-          margin-bottom: 30px;
-        }
-
-        .device-title {
-          font-size: 1.25rem;
-          font-weight: 700;
-          color: #f1f5f9;
-          margin: 0 0 24px 0;
-        }
-
-        .chart-container {
-          margin-bottom: 24px;
-        }
-
-        .device-stats {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          margin-bottom: 20px;
-        }
-
-        .stat-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 12px;
-          background: #0f172a;
-          border-radius: 10px;
-        }
-
-        .stat-header {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .stat-dot {
-          width: 12px;
-          height: 12px;
-          border-radius: 50%;
-        }
-
-        .stat-name {
-          font-size: 0.95rem;
-          font-weight: 600;
-          color: #e2e8f0;
-        }
-
-        .stat-values {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .stat-count {
-          font-size: 0.95rem;
-          font-weight: 700;
-          color: #f1f5f9;
-        }
-
-        .stat-percentage {
-          font-size: 0.85rem;
-          color: #94a3b8;
-        }
-
-        .total-summary {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 16px;
-          background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%);
-          border-radius: 12px;
-        }
-
-        .summary-label {
-          font-size: 0.95rem;
-          font-weight: 600;
-          color: #e2e8f0;
-        }
-
-        .summary-value {
-          font-size: 1.25rem;
-          font-weight: 700;
-          color: #667eea;
-        }
-
-        :global(.custom-tooltip) {
-          background: #1e293b;
-          border: 2px solid #334155;
-          border-radius: 12px;
-          padding: 12px 16px;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-        }
-
-        :global(.tooltip-label) {
-          font-size: 0.85rem;
-          color: #94a3b8;
-          margin: 0 0 4px 0;
-        }
-
-        :global(.tooltip-value) {
-          font-size: 1rem;
-          font-weight: 700;
-          color: #f1f5f9;
-          margin: 0;
-        }
-      `}</style>
     </div>
   );
 }

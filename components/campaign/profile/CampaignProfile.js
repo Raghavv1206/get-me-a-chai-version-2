@@ -1,113 +1,65 @@
 'use client';
 
 import { useState } from 'react';
-import CampaignCover from './CampaignCover';
-import ProfileHeader from './ProfileHeader';
-import StatsBar from './StatsBar';
-import ActionButtons from './ActionButtons';
-import CampaignTabs from './CampaignTabs';
-import AboutTab from './AboutTab';
-import UpdatesTab from './UpdatesTab';
-import SupportersTab from './SupportersTab';
-import DiscussionTab from './DiscussionTab';
+import CampaignHero from './CampaignHero';
+import CampaignStats from './CampaignStats';
+import CampaignContent from './CampaignContent';
+import CampaignSidebar from './CampaignSidebar';
 
 export default function CampaignProfile({ campaign, creator, isSupporter = false }) {
     const [activeTab, setActiveTab] = useState('about');
     const [selectedReward, setSelectedReward] = useState(null);
 
     const handleSupportClick = () => {
-        // Scroll to payment sidebar or open payment modal
-        const paymentSection = document.getElementById('payment-sidebar');
-        if (paymentSection) {
-            paymentSection.scrollIntoView({ behavior: 'smooth' });
-        }
+        console.log('Support clicked with reward:', selectedReward);
     };
 
     const handleSelectReward = (reward) => {
         setSelectedReward(reward);
-        handleSupportClick();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     return (
-        <div className="campaign-profile">
-            {/* Cover Image with Parallax */}
-            <CampaignCover
-                coverImage={campaign.coverImage || creator.coverpic}
-                title={campaign.title}
-            />
+        <div className="min-h-screen bg-black text-gray-100">
+            {/* Background Ambient Effects - Same as Dashboard */}
+            <div className="fixed top-20 right-0 w-[500px] h-[500px] bg-purple-900/10 blur-[100px] rounded-full pointer-events-none -z-10" />
+            <div className="fixed bottom-0 left-20 w-[400px] h-[400px] bg-blue-900/10 blur-[100px] rounded-full pointer-events-none -z-10" />
 
-            {/* Profile Header */}
-            <ProfileHeader
-                profilePic={creator.profilepic}
-                name={creator.name}
-                username={creator.username}
-                bio={creator.bio}
-                category={campaign.category}
-                location={creator.location}
-                socialLinks={creator.socialLinks}
-                verified={creator.verified}
-            />
+            {/* Hero Section - Full Width */}
+            <CampaignHero campaign={campaign} creator={creator} />
 
-            {/* Stats Bar */}
-            <StatsBar
-                totalRaised={creator.stats?.totalRaised || 0}
-                supporters={creator.stats?.totalSupporters || 0}
-                campaignsCount={creator.stats?.campaignsCount || 0}
-                successRate={creator.stats?.successRate || 0}
-            />
+            {/* Main Content - Same Container as Dashboard */}
+            <main className="pt-8 px-4 md:px-8 pb-8 min-h-screen relative">
+                <div className="max-w-7xl mx-auto space-y-6">
+                    {/* Stats Overview */}
+                    <CampaignStats campaign={campaign} creator={creator} />
 
-            {/* Action Buttons */}
-            <ActionButtons
-                campaignId={campaign._id}
-                campaignTitle={campaign.title}
-                creatorUsername={creator.username}
-                isFollowing={false} // TODO: Get from user's following list
-                onSupportClick={handleSupportClick}
-            />
+                    {/* Main Content Grid - Same as Dashboard */}
+                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
+                        {/* Left Column - Main Content (2/3 width on xl screens) */}
+                        <div className="xl:col-span-2 space-y-6 lg:space-y-8">
+                            <CampaignContent
+                                campaign={campaign}
+                                creator={creator}
+                                activeTab={activeTab}
+                                onTabChange={setActiveTab}
+                                onSelectReward={handleSelectReward}
+                                isSupporter={isSupporter}
+                            />
+                        </div>
 
-            {/* Tabs */}
-            <CampaignTabs activeTab={activeTab} onTabChange={setActiveTab}>
-                {activeTab === 'about' && (
-                    <AboutTab
-                        campaign={campaign}
-                        onSelectReward={handleSelectReward}
-                    />
-                )}
-
-                {activeTab === 'updates' && (
-                    <UpdatesTab
-                        campaignId={campaign._id}
-                        isSupporter={isSupporter}
-                    />
-                )}
-
-                {activeTab === 'supporters' && (
-                    <SupportersTab
-                        campaignId={campaign._id}
-                    />
-                )}
-
-                {activeTab === 'discussion' && (
-                    <DiscussionTab
-                        campaignId={campaign._id}
-                        creatorId={creator._id}
-                    />
-                )}
-            </CampaignTabs>
-
-            <style jsx>{`
-        .campaign-profile {
-          min-height: 100vh;
-          background: #0f172a;
-          padding-bottom: 60px;
-        }
-
-        @media (max-width: 768px) {
-          .campaign-profile {
-            padding-bottom: 40px;
-          }
-        }
-      `}</style>
+                        {/* Right Column - Sidebar (1/3 width on xl screens) */}
+                        <div className="space-y-6 lg:space-y-8">
+                            <CampaignSidebar
+                                campaign={campaign}
+                                creator={creator}
+                                selectedReward={selectedReward}
+                                onSupportClick={handleSupportClick}
+                            />
+                        </div>
+                    </div>
+                </div>
+            </main>
         </div>
     );
 }
