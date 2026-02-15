@@ -88,12 +88,12 @@ export default function SupportersTab({ campaignId }) {
               <div
                 key={supporter._id}
                 className={`flex items-center gap-4 p-5 rounded-2xl border-2 transition-all duration-300 hover:scale-[1.02] ${index === 0
-                    ? 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-yellow-500/30'
-                    : index === 1
-                      ? 'bg-gradient-to-r from-gray-500/20 to-gray-400/20 border-gray-400/30'
-                      : index === 2
-                        ? 'bg-gradient-to-r from-orange-500/20 to-red-500/20 border-orange-500/30'
-                        : 'bg-white/5 border-white/10'
+                  ? 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-yellow-500/30'
+                  : index === 1
+                    ? 'bg-gradient-to-r from-gray-500/20 to-gray-400/20 border-gray-400/30'
+                    : index === 2
+                      ? 'bg-gradient-to-r from-orange-500/20 to-red-500/20 border-orange-500/30'
+                      : 'bg-white/5 border-white/10'
                   }`}
               >
                 {/* Rank Badge */}
@@ -107,7 +107,7 @@ export default function SupportersTab({ campaignId }) {
                 {/* Avatar */}
                 <div className="relative w-14 h-14 rounded-full overflow-hidden flex-shrink-0 bg-gray-700 border-2 border-white/20">
                   <Image
-                    src={supporter.anonymous ? '/images/anonymous-avatar.png' : (supporter.profilePic || '/images/default-profilepic.jpg')}
+                    src={supporter.anonymous ? '/images/anonymous-avatar.png' : (supporter.profilePic || '/images/default-profilepic.svg')}
                     alt={supporter.name}
                     fill
                     className="object-cover"
@@ -156,7 +156,7 @@ export default function SupportersTab({ campaignId }) {
                 {/* Avatar */}
                 <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-gray-700">
                   <Image
-                    src={supporter.anonymous ? '/images/anonymous-avatar.png' : (supporter.profilePic || '/images/default-profilepic.jpg')}
+                    src={supporter.anonymous ? '/images/anonymous-avatar.png' : (supporter.profilePic || '/images/default-profilepic.svg')}
                     alt={supporter.name}
                     fill
                     className="object-cover"

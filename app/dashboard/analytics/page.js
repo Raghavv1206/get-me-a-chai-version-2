@@ -6,7 +6,10 @@
 
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
+import connectDb from '@/db/connectDb';
+import Campaign from '@/models/Campaign';
+import Payment from '@/models/Payment';
 import AnalyticsOverview from '@/components/analytics/AnalyticsOverview';
 import VisitorChart from '@/components/analytics/VisitorChart';
 import TrafficSources from '@/components/analytics/TrafficSources';
@@ -21,6 +24,105 @@ export const metadata = {
     description: 'View detailed analytics and insights for your campaigns'
 };
 
+async function getAnalyticsData(userId) {
+    await connectDb();
+
+    // Fetch user's campaigns
+    const campaigns = await Campaign.find({
+        creator: userId,
+        status: { $ne: 'deleted' }
+    }).lean();
+
+    // Fetch successful payments
+    const payments = await Payment.find({
+        to_user: (await import('@/models/User').then(m => m.default.findById(userId).select('username'))).username,
+        done: true
+    }).populate('campaign', 'title').sort({ createdAt: 1 }).lean();
+
+    // Aggregate stats
+    const totalViews = campaigns.reduce((sum, c) => sum + (c.stats?.views || 0), 0);
+    const totalSupporters = new Set(payments.map(p => p.name || p.email)).size;
+    const totalRevenue = payments.reduce((sum, p) => sum + p.amount, 0);
+
+    // Calculate conversion rate (avoid division by zero)
+    const conversionRate = totalViews > 0 ? (totalSupporters / totalViews) * 100 : 0;
+
+    // Mock data for trends (since we don't track historical daily snapshots yet)
+    // In a real app, you'd having a daily_stats collection
+    const overviewData = {
+        '30': {
+            views: totalViews,
+            viewsChange: 12, // Mock change percentage
+            clicks: Math.floor(totalViews * 0.6), // Mock clicks
+            clicksChange: 8,
+            conversionRate: conversionRate,
+            conversionChange: 2.5,
+            bounceRate: 45, // Mock bounce rate
+            bounceChange: -5
+        },
+        '7': {
+            views: Math.floor(totalViews * 0.25),
+            viewsChange: 5,
+            clicks: Math.floor(totalViews * 0.15),
+            clicksChange: 3,
+            conversionRate: conversionRate,
+            conversionChange: 1.2,
+            bounceRate: 42,
+            bounceChange: -2
+        },
+        '90': {
+            views: totalViews, // Assuming all within 90 days for now
+            viewsChange: 15,
+            clicks: Math.floor(totalViews * 0.6),
+            clicksChange: 10,
+            conversionRate: conversionRate,
+            conversionChange: 3.0,
+            bounceRate: 48,
+            bounceChange: -4
+        },
+        'all': {
+            views: totalViews,
+            viewsChange: 0,
+            clicks: Math.floor(totalViews * 0.6),
+            clicksChange: 0,
+            conversionRate: conversionRate,
+            conversionChange: 0,
+            bounceRate: 45,
+            bounceChange: 0
+        }
+    };
+
+    // Prepare chart data based on actual payments
+    const revenueData = payments.map(p => ({
+        date: new Date(p.createdAt).toLocaleDateString(),
+        amount: p.amount,
+        campaign: p.campaign?.title || 'General Support'
+    }));
+
+    // Generate mock visitor chart data (since we don't have daily tracking yet)
+    const visitorChartData = Array.from({ length: 30 }, (_, i) => {
+        const date = new Date();
+        date.setDate(date.getDate() - (29 - i));
+
+        // Distribute total views somewhat randomly or use 0
+        const dailyViews = totalViews > 0 ? Math.max(0, Math.floor(totalViews / 30) + (Math.random() * 4 - 2)) : 0;
+
+        return {
+            date: date.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }),
+            unique: Math.floor(dailyViews * 0.7),
+            returning: Math.floor(dailyViews * 0.3)
+        };
+    });
+
+    return {
+        overview: overviewData,
+        revenue: revenueData,
+        visitorChartData,
+        campaigns: campaigns.map(c => ({ title: c.title, views: c.stats?.views || 0 })),
+        totalRevenue
+    };
+}
+
 export default async function AnalyticsPage() {
     // Check authentication
     const session = await getServerSession(authOptions);
@@ -28,6 +130,8 @@ export default async function AnalyticsPage() {
     if (!session) {
         redirect('/login?callbackUrl=/dashboard/analytics');
     }
+
+    const data = await getAnalyticsData(session.user.id);
 
     return (
         <div className="min-h-screen bg-black text-gray-100">
@@ -48,16 +152,16 @@ export default async function AnalyticsPage() {
                     </div>
 
                     {/* Analytics Overview */}
-                    <AnalyticsOverview />
+                    <AnalyticsOverview data={data.overview} />
 
                     {/* AI Insights */}
-                    <AIInsightsPanel />
+                    <AIInsightsPanel campaigns={data.campaigns} />
 
                     {/* Charts Grid */}
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
                         {/* Visitor Chart - Full Width */}
                         <div className="xl:col-span-2">
-                            <VisitorChart />
+                            <VisitorChart data={data.visitorChartData} />
                         </div>
 
                         {/* Traffic Sources */}
@@ -67,10 +171,10 @@ export default async function AnalyticsPage() {
                         <DeviceBreakdown />
 
                         {/* Conversion Funnel */}
-                        <ConversionFunnel />
+                        <ConversionFunnel conversionRate={data.overview['30'].conversionRate} />
 
                         {/* Revenue Chart */}
-                        <RevenueChart />
+                        <RevenueChart data={data.revenue} total={data.totalRevenue} />
                     </div>
 
                     {/* Export Reports */}

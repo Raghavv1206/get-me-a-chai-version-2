@@ -25,7 +25,7 @@ export default function ProfileHeader({
         <div className="profile-picture-wrapper">
           <div className="profile-picture">
             <Image
-              src={profilePic || '/images/default-profilepic.jpg'}
+              src={profilePic || '/images/default-profilepic.svg'}
               alt={name}
               fill
               className="profile-image"

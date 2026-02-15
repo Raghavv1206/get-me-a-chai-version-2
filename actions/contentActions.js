@@ -50,7 +50,7 @@ export async function createUpdate(data) {
         // Create update
         const update = await CampaignUpdate.create({
             campaign: data.campaign,
-            author: user._id,
+            creator: user._id,
             title: data.title,
             content: data.content,
             visibility: data.visibility || 'public',
@@ -101,7 +101,7 @@ export async function updateUpdate(updateId, data) {
             return { error: 'Update not found' };
         }
 
-        if (update.author.toString() !== user._id.toString()) {
+        if (update.creator.toString() !== user._id.toString()) {
             return { error: 'You do not have permission to edit this update' };
         }
 
@@ -153,7 +153,7 @@ export async function deleteUpdate(updateId) {
             return { error: 'Update not found' };
         }
 
-        if (update.author.toString() !== user._id.toString()) {
+        if (update.creator.toString() !== user._id.toString()) {
             return { error: 'You do not have permission to delete this update' };
         }
 
@@ -192,7 +192,7 @@ export async function publishUpdate(updateId) {
             return { error: 'Update not found' };
         }
 
-        if (update.author.toString() !== user._id.toString()) {
+        if (update.creator.toString() !== user._id.toString()) {
             return { error: 'You do not have permission to publish this update' };
         }
 
@@ -244,7 +244,7 @@ export async function scheduleUpdate(updateId, publishDate) {
             return { error: 'Update not found' };
         }
 
-        if (update.author.toString() !== user._id.toString()) {
+        if (update.creator.toString() !== user._id.toString()) {
             return { error: 'You do not have permission to schedule this update' };
         }
 
@@ -302,7 +302,7 @@ export async function getUpdates(campaignId, filters = {}) {
             ...u,
             _id: u._id.toString(),
             campaign: u.campaign.toString(),
-            author: u.author.toString(),
+            creator: u.creator.toString(),
             createdAt: u.createdAt?.toISOString(),
             updatedAt: u.updatedAt?.toISOString(),
             publishedAt: u.publishedAt?.toISOString(),
@@ -337,7 +337,7 @@ export async function getUserUpdates(filters = {}) {
         }
 
         // Build query
-        const query = { author: user._id };
+        const query = { creator: user._id };
 
         if (filters.status) {
             query.status = filters.status;
@@ -358,7 +358,7 @@ export async function getUserUpdates(filters = {}) {
                 title: u.campaign.title,
                 slug: u.campaign.slug
             },
-            author: u.author.toString(),
+            creator: u.creator.toString(),
             createdAt: u.createdAt?.toISOString(),
             updatedAt: u.updatedAt?.toISOString(),
             publishedAt: u.publishedAt?.toISOString(),

@@ -540,9 +540,17 @@ export async function searchCampaigns(params) {
             duration: `${duration}ms`,
         });
 
+        // Map campaigns to include proper field names for frontend
+        const mappedCampaigns = campaigns.map(campaign => ({
+            ...campaign,
+            creatorName: campaign.creator?.name || 'Anonymous',
+            raisedAmount: campaign.currentAmount || 0,
+            supportersCount: campaign.stats?.supporters || 0,
+        }));
+
         return {
             success: true,
-            campaigns: JSON.parse(JSON.stringify(campaigns)),
+            campaigns: mappedCampaigns,
             total,
             page,
             totalPages,
@@ -700,9 +708,17 @@ export async function filterCampaigns(params) {
             duration: `${duration}ms`,
         });
 
+        // Map campaigns to include proper field names for frontend
+        const mappedCampaigns = campaigns.map(campaign => ({
+            ...campaign,
+            creatorName: campaign.creator?.name || 'Anonymous',
+            raisedAmount: campaign.currentAmount || 0,
+            supportersCount: campaign.stats?.supporters || 0,
+        }));
+
         return {
             success: true,
-            campaigns: JSON.parse(JSON.stringify(campaigns)),
+            campaigns: mappedCampaigns,
             total,
             page,
             totalPages: Math.ceil(total / limit),

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import connectDb from '@/db/connectDb';
 import Comment from '@/models/Comment';
 import Campaign from '@/models/Campaign';
@@ -68,7 +69,7 @@ export async function GET(request, { params }) {
 
 export async function POST(request, { params }) {
     try {
-        const session = await getServerSession();
+        const session = await getServerSession(authOptions);
         if (!session) {
             return NextResponse.json(
                 { success: false, message: 'Unauthorized' },
@@ -97,6 +98,17 @@ export async function POST(request, { params }) {
                 { status: 404 }
             );
         }
+
+        // Validate user ID
+        if (!session.user?.id) {
+            console.error('User ID not found in session:', session);
+            return NextResponse.json(
+                { success: false, message: 'User ID not found in session' },
+                { status: 400 }
+            );
+        }
+
+        console.log('Creating comment with user ID:', session.user.id);
 
         // Create comment
         const comment = await Comment.create({

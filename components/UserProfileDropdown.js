@@ -6,7 +6,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import {
   LayoutDashboard,
-  User,
   Rocket,
   Heart,
   Settings,
@@ -43,13 +42,6 @@ export default function UserProfileDropdown({ user }) {
       href: '/dashboard',
       show: user?.role === 'creator' || user?.role === 'admin',
       description: 'View your overview'
-    },
-    {
-      icon: User,
-      label: 'My Page',
-      href: `/${user?.name}`,
-      show: user?.role === 'creator',
-      description: 'Public profile'
     },
     {
       icon: Rocket,
@@ -95,7 +87,7 @@ export default function UserProfileDropdown({ user }) {
         {/* Avatar */}
         <div className="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-white/10 group-hover:ring-purple-500/50 transition-all">
           <Image
-            src={user?.profilepic || '/images/default-profilepic.jpg'}
+            src={user?.profilepic || '/images/default-profilepic.svg'}
             alt={user?.name || 'User'}
             fill
             className="object-cover"
@@ -133,7 +125,7 @@ export default function UserProfileDropdown({ user }) {
                 <div className="flex items-center gap-3">
                   <div className="relative w-12 h-12 rounded-full overflow-hidden ring-2 ring-purple-500/30">
                     <Image
-                      src={user?.profilepic || '/images/default-profilepic.jpg'}
+                      src={user?.profilepic || '/images/default-profilepic.svg'}
                       alt={user?.name || 'User'}
                       fill
                       className="object-cover"
@@ -169,13 +161,13 @@ export default function UserProfileDropdown({ user }) {
                       href={item.href}
                       onClick={() => setIsOpen(false)}
                       className={`group flex items-start gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${item.highlight
-                          ? 'bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30'
-                          : 'hover:bg-white/5'
+                        ? 'bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30'
+                        : 'hover:bg-white/5'
                         }`}
                     >
                       <Icon className={`w-5 h-5 mt-0.5 flex-shrink-0 transition-colors ${item.highlight
-                          ? 'text-purple-400'
-                          : 'text-gray-400 group-hover:text-white'
+                        ? 'text-purple-400'
+                        : 'text-gray-400 group-hover:text-white'
                         }`} />
                       <div className="flex-1 min-w-0">
                         <p className={`text-sm font-medium ${item.highlight ? 'text-purple-300' : 'text-gray-200 group-hover:text-white'

@@ -6,14 +6,49 @@
 
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import UpdatesList from '@/components/content/UpdatesList';
-import CreateUpdateForm from '@/components/content/CreateUpdateForm';
+import { authOptions } from '@/lib/auth';
+import connectDb from '@/db/connectDb';
+import Campaign from '@/models/Campaign';
+import CampaignUpdate from '@/models/CampaignUpdate';
+import ContentClient from '@/components/content/ContentClient';
 
 export const metadata = {
     title: 'Content Manager - Get Me A Chai',
     description: 'Create and manage campaign updates'
 };
+
+async function getContentData(userId) {
+    await connectDb();
+
+    // Fetch user's active campaigns (for the create form)
+    const campaigns = await Campaign.find({
+        creator: userId,
+        status: { $in: ['active', 'completed'] }
+    }).select('title _id').lean();
+
+    // Fetch user's updates (for the list)
+    const updates = await CampaignUpdate.find({
+        creator: userId
+    })
+        .sort({ createdAt: -1 })
+        .populate('campaign', 'title')
+        .lean();
+
+    // Serialize MongoDB objects
+    return {
+        campaigns: campaigns.map(c => ({ ...c, _id: c._id.toString() })),
+        updates: updates.map(u => ({
+            ...u,
+            _id: u._id.toString(),
+            campaign: u.campaign ? { ...u.campaign, _id: u.campaign._id.toString() } : null,
+            creator: u.creator.toString(),
+            createdAt: u.createdAt.toISOString(),
+            updatedAt: u.updatedAt.toISOString(),
+            publishedAt: u.publishedAt?.toISOString(),
+            scheduledFor: u.scheduledFor?.toISOString()
+        }))
+    };
+}
 
 export default async function ContentPage() {
     // Check authentication
@@ -22,6 +57,8 @@ export default async function ContentPage() {
     if (!session) {
         redirect('/login?callbackUrl=/dashboard/content');
     }
+
+    const { campaigns, updates } = await getContentData(session.user.id);
 
     return (
         <div className="min-h-screen bg-black text-gray-100">
@@ -41,21 +78,8 @@ export default async function ContentPage() {
                         </p>
                     </div>
 
-                    {/* Create Update Form */}
-                    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-                        <h2 className="text-xl font-bold text-white mb-4">
-                            Create New Update
-                        </h2>
-                        <CreateUpdateForm />
-                    </div>
-
-                    {/* Updates List */}
-                    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-                        <h2 className="text-xl font-bold text-white mb-4">
-                            Your Updates
-                        </h2>
-                        <UpdatesList />
-                    </div>
+                    {/* Content Client - Handles Form and List */}
+                    <ContentClient campaigns={campaigns} updates={updates} />
 
                     {/* Best Practices */}
                     <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">

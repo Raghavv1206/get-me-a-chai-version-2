@@ -1,0 +1,17 @@
+<svg width="1200" height="600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f093fb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f5576c;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="600" fill="url(#grad2)"/>
+  <text x="600" y="280" font-family="Arial, sans-serif" font-size="48" fill="white" text-anchor="middle" font-weight="bold">
+    Fashion Campaign
+  </text>
+  <text x="600" y="340" font-family="Arial, sans-serif" font-size="24" fill="rgba(255,255,255,0.8)" text-anchor="middle">
+    Style • Design • Trends
+  </text>
+  <circle cx="600" cy="450" r="80" fill="rgba(255,255,255,0.1)" stroke="white" stroke-width="3"/>
+  <path d="M 580 420 L 600 460 L 620 420 M 600 460 L 600 480" stroke="white" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

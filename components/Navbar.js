@@ -215,8 +215,8 @@ export default function Navbar() {
                   key={link.href}
                   href={link.href}
                   className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all ${isActive(link.href)
-                      ? 'bg-white/10 text-white'
-                      : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                    ? 'bg-white/10 text-white'
+                    : 'text-gray-400 hover:bg-white/5 hover:text-white'
                     }`}
                   onClick={() => setShowMobileMenu(false)}
                 >
@@ -230,8 +230,8 @@ export default function Navbar() {
                   key={link.href}
                   href={link.href}
                   className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all ${isActive(link.href)
-                      ? 'bg-white/10 text-white'
-                      : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                    ? 'bg-white/10 text-white'
+                    : 'text-gray-400 hover:bg-white/5 hover:text-white'
                     }`}
                   onClick={() => setShowMobileMenu(false)}
                 >
@@ -259,7 +259,7 @@ export default function Navbar() {
             ) : (
               <div className="flex items-center gap-3 px-2 py-3">
                 <img
-                  src={session.user.image || "/avatar.gif"}
+                  src={session.user.profilepic || session.user.image || "/images/default-profilepic.svg"}
                   alt={session.user.name}
                   className="w-10 h-10 rounded-full border border-white/10"
                 />

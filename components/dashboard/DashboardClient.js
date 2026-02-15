@@ -80,7 +80,7 @@ export default function DashboardClient({ data }) {
               <div className="hidden lg:flex items-center gap-3 px-3 py-2 rounded-lg bg-white/5 border border-white/5">
                 <div className="relative w-8 h-8 rounded-full overflow-hidden border border-white/10">
                   <Image
-                    src={data.user?.profilepic || '/images/default-profilepic.jpg'}
+                    src={data.user?.profilepic || '/images/default-profilepic.svg'}
                     alt={data.user?.name || 'User'}
                     fill
                     className="object-cover"
@@ -118,7 +118,7 @@ export default function DashboardClient({ data }) {
               <div className="flex items-center gap-3 px-4 py-3 mb-4 rounded-lg bg-white/5 border border-white/5">
                 <div className="relative w-10 h-10 rounded-full overflow-hidden border border-white/10">
                   <Image
-                    src={data.user?.profilepic || '/images/default-profilepic.jpg'}
+                    src={data.user?.profilepic || '/images/default-profilepic.svg'}
                     alt={data.user?.name || 'User'}
                     fill
                     className="object-cover"

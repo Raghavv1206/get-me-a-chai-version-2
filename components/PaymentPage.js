@@ -60,9 +60,9 @@ const PaymentPage = ({ username }) => {
         "key": currentUser.razorpayid, // Enter the Key ID generated from the Dashboard
         "amount": amount, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
         "currency": "INR",
-        "name": "Get Me A Chai", //your business name
-        "description": "Test Transaction",
-        "image": "https://example.com/your_logo",
+        "name": "Get Me A Chai",
+        "description": `Support ${currentUser.name || username}`,
+        "image": currentUser.profilepic || "/images/logo.png",
         "order_id": orderId, //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
         "handler": async function (response) {
           // Payment successful - verify and update
@@ -116,13 +116,13 @@ const PaymentPage = ({ username }) => {
             });
           }
         },
-        "prefill": { //We recommend using the prefill parameter to auto-fill customer's contact information especially their phone number
-          "name": paymentform.name || "Supporter", //your customer's name
-          "email": "supporter@example.com",
-          "contact": "9000090000" //Provide the customer's phone number for better conversion rates 
+        "prefill": {
+          "name": paymentform.name || "Supporter",
+          "email": session?.user?.email || "",
+          "contact": ""
         },
         "notes": {
-          "address": "Razorpay Corporate Office"
+          "message": paymentform.message || ""
         },
         "theme": {
           "color": "#3399cc"
@@ -192,12 +192,12 @@ const PaymentPage = ({ username }) => {
             </div>
           )}
           <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 border-4 border-black overflow-hidden rounded-full w-32 h-32 md:w-40 md:h-40 shadow-2xl shadow-purple-900/50">
-            {(currentUser.profilepic || "/images/default-profilepic.jpg") && (
+            {(currentUser.profilepic || "/images/default-profilepic.svg") && (
               <img
                 className="rounded-full object-cover w-full h-full bg-black"
                 width={160}
                 height={160}
-                src={currentUser.profilepic || "/images/default-profilepic.jpg"}
+                src={currentUser.profilepic || "/images/default-profilepic.svg"}
                 alt="profileimg"
               />
             )}

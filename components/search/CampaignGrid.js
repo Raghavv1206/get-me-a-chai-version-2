@@ -198,10 +198,10 @@ export default function CampaignGrid({
 function CampaignCard({ campaign, viewMode }) {
     const [saved, setSaved] = useState(false);
 
-    // Calculate progress percentage
-    const progress = campaign.goalAmount
-        ? Math.min((campaign.raisedAmount / campaign.goalAmount) * 100, 100)
-        : 0;
+    // Calculate progress percentage - defensive calculation to avoid NaN
+    const raisedAmount = campaign.raisedAmount || campaign.currentAmount || 0;
+    const goalAmount = campaign.goalAmount || 1; // Avoid division by zero
+    const progress = Math.min((raisedAmount / goalAmount) * 100, 100);
 
     // Calculate days remaining
     const daysRemaining = campaign.endDate
@@ -297,10 +297,10 @@ function CampaignCard({ campaign, viewMode }) {
                         <div className="mb-4">
                             <div className="flex justify-between text-sm mb-2">
                                 <span className="font-semibold text-gray-900 dark:text-white">
-                                    ₹{campaign.raisedAmount?.toLocaleString() || 0}
+                                    ₹{raisedAmount.toLocaleString()}
                                 </span>
                                 <span className="text-gray-600 dark:text-gray-400">
-                                    of ₹{campaign.goalAmount?.toLocaleString() || 0}
+                                    of ₹{goalAmount.toLocaleString()}
                                 </span>
                             </div>
                             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
@@ -409,7 +409,7 @@ function CampaignCard({ campaign, viewMode }) {
                 <div className="mb-3">
                     <div className="flex justify-between text-sm mb-2">
                         <span className="font-semibold text-gray-900 dark:text-white">
-                            ₹{campaign.raisedAmount?.toLocaleString() || 0}
+                            ₹{raisedAmount.toLocaleString()}
                         </span>
                         <span className="text-gray-600 dark:text-gray-400 text-xs">
                             {progress.toFixed(0)}%

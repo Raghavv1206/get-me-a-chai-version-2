@@ -8,7 +8,7 @@ const UserSchema = new Schema({
     name: { type: String },
     username: { type: String, required: true },
     password: { type: String }, // ADD THIS - optional for OAuth users
-    profilepic: { type: String, default: "/images/default-profilepic.jpg" },
+    profilepic: { type: String, default: "/images/default-profilepic.svg" },
     coverpic: { type: String, default: "/images/default-coverpic.jpg" },
     bio: { type: String, maxLength: 500 },
     location: { type: String },

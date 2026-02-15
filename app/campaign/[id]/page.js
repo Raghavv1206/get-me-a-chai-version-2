@@ -25,7 +25,7 @@ export default async function CampaignPage({ params }) {
 
         // Fetch campaign with creator details
         const campaign = await Campaign.findById(id)
-            .populate('creator', 'name email profileImage verified username bio location socialLinks stats coverpic profilepic')
+            .populate('creator', 'name email profileImage verified username bio location socialLinks stats coverpic profilepic razorpayid razorpaysecret')
             .lean();
 
         if (!campaign) {
@@ -36,7 +36,7 @@ export default async function CampaignPage({ params }) {
         const campaignData = JSON.parse(JSON.stringify(campaign));
 
         // Calculate days remaining
-        const deadline = new Date(campaign.deadline);
+        const deadline = new Date(campaign.endDate);
         const now = new Date();
         const daysRemaining = Math.max(0, Math.ceil((deadline - now) / (1000 * 60 * 60 * 24)));
 
@@ -46,8 +46,9 @@ export default async function CampaignPage({ params }) {
 
         // Add computed fields to campaign
         campaignData.daysRemaining = daysRemaining;
-        campaignData.currentAmount = campaign.raised || 0;
-        campaignData.goalAmount = campaign.goal;
+        // Use the actual field names from the Campaign model
+        campaignData.currentAmount = campaign.currentAmount || 0;
+        campaignData.goalAmount = campaign.goalAmount || 0;
 
         // Ensure creator has required fields with defaults
         const creatorData = {
@@ -61,6 +62,8 @@ export default async function CampaignPage({ params }) {
             location: creator.location || '',
             verified: creator.verified || false,
             socialLinks: creator.socialLinks || {},
+            razorpayid: creator.razorpayid || '',
+            razorpaysecret: creator.razorpaysecret || '',
             stats: creator.stats || {
                 totalRaised: 0,
                 totalSupporters: 0,

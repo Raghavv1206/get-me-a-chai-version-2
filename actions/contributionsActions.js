@@ -208,13 +208,13 @@ export async function getContributions(userId) {
 
         await connectDb();
 
-        // Fetch all payments by user
+        // Fetch all payments by user (using correct field name: userId, not from_user)
         const payments = await Payment.find({
-            from_user: userId,
-            status: 'completed'
+            userId: userId,
+            status: 'success'  // Payment model uses 'success' not 'completed'
         })
             .populate('campaign', 'title coverImage creator status')
-            .populate('from_user', 'name email profileImage')
+            .populate('userId', 'name email profilepic')
             .sort({ createdAt: -1 })
             .lean();
 
@@ -360,8 +360,8 @@ export async function generateReceipt(paymentId, userId) {
             };
         }
 
-        // Authorization check
-        if (payment.from_user._id.toString() !== userId) {
+        // Authorization check (using correct field name)
+        if (payment.userId._id.toString() !== userId) {
             logger.warn('Unauthorized receipt access attempt', { requestId, paymentId, userId });
             return {
                 success: false,
@@ -376,12 +376,12 @@ export async function generateReceipt(paymentId, userId) {
         const receiptData = {
             receiptNumber: `RCP-${payment._id.toString().slice(-8).toUpperCase()}`,
             date: new Date(payment.createdAt).toLocaleDateString(),
-            paymentId: payment.razorpay_payment_id || payment._id.toString(),
+            paymentId: payment.paymentId || payment._id.toString(),
             amount: payment.amount,
             currency: payment.currency || 'INR',
             campaignTitle: payment.campaign?.title || 'Unknown Campaign',
-            donorName: payment.from_user?.name || 'Anonymous',
-            donorEmail: payment.from_user?.email || '',
+            donorName: payment.userId?.name || payment.name || 'Anonymous',
+            donorEmail: payment.userId?.email || payment.email || '',
             message: payment.message || '',
             taxDeductible: payment.taxDeductible || false,
         };
@@ -465,8 +465,8 @@ export async function getBadges(userId) {
         await connectDb();
 
         const payments = await Payment.find({
-            from_user: userId,
-            status: 'completed'
+            userId: userId,
+            status: 'success'  // Payment model uses 'success' not 'completed'
         })
             .populate('campaign')
             .sort({ createdAt: 1 })
@@ -620,10 +620,10 @@ async function checkFirstSupporter(userId, userPayments) {
 
         const allPayments = await Payment.find({
             campaign: payment.campaign._id,
-            status: 'completed'
+            status: 'success'  // Use correct status
         }).sort({ createdAt: 1 }).limit(1).lean();
 
-        if (allPayments.length > 0 && allPayments[0].from_user.toString() === userId) {
+        if (allPayments.length > 0 && allPayments[0].userId.toString() === userId) {
             firstSupporterCampaigns.push({
                 campaignId: payment.campaign._id,
                 campaignTitle: payment.campaign.title,

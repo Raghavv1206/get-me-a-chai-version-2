@@ -69,14 +69,16 @@ export default function StatsBar({ totalRaised, supporters, campaignsCount, succ
   }, [isVisible, totalRaised, supporters, campaignsCount, successRate]);
 
   const formatCurrency = (amount) => {
-    if (amount >= 10000000) {
-      return `${(amount / 10000000).toFixed(1)}Cr`;
+    if (amount === 0) {
+      return '₹0';
+    } else if (amount >= 10000000) {
+      return `₹${(amount / 10000000).toFixed(1)}Cr`;
     } else if (amount >= 100000) {
-      return `${(amount / 100000).toFixed(1)}L`;
+      return `₹${(amount / 100000).toFixed(1)}L`;
     } else if (amount >= 1000) {
-      return `${(amount / 1000).toFixed(1)}K`;
+      return `₹${(amount / 1000).toFixed(1)}K`;
     }
-    return amount.toString();
+    return `₹${amount.toLocaleString('en-IN')}`;
   };
 
   const stats = [

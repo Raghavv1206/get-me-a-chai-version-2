@@ -36,15 +36,18 @@ async function getDashboardData(userId) {
     };
   }
 
-  // Get campaigns
+  // Get campaigns - Convert userId to ObjectId for proper matching
   const campaigns = await Campaign.find({
-    creator: userId,
+    creator: userId, // Mongoose automatically converts string to ObjectId
     status: { $ne: 'deleted' }
   })
     .sort({ createdAt: -1 })
     .limit(5)
     .populate('creator', 'username')
     .lean();
+
+  console.log('Dashboard - User ID:', userId);
+  console.log('Dashboard - Campaigns found:', campaigns.length);
 
   // Get recent transactions
   const transactions = await Payment.find({

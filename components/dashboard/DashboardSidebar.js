@@ -78,7 +78,7 @@ export default function DashboardSidebar({ user }) {
             <div className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/5">
               <div className="relative w-10 h-10 rounded-full overflow-hidden border border-white/10">
                 <Image
-                  src={user?.profilepic || '/images/default-profilepic.jpg'}
+                  src={user?.profilepic || '/images/default-profilepic.svg'}
                   alt={user?.name || 'User'}
                   fill
                   className="object-cover"
@@ -103,8 +103,8 @@ export default function DashboardSidebar({ user }) {
                   href={item.href}
                   onClick={() => setIsMobileOpen(false)}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${active
-                      ? 'bg-gradient-to-r from-purple-600/20 to-blue-600/20 text-white border border-purple-500/20'
-                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    ? 'bg-gradient-to-r from-purple-600/20 to-blue-600/20 text-white border border-purple-500/20'
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
                     }`}
                 >
                   <Icon className={`w-5 h-5 transition-colors ${active ? 'text-purple-400' : 'text-gray-500 group-hover:text-gray-300'}`} />

@@ -1,11 +1,11 @@
 // components/UserAvatar.js - Reusable Avatar Component
 "use client"
 
-export default function UserAvatar({ 
-  user, 
-  size = 'md', 
+export default function UserAvatar({
+  user,
+  size = 'md',
   showVerified = false,
-  className = '' 
+  className = ''
 }) {
   const sizes = {
     sm: 'w-8 h-8 text-xs',
@@ -26,18 +26,20 @@ export default function UserAvatar({
 
   return (
     <div className={`relative ${sizes[size]} ${className}`}>
-      {user?.profilepic ? (
-        <img
-          src={user.profilepic}
-          alt={user.name || 'User'}
-          className="w-full h-full rounded-full object-cover"
-        />
-      ) : (
-        <div className="w-full h-full rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-bold">
-          {getInitials(user?.name || user?.username)}
-        </div>
-      )}
-      
+      <img
+        src={user?.profilepic || '/images/default-profilepic.svg'}
+        alt={user?.name || user?.username || 'User'}
+        className="w-full h-full rounded-full object-cover bg-gray-800"
+        onError={(e) => {
+          // Fallback to initials if image fails to load
+          e.target.style.display = 'none';
+          e.target.nextElementSibling.style.display = 'flex';
+        }}
+      />
+      <div className="w-full h-full rounded-full bg-gradient-to-br from-purple-500 to-blue-500 items-center justify-center text-white font-bold absolute inset-0" style={{ display: 'none' }}>
+        {getInitials(user?.name || user?.username)}
+      </div>
+
       {showVerified && user?.verified && (
         <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-500 rounded-full border-2 border-gray-900 flex items-center justify-center">
           <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">

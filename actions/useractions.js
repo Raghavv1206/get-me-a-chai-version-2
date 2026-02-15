@@ -8,6 +8,8 @@ import User from "@/models/User"
 import { createLogger } from "@/lib/logger"
 import { validateString, validateNumber, ValidationError } from "@/lib/validation"
 import config from "@/lib/config"
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 
 const logger = createLogger('UserActions');
 
@@ -15,6 +17,18 @@ const logger = createLogger('UserActions');
 export const initiate = async (amount, to_username, paymentform) => {
     try {
         logger.info('Initiating payment', { amount, to_username });
+
+        // Check if user is authenticated (server-side)
+        const session = await getServerSession(authOptions);
+        if (!session) {
+            logger.warn('Unauthenticated payment attempt', { to_username });
+            throw new Error('You must be logged in to make a payment. Please login and try again.');
+        }
+
+        logger.info('Payment initiated by authenticated user', {
+            userEmail: session.user?.email,
+            to_username
+        });
 
         await connectDb();
 
@@ -48,10 +62,18 @@ export const initiate = async (amount, to_username, paymentform) => {
             logger.error('Razorpay credentials not configured', {
                 username: validatedUsername,
                 hasUserId: !!user.razorpayid,
-                hasUserSecret: !!user.razorpaysecret
+                hasUserSecret: !!user.razorpaysecret,
+                hasConfigId: !!config.payment.razorpay.keyId,
+                hasConfigSecret: !!config.payment.razorpay.keySecret
             });
             throw new Error('Payment gateway not configured. Please contact the creator.');
         }
+
+        logger.info('Creating Razorpay instance', {
+            username: validatedUsername,
+            hasRazorpayId: !!razorpayId,
+            hasRazorpaySecret: !!razorpaySecret
+        });
 
         // Initialize Razorpay instance
         var instance = new Razorpay({
@@ -63,6 +85,12 @@ export const initiate = async (amount, to_username, paymentform) => {
             amount: Number.parseInt(validatedAmount),
             currency: config.payment.razorpay.currency || "INR",
         };
+
+        logger.info('Creating Razorpay order', {
+            amount: options.amount,
+            currency: options.currency,
+            username: validatedUsername
+        });
 
         let order = await instance.orders.create(options);
 
@@ -78,13 +106,20 @@ export const initiate = async (amount, to_username, paymentform) => {
             amount: validatedAmount / 100,
             to_user: validatedUsername,
             name: paymentform.name,
-            message: paymentform.message
+            message: paymentform.message,
+            campaign: paymentform.campaign || null // Include campaign ID if provided
         });
 
         return order;
     } catch (error) {
         logger.error('Payment initiation failed', {
-            error: { name: error.name, message: error.message },
+            error: {
+                name: error.name,
+                message: error.message,
+                stack: error.stack,
+                code: error.code,
+                fullError: JSON.stringify(error, Object.getOwnPropertyNames(error))
+            },
             amount,
             to_username
         });

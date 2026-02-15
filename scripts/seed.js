@@ -37,7 +37,7 @@ async function seedDatabase() {
             name: 'Demo Creator',
             username: 'democreator',
             password: demoPassword,
-            profilepic: '/images/default-profilepic.jpg',
+            profilepic: '/images/default-profilepic.svg',
             coverpic: '/images/default-coverpic.jpg',
             bio: 'I am a demo creator building amazing projects!',
             location: 'Mumbai, India',

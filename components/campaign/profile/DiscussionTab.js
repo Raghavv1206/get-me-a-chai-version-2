@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
-import { FaHeart, FaRegHeart, FaReply, FaFlag, FaTrash, FaThumbtack } from 'react-icons/fa';
+import { FaHeart, FaRegHeart, FaReply, FaFlag, FaTrash, FaThumbtack, FaClock, FaFire, FaSortAmountDown, FaTimes } from 'react-icons/fa';
 
 export default function DiscussionTab({ campaignId, creatorId }) {
   const { data: session } = useSession();
@@ -11,8 +11,10 @@ export default function DiscussionTab({ campaignId, creatorId }) {
   const [loading, setLoading] = useState(true);
   const [newComment, setNewComment] = useState('');
   const [replyTo, setReplyTo] = useState(null);
+  const [replyToComment, setReplyToComment] = useState(null);
   const [sortBy, setSortBy] = useState('newest');
   const [likedComments, setLikedComments] = useState(new Set());
+  const commentFormRef = useRef(null);
 
   useEffect(() => {
     fetchComments();
@@ -56,7 +58,7 @@ export default function DiscussionTab({ campaignId, creatorId }) {
 
       if (response.ok) {
         setNewComment('');
-        setReplyTo(null);
+        cancelReply();
         fetchComments();
       }
     } catch (error) {
@@ -157,6 +159,23 @@ export default function DiscussionTab({ campaignId, creatorId }) {
     }
   };
 
+  const handleReply = (comment) => {
+    setReplyTo(comment._id);
+    setReplyToComment(comment);
+    // Scroll to comment form
+    commentFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Focus on textarea after scroll
+    setTimeout(() => {
+      const textarea = commentFormRef.current?.querySelector('textarea');
+      textarea?.focus();
+    }, 500);
+  };
+
+  const cancelReply = () => {
+    setReplyTo(null);
+    setReplyToComment(null);
+  };
+
   const formatTimeAgo = (date) => {
     const now = new Date();
     const commentDate = new Date(date);
@@ -178,10 +197,10 @@ export default function DiscussionTab({ campaignId, creatorId }) {
 
     return (
       <div className={`flex gap-4 p-5 rounded-2xl transition-all ${comment.pinned
-          ? 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-2 border-yellow-500/30'
-          : isReply
-            ? 'bg-white/5 border border-white/10 ml-12'
-            : 'bg-white/5 backdrop-blur-xl border border-white/10 hover:bg-white/10'
+        ? 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-2 border-yellow-500/30'
+        : isReply
+          ? 'bg-white/5 border border-white/10 ml-12'
+          : 'bg-white/5 backdrop-blur-xl border border-white/10 hover:bg-white/10'
         }`}>
         {comment.pinned && (
           <div className="absolute -top-3 left-12 flex items-center gap-1.5 px-3 py-1 bg-yellow-500 rounded-full text-xs font-semibold text-yellow-900">
@@ -193,7 +212,7 @@ export default function DiscussionTab({ campaignId, creatorId }) {
         {/* Avatar */}
         <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-gray-700">
           <Image
-            src={comment.user?.profilepic || '/images/default-profilepic.jpg'}
+            src={comment.user?.profilepic || '/images/default-profilepic.svg'}
             alt={comment.user?.name}
             fill
             className="object-cover"
@@ -225,8 +244,8 @@ export default function DiscussionTab({ campaignId, creatorId }) {
           <div className="flex items-center gap-4 flex-wrap">
             <button
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${likedComments.has(comment._id)
-                  ? 'text-red-400 bg-red-500/20'
-                  : 'text-gray-400 hover:bg-white/10 hover:text-white'
+                ? 'text-red-400 bg-red-500/20'
+                : 'text-gray-400 hover:bg-white/10 hover:text-white'
                 }`}
               onClick={() => handleLikeComment(comment._id)}
             >
@@ -237,7 +256,7 @@ export default function DiscussionTab({ campaignId, creatorId }) {
             {!isReply && session && (
               <button
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/10 hover:text-white transition-all"
-                onClick={() => setReplyTo(comment._id)}
+                onClick={() => handleReply(comment)}
               >
                 <FaReply /> Reply
               </button>
@@ -287,16 +306,36 @@ export default function DiscussionTab({ campaignId, creatorId }) {
   return (
     <div className="space-y-6">
       {/* Add Comment Form */}
-      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+      <div ref={commentFormRef} className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
         <h3 className="text-xl font-bold text-white mb-4">
           {replyTo ? 'Reply to Comment' : 'Join the Discussion'}
         </h3>
+
+        {/* Reply Indicator */}
+        {replyToComment && (
+          <div className="mb-4 p-3 bg-purple-500/10 border border-purple-500/30 rounded-xl flex items-start gap-3">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-sm font-medium text-purple-300">Replying to</span>
+                <span className="text-sm font-semibold text-white">{replyToComment.user?.name}</span>
+              </div>
+              <p className="text-sm text-gray-400 line-clamp-2">{replyToComment.content}</p>
+            </div>
+            <button
+              onClick={cancelReply}
+              className="p-1.5 hover:bg-white/10 rounded-lg transition-all text-gray-400 hover:text-white"
+              title="Cancel reply"
+            >
+              <FaTimes className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         {session ? (
           <form onSubmit={handleSubmitComment} className="flex gap-4">
             <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-gray-700">
               <Image
-                src={session.user?.image || '/images/default-profilepic.jpg'}
+                src={session.user?.image || '/images/default-profilepic.svg'}
                 alt={session.user?.name}
                 fill
                 className="object-cover"
@@ -318,7 +357,7 @@ export default function DiscussionTab({ campaignId, creatorId }) {
                 {replyTo && (
                   <button
                     type="button"
-                    onClick={() => setReplyTo(null)}
+                    onClick={cancelReply}
                     className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-gray-400 font-medium hover:bg-white/10 hover:text-white transition-all"
                   >
                     Cancel Reply
@@ -347,18 +386,56 @@ export default function DiscussionTab({ campaignId, creatorId }) {
         )}
       </div>
 
-      {/* Sort Options */}
-      <div className="flex items-center gap-3">
-        <label className="text-sm font-medium text-gray-400">Sort by:</label>
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-          className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-        >
-          <option value="newest">Newest First</option>
-          <option value="oldest">Oldest First</option>
-          <option value="top">Most Liked</option>
-        </select>
+      {/* Sort Options - Modern Design */}
+      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          {/* Label */}
+          <div className="flex items-center gap-2">
+            <FaSortAmountDown className="w-4 h-4 text-purple-400" />
+            <span className="text-sm font-semibold text-white">Sort Comments</span>
+          </div>
+
+          {/* Sort Buttons */}
+          <div className="flex items-center gap-2 p-1 bg-white/5 rounded-xl border border-white/10">
+            <button
+              onClick={() => setSortBy('newest')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${sortBy === 'newest'
+                ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg shadow-purple-500/30'
+                : 'text-gray-400 hover:text-white hover:bg-white/10'
+                }`}
+            >
+              <FaClock className="w-3.5 h-3.5" />
+              <span>Newest</span>
+            </button>
+
+            <button
+              onClick={() => setSortBy('oldest')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${sortBy === 'oldest'
+                ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg shadow-purple-500/30'
+                : 'text-gray-400 hover:text-white hover:bg-white/10'
+                }`}
+            >
+              <FaClock className="w-3.5 h-3.5 rotate-180" />
+              <span>Oldest</span>
+            </button>
+
+            <button
+              onClick={() => setSortBy('top')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${sortBy === 'top'
+                ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg shadow-purple-500/30'
+                : 'text-gray-400 hover:text-white hover:bg-white/10'
+                }`}
+            >
+              <FaFire className="w-3.5 h-3.5" />
+              <span>Top</span>
+            </button>
+          </div>
+
+          {/* Comment Count */}
+          <div className="text-sm text-gray-400">
+            {comments.length} {comments.length === 1 ? 'comment' : 'comments'}
+          </div>
+        </div>
       </div>
 
       {/* Comments List */}

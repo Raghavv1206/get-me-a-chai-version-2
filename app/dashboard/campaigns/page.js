@@ -22,6 +22,16 @@ async function getCampaigns(userId) {
         .populate('creator', 'username name')
         .lean();
 
+    console.log('Campaigns Page - User ID:', userId);
+    console.log('Campaigns Page - Campaigns found:', campaigns.length);
+    if (campaigns.length > 0) {
+        console.log('First campaign:', {
+            title: campaigns[0].title,
+            creator: campaigns[0].creator,
+            status: campaigns[0].status
+        });
+    }
+
     // Convert MongoDB objects to plain objects
     return JSON.parse(JSON.stringify(campaigns));
 }

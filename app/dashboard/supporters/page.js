@@ -6,15 +6,71 @@
 
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import SupportersTable from '@/components/supporters/SupportersTable';
-import SupporterFilters from '@/components/supporters/SupporterFilters';
+import { authOptions } from '@/lib/auth';
+import connectDb from '@/db/connectDb';
+import Payment from '@/models/Payment';
 import TopSupporters from '@/components/supporters/TopSupporters';
+import SupporterFilters from '@/components/supporters/SupporterFilters';
+import SupportersTable from '@/components/supporters/SupportersTable';
 
 export const metadata = {
     title: 'Supporters - Get Me A Chai',
     description: 'Manage your campaign supporters and send thank you messages'
 };
+
+async function getSupportersData(userId) {
+    await connectDb();
+
+    // Get current user's username
+    const user = await import('@/models/User').then(m => m.default.findById(userId).select('username'));
+
+    if (!user) return [];
+
+    // Fetch successful payments
+    const payments = await Payment.find({
+        to_user: user.username,
+        done: true
+    }).sort({ createdAt: -1 }).lean();
+
+    // Aggregate supporters
+    const supportersMap = {};
+
+    payments.forEach(payment => {
+        const supporterId = payment.email || 'anonymous'; // Use email as unique identifier
+
+        if (!supportersMap[supporterId]) {
+            supportersMap[supporterId] = {
+                _id: payment._id.toString(), // Use first payment ID as key reference
+                name: payment.name || 'Anonymous',
+                email: payment.email || 'No Email',
+                totalContributed: 0,
+                donationsCount: 0,
+                lastDonation: new Date(0), // Initialize with old date
+                campaignsSupported: new Set()
+            };
+        }
+
+        const supporter = supportersMap[supporterId];
+        supporter.totalContributed += payment.amount;
+        supporter.donationsCount += 1;
+        supporter.campaignsSupported.add(payment.campaign);
+
+        const paymentDate = new Date(payment.createdAt);
+        if (paymentDate > supporter.lastDonation) {
+            supporter.lastDonation = paymentDate;
+        }
+    });
+
+    // Convert map to array and format
+    const supporters = Object.values(supportersMap).map(s => ({
+        ...s,
+        lastDonation: s.lastDonation.toISOString(),
+        campaignsSupported: Array.from(s.campaignsSupported).length
+    }));
+
+    // Sort by total contributed (descending)
+    return supporters.sort((a, b) => b.totalContributed - a.totalContributed);
+}
 
 export default async function SupportersPage() {
     // Check authentication
@@ -23,6 +79,8 @@ export default async function SupportersPage() {
     if (!session) {
         redirect('/login?callbackUrl=/dashboard/supporters');
     }
+
+    const supporters = await getSupportersData(session.user.id);
 
     return (
         <div className="min-h-screen bg-black text-gray-100">
@@ -43,13 +101,13 @@ export default async function SupportersPage() {
                     </div>
 
                     {/* Top Supporters */}
-                    <TopSupporters />
+                    <TopSupporters supporters={supporters.slice(0, 3)} />
 
                     {/* Filters */}
                     <SupporterFilters />
 
                     {/* Supporters Table */}
-                    <SupportersTable />
+                    <SupportersTable supporters={supporters} />
 
                     {/* Tips */}
                     <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">

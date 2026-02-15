@@ -32,7 +32,7 @@ export default function CampaignHero({ campaign, creator }) {
                             <div className="relative">
                                 <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl overflow-hidden border-4 border-white/20 backdrop-blur-sm shadow-2xl">
                                     <Image
-                                        src={creator.profilepic || '/images/default-profilepic.jpg'}
+                                        src={creator.profilepic || '/images/default-profilepic.svg'}
                                         alt={creator.name}
                                         fill
                                         className="object-cover"

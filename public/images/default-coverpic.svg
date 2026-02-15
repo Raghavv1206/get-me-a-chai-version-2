@@ -1,0 +1,21 @@
+<svg width="1200" height="300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="coverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#764ba2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f093fb;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="300" fill="url(#coverGrad)"/>
+  
+  <!-- Decorative circles -->
+  <circle cx="100" cy="50" r="80" fill="rgba(255,255,255,0.1)"/>
+  <circle cx="1100" cy="250" r="100" fill="rgba(255,255,255,0.1)"/>
+  <circle cx="600" cy="150" r="120" fill="rgba(255,255,255,0.05)"/>
+  
+  <!-- Decorative lines -->
+  <line x1="0" y1="100" x2="400" y2="100" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+  <line x1="800" y1="200" x2="1200" y2="200" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+</svg>
