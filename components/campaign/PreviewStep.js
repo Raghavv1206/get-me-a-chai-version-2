@@ -159,12 +159,19 @@ export default function PreviewStep({ data, onUpdate, onBack }) {
 
                 <div className="space-y-4">
                     {/* Cover Image */}
-                    {data.coverImage && (
+                    {data.coverImage ? (
                         <img
                             src={data.coverImage}
                             alt="Cover"
                             className="w-full h-48 object-cover rounded-lg"
                         />
+                    ) : (
+                        <div className="w-full h-48 bg-gray-900 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-700">
+                            <div className="text-center">
+                                <p className="text-gray-400 text-sm">📷 No cover image provided</p>
+                                <p className="text-gray-500 text-xs mt-1">A default placeholder will be used</p>
+                            </div>
+                        </div>
                     )}
 
                     {/* Title & Category */}

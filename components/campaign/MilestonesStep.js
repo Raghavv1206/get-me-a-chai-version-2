@@ -22,6 +22,11 @@ export default function MilestonesStep({ data, onUpdate, onNext, onBack }) {
             if (response.ok) {
                 const result = await response.json();
                 setMilestones(result.milestones || []);
+            } else {
+                // Show error from API
+                const error = await response.json();
+                console.error('API error:', error);
+                alert(error.error || 'Failed to generate milestones');
             }
         } catch (error) {
             console.error('Error generating milestones:', error);

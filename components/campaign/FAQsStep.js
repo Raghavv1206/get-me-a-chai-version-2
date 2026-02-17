@@ -14,14 +14,21 @@ export default function FAQsStep({ data, onUpdate, onNext, onBack }) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     category: data.category,
-                    story: data.story,
+                    story: data.story || data.brief || data.title || '',
                     goal: data.goal,
+                    brief: data.brief,
+                    title: data.title
                 }),
             });
 
             if (response.ok) {
                 const result = await response.json();
                 setFaqs(result.faqs || []);
+            } else {
+                // Show error from API
+                const error = await response.json();
+                console.error('API error:', error);
+                alert(error.error || 'Failed to generate FAQs');
             }
         } catch (error) {
             console.error('Error generating FAQs:', error);

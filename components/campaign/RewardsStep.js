@@ -15,13 +15,20 @@ export default function RewardsStep({ data, onUpdate, onNext, onBack }) {
                 body: JSON.stringify({
                     goal: data.goal,
                     category: data.category,
-                    brief: data.brief,
+                    brief: data.brief || data.story || data.title || '',
+                    story: data.story,
+                    title: data.title
                 }),
             });
 
             if (response.ok) {
                 const result = await response.json();
                 setRewards(result.rewards || []);
+            } else {
+                // Show error from API
+                const error = await response.json();
+                console.error('API error:', error);
+                alert(error.error || 'Failed to generate rewards');
             }
         } catch (error) {
             console.error('Error generating rewards:', error);

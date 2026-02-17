@@ -45,7 +45,7 @@ export default function MediaStep({ data, onUpdate, onNext, onBack }) {
             {/* Cover Image */}
             <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Cover Image URL *
+                    Cover Image URL (Optional)
                 </label>
                 <input
                     type="url"
@@ -67,7 +67,7 @@ export default function MediaStep({ data, onUpdate, onNext, onBack }) {
                     </div>
                 )}
                 <p className="mt-2 text-xs text-gray-500">
-                    💡 Tip: Use a high-quality image (recommended: 1200×630px)
+                    💡 Tip: Use a high-quality image (recommended: 1200×630px). If no image is provided, a default placeholder will be used.
                 </p>
             </div>
 
@@ -138,8 +138,7 @@ export default function MediaStep({ data, onUpdate, onNext, onBack }) {
                 </button>
                 <button
                     onClick={handleNext}
-                    disabled={!formData.coverImage}
-                    className="px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-purple-500/50 transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-purple-500/50 transition-all hover:scale-105"
                 >
                     Continue to FAQs →
                 </button>

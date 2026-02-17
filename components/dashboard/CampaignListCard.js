@@ -5,6 +5,9 @@ import Image from 'next/image';
 import { FaEllipsisV, FaEdit, FaEye, FaPause, FaPlay, FaChartLine, FaTrash, FaCopy } from 'react-icons/fa';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
 
+// Default cover image for campaigns without images
+const DEFAULT_COVER_IMAGE = 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=400&fit=crop';
+
 export default function CampaignListCard({ campaign, viewMode = 'grid', onUpdate, onDelete }) {
   const [showMenu, setShowMenu] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -45,7 +48,7 @@ export default function CampaignListCard({ campaign, viewMode = 'grid', onUpdate
           break;
 
         case 'view':
-          window.location.href = `/${campaign.creator?.username || 'campaign'}`;
+          window.location.href = `/campaign/${campaign.slug}`;
           break;
 
         case 'pause':
@@ -92,7 +95,7 @@ export default function CampaignListCard({ campaign, viewMode = 'grid', onUpdate
   const handleDelete = async () => {
     setIsProcessing(true);
     try {
-      const response = await fetch(`/api/campaigns/${campaign._id}`, {
+      const response = await fetch(`/api/campaigns/${campaign._id}/delete`, {
         method: 'DELETE'
       });
 
@@ -114,13 +117,13 @@ export default function CampaignListCard({ campaign, viewMode = 'grid', onUpdate
 
   return (
     <>
-      <div className={`bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden transition-all hover:bg-white/10 hover:border-white/20 ${viewMode === 'grid' ? 'flex flex-col' : 'flex flex-col md:flex-row'
-        }`}>
+      <div className={`bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl transition-all hover:bg-white/10 hover:border-white/20 ${viewMode === 'grid' ? 'flex flex-col' : 'flex flex-col md:flex-row'
+        } ${showMenu ? 'z-50 relative' : 'relative'}`} style={{ overflow: 'visible' }}>
         {/* Thumbnail */}
-        <div className={`relative bg-gray-800 flex-shrink-0 ${viewMode === 'grid' ? 'w-full h-48' : 'w-full md:w-48 h-48 md:h-auto'
+        <div className={`relative bg-gray-800 flex-shrink-0 overflow-hidden ${viewMode === 'grid' ? 'w-full h-48 rounded-t-2xl' : 'w-full md:w-48 h-48 md:h-auto md:rounded-l-2xl'
           }`}>
           <Image
-            src={campaign.coverImage || '/images/default-campaign.jpg'}
+            src={campaign.coverImage || DEFAULT_COVER_IMAGE}
             alt={campaign.title}
             fill
             className="object-cover"
@@ -154,25 +157,33 @@ export default function CampaignListCard({ campaign, viewMode = 'grid', onUpdate
                     className="fixed inset-0 z-10"
                     onClick={() => setShowMenu(false)}
                   />
-                  <div className="absolute top-full right-0 mt-2 w-48 bg-gray-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-20">
+                  <div className="absolute top-full right-0 mt-2 w-56 bg-gray-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-20 max-h-96 overflow-y-auto">
+                    {/* Edit */}
                     <button
                       className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-all"
                       onClick={() => handleAction('edit')}
+                      disabled={isProcessing}
                     >
                       <FaEdit className="w-4 h-4" />
                       <span>Edit</span>
                     </button>
+
+                    {/* View */}
                     <button
                       className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-all"
                       onClick={() => handleAction('view')}
+                      disabled={isProcessing}
                     >
                       <FaEye className="w-4 h-4" />
                       <span>View</span>
                     </button>
+
+                    {/* Pause/Resume - Conditional */}
                     {campaign.status === 'active' && (
                       <button
                         className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-all"
                         onClick={() => handleAction('pause')}
+                        disabled={isProcessing}
                       >
                         <FaPause className="w-4 h-4" />
                         <span>Pause</span>
@@ -182,28 +193,44 @@ export default function CampaignListCard({ campaign, viewMode = 'grid', onUpdate
                       <button
                         className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-all"
                         onClick={() => handleAction('resume')}
+                        disabled={isProcessing}
                       >
                         <FaPlay className="w-4 h-4" />
                         <span>Resume</span>
                       </button>
                     )}
+
+                    {/* Divider */}
+                    <div className="border-t border-white/10 my-1"></div>
+
+                    {/* Analytics */}
                     <button
                       className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-all"
                       onClick={() => handleAction('analytics')}
+                      disabled={isProcessing}
                     >
                       <FaChartLine className="w-4 h-4" />
                       <span>Analytics</span>
                     </button>
+
+                    {/* Duplicate */}
                     <button
                       className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-all"
                       onClick={() => handleAction('duplicate')}
+                      disabled={isProcessing}
                     >
                       <FaCopy className="w-4 h-4" />
                       <span>Duplicate</span>
                     </button>
+
+                    {/* Divider */}
+                    <div className="border-t border-white/10 my-1"></div>
+
+                    {/* Delete */}
                     <button
                       className="flex items-center gap-3 w-full px-4 py-3 text-sm text-red-400 hover:bg-red-500/20 transition-all"
                       onClick={() => handleAction('delete')}
+                      disabled={isProcessing}
                     >
                       <FaTrash className="w-4 h-4" />
                       <span>Delete</span>

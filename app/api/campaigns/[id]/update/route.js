@@ -4,7 +4,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import connectDb from '@/db/connectDb';
 import Campaign from '@/models/Campaign';
 
-export async function DELETE(request, { params }) {
+export async function PATCH(request, { params }) {
     try {
         const session = await getServerSession(authOptions);
         if (!session) {
@@ -15,6 +15,15 @@ export async function DELETE(request, { params }) {
         }
 
         const { id: campaignId } = await params;
+        const body = await request.json();
+
+        // Validate required fields
+        if (!body.title || !body.category || !body.story || !body.goalAmount || !body.endDate) {
+            return NextResponse.json(
+                { success: false, message: 'Missing required fields' },
+                { status: 400 }
+            );
+        }
 
         await connectDb();
 
@@ -34,19 +43,43 @@ export async function DELETE(request, { params }) {
             );
         }
 
-        // Soft delete
-        campaign.status = 'deleted';
-        campaign.deletedAt = new Date();
+        // Update allowed fields
+        const allowedUpdates = [
+            'title',
+            'category',
+            'shortDescription',
+            'story',
+            'goalAmount',
+            'endDate',
+            'coverImage',
+            'videoUrl',
+            'location',
+            'tags',
+            'milestones',
+            'rewards',
+            'faqs'
+        ];
+
+        allowedUpdates.forEach(field => {
+            if (body[field] !== undefined) {
+                campaign[field] = body[field];
+            }
+        });
+
+        // Update the updatedAt timestamp
+        campaign.updatedAt = new Date();
+
         await campaign.save();
 
         return NextResponse.json({
             success: true,
-            message: 'Campaign deleted successfully'
+            campaign,
+            message: 'Campaign updated successfully'
         });
     } catch (error) {
-        console.error('Error deleting campaign:', error);
+        console.error('Error updating campaign:', error);
         return NextResponse.json(
-            { success: false, message: 'Failed to delete campaign', error: error.message },
+            { success: false, message: 'Failed to update campaign', error: error.message },
             { status: 500 }
         );
     }

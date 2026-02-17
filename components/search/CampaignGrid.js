@@ -20,6 +20,9 @@ import { Loader2, AlertCircle, Heart } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
+// Default cover image for campaigns without images
+const DEFAULT_COVER_IMAGE = 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=400&fit=crop';
+
 export default function CampaignGrid({
     campaigns = [],
     loading = false,
@@ -224,20 +227,12 @@ function CampaignCard({ campaign, viewMode }) {
                 <div className="flex flex-col sm:flex-row">
                     {/* Image */}
                     <div className="relative w-full sm:w-64 h-48 sm:h-auto overflow-hidden bg-gray-200 dark:bg-gray-700">
-                        {campaign.coverImage ? (
-                            <Image
-                                src={campaign.coverImage}
-                                alt={campaign.title}
-                                fill
-                                className="object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center text-4xl">
-                                {campaign.category === 'Technology' ? '💻' :
-                                    campaign.category === 'Art' ? '🎨' :
-                                        campaign.category === 'Music' ? '🎵' : '🚀'}
-                            </div>
-                        )}
+                        <Image
+                            src={campaign.coverImage || DEFAULT_COVER_IMAGE}
+                            alt={campaign.title}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
 
                         {/* Save Button */}
                         <button
@@ -339,20 +334,12 @@ function CampaignCard({ campaign, viewMode }) {
         >
             {/* Image */}
             <div className="relative w-full h-48 overflow-hidden bg-gray-200 dark:bg-gray-700">
-                {campaign.coverImage ? (
-                    <Image
-                        src={campaign.coverImage}
-                        alt={campaign.title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center text-6xl">
-                        {campaign.category === 'Technology' ? '💻' :
-                            campaign.category === 'Art' ? '🎨' :
-                                campaign.category === 'Music' ? '🎵' : '🚀'}
-                    </div>
-                )}
+                <Image
+                    src={campaign.coverImage || DEFAULT_COVER_IMAGE}
+                    alt={campaign.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                />
 
                 {/* Save Button */}
                 <button

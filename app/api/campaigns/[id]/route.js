@@ -4,7 +4,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import connectDb from '@/db/connectDb';
 import Campaign from '@/models/Campaign';
 
-export async function DELETE(request, { params }) {
+export async function GET(request, { params }) {
     try {
         const session = await getServerSession(authOptions);
         if (!session) {
@@ -18,7 +18,10 @@ export async function DELETE(request, { params }) {
 
         await connectDb();
 
-        const campaign = await Campaign.findById(campaignId);
+        const campaign = await Campaign.findById(campaignId)
+            .populate('creator', 'name email username profilePicture')
+            .lean();
+
         if (!campaign) {
             return NextResponse.json(
                 { success: false, message: 'Campaign not found' },
@@ -27,26 +30,21 @@ export async function DELETE(request, { params }) {
         }
 
         // Verify ownership
-        if (campaign.creator.toString() !== session.user.id) {
+        if (campaign.creator._id.toString() !== session.user.id) {
             return NextResponse.json(
                 { success: false, message: 'Unauthorized' },
                 { status: 403 }
             );
         }
 
-        // Soft delete
-        campaign.status = 'deleted';
-        campaign.deletedAt = new Date();
-        await campaign.save();
-
         return NextResponse.json({
             success: true,
-            message: 'Campaign deleted successfully'
+            campaign
         });
     } catch (error) {
-        console.error('Error deleting campaign:', error);
+        console.error('Error fetching campaign:', error);
         return NextResponse.json(
-            { success: false, message: 'Failed to delete campaign', error: error.message },
+            { success: false, message: 'Failed to fetch campaign', error: error.message },
             { status: 500 }
         );
     }

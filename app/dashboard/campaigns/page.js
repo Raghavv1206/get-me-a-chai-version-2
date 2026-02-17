@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import connectDb from '@/db/connectDb';
 import Campaign from '@/models/Campaign';
 import CampaignsList from '@/components/dashboard/CampaignsList';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 export const metadata = {
     title: 'My Campaigns - Get Me A Chai',
@@ -37,7 +38,7 @@ async function getCampaigns(userId) {
 }
 
 export default async function CampaignsPage() {
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
 
     if (!session) {
         redirect('/login?callbackUrl=/dashboard/campaigns');

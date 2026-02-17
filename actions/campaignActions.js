@@ -3,7 +3,10 @@
 
 /**
  * Server Actions for Campaign Management
- * Handles CRUD operations for campaigns
+ * Handles CRUD operations for campaigns with production-ready logging,
+ * validation, rate limiting, and error handling
+ * 
+ * @module actions/campaignActions
  */
 
 import connectDb from '@/db/connectDb';
@@ -11,40 +14,117 @@ import Campaign from '@/models/Campaign';
 import User from '@/models/User';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { createLogger } from '@/lib/logger';
+import {
+    validateString,
+    validateNumber,
+    validateEnum,
+    ValidationError
+} from '@/lib/validation';
+import { checkRateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
+
+const logger = createLogger('CampaignActions');
 
 /**
  * Create a new campaign
  * @param {Object} data - Campaign data
+ * @param {string} data.title - Campaign title
+ * @param {string} data.category - Campaign category
+ * @param {number} data.goal - Funding goal amount
+ * @param {string} [data.story] - Campaign story/description
+ * @param {string} [data.status='draft'] - Campaign status
  * @returns {Promise<Object>} Created campaign or error
  */
 export async function createCampaign(data) {
+    const startTime = Date.now();
+
     try {
-        // Get authenticated user
+        // 1. Authentication check
         const session = await getServerSession(authOptions);
         if (!session?.user?.email) {
+            logger.warn('Unauthorized campaign creation attempt');
             return { error: 'You must be logged in to create a campaign' };
         }
 
+        logger.info('Campaign creation started', {
+            userEmail: session.user.email
+        });
+
+        // 2. Rate limiting
+        const rateLimit = checkRateLimit(
+            session.user.email,
+            'create-campaign',
+            RATE_LIMIT_PRESETS.STANDARD
+        );
+
+        if (!rateLimit.allowed) {
+            logger.warn('Rate limit exceeded for campaign creation', {
+                userEmail: session.user.email,
+                resetTime: new Date(rateLimit.resetTime).toISOString()
+            });
+            return { error: rateLimit.message };
+        }
+
+        // 3. Input validation
+        let validatedData;
+        try {
+            validatedData = {
+                title: validateString(data.title, {
+                    fieldName: 'Title',
+                    minLength: 5,
+                    maxLength: 100,
+                    trim: true
+                }),
+                category: validateString(data.category, {
+                    fieldName: 'Category',
+                    minLength: 2,
+                    maxLength: 50,
+                    trim: true
+                }),
+                goal: validateNumber(data.goal, {
+                    fieldName: 'Goal',
+                    min: 1000,
+                    max: 10000000,
+                    integer: true
+                }),
+                story: data.story ? validateString(data.story, {
+                    fieldName: 'Story',
+                    maxLength: 10000,
+                    trim: true,
+                    allowEmpty: true
+                }) : '',
+                status: data.status ? validateEnum(
+                    data.status,
+                    ['draft', 'active', 'paused', 'completed', 'cancelled'],
+                    'Status'
+                ) : 'draft'
+            };
+        } catch (error) {
+            if (error instanceof ValidationError) {
+                logger.warn('Campaign validation failed', {
+                    field: error.field,
+                    value: error.value,
+                    message: error.message
+                });
+                return { error: error.message, field: error.field };
+            }
+            throw error;
+        }
+
+        // 4. Database operations
         await connectDb();
 
         // Get user from database
         const user = await User.findOne({ email: session.user.email });
         if (!user) {
+            logger.error('User not found in database', {
+                email: session.user.email
+            });
             return { error: 'User not found' };
         }
 
-        // Validate required fields
-        if (!data.title || !data.category || !data.goal) {
-            return { error: 'Missing required fields: title, category, and goal' };
-        }
-
-        // Validate goal amount
-        if (data.goal < 1000 || data.goal > 10000000) {
-            return { error: 'Goal must be between ₹1,000 and ₹1,00,00,000' };
-        }
-
         // Generate unique slug from title
-        const baseSlug = data.title
+        const baseSlug = validatedData.title
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/^-+|-+$/g, '');
@@ -58,17 +138,30 @@ export async function createCampaign(data) {
             counter++;
         }
 
+        logger.debug('Generated unique slug', {
+            title: validatedData.title,
+            slug,
+            attempts: counter
+        });
+
         // Create campaign
         const campaign = await Campaign.create({
-            ...data,
+            ...validatedData,
             slug,
             creator: user._id,
             creatorUsername: user.username,
-            status: data.status || 'draft',
             raised: 0,
             supportersCount: 0,
             createdAt: new Date(),
             updatedAt: new Date()
+        });
+
+        const duration = Date.now() - startTime;
+        logger.info('Campaign created successfully', {
+            campaignId: campaign._id.toString(),
+            slug: campaign.slug,
+            userId: user._id.toString(),
+            duration
         });
 
         return {
@@ -82,8 +175,16 @@ export async function createCampaign(data) {
         };
 
     } catch (error) {
-        console.error('Create campaign error:', error);
-        return { error: error.message || 'Failed to create campaign' };
+        const duration = Date.now() - startTime;
+        logger.error('Campaign creation failed', {
+            error: error.message,
+            stack: error.stack,
+            duration
+        });
+
+        return {
+            error: 'Failed to create campaign. Please try again.'
+        };
     }
 }
 

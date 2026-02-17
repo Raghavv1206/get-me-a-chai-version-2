@@ -32,6 +32,7 @@ export default function AIStoryStep({ data, onUpdate, onNext, onBack }) {
         setStreamedText('');
 
         try {
+            console.log('Sending request to generate campaign...');
             const response = await fetch('/api/ai/generate-campaign', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -43,8 +44,12 @@ export default function AIStoryStep({ data, onUpdate, onNext, onBack }) {
                 }),
             });
 
+            console.log('Response status:', response.status);
+
             if (!response.ok) {
-                throw new Error('Failed to generate story');
+                const errorData = await response.json().catch(() => ({}));
+                console.error('API error:', errorData);
+                throw new Error(errorData.details || errorData.error || 'Failed to generate story');
             }
 
             const reader = response.body.getReader();
@@ -76,13 +81,14 @@ export default function AIStoryStep({ data, onUpdate, onNext, onBack }) {
                     setFormData(prev => ({ ...prev, story: fullText }));
                 }
             } catch (parseError) {
+                console.warn('JSON parsing failed, using raw text:', parseError);
                 // If parsing fails, use the full text
                 setFormData(prev => ({ ...prev, story: fullText }));
             }
 
         } catch (error) {
             console.error('Error generating story:', error);
-            alert('Failed to generate story. Please try again.');
+            alert(`Failed to generate story: ${error.message}\n\nPlease check the console for more details.`);
         } finally {
             setGenerating(false);
         }
@@ -133,7 +139,7 @@ export default function AIStoryStep({ data, onUpdate, onNext, onBack }) {
                     onChange={handleChange}
                     rows={4}
                     className={`w-full p-3 rounded-lg bg-gray-800 text-white border ${errors.brief ? 'border-red-500' : 'border-gray-700'
-                        } focus:outline-none focus:border-purple-500 transition-colors resize-none`}
+                        } focus:outline-none focus:border-purple-500 transition-colors resize-none overflow-y-auto`}
                     placeholder="Describe your project in a few sentences. What problem does it solve? Who is it for? What makes it unique?"
                 />
                 <div className="flex justify-between mt-1">
@@ -217,7 +223,7 @@ export default function AIStoryStep({ data, onUpdate, onNext, onBack }) {
                                 value={formData.hook}
                                 onChange={handleChange}
                                 rows={3}
-                                className="w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-purple-500 transition-colors resize-none"
+                                className="w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-purple-500 transition-colors resize-none overflow-y-auto"
                             />
                         </div>
                     )}
@@ -233,7 +239,7 @@ export default function AIStoryStep({ data, onUpdate, onNext, onBack }) {
                             onChange={handleChange}
                             rows={15}
                             className={`w-full p-3 rounded-lg bg-gray-800 text-white border ${errors.story ? 'border-red-500' : 'border-gray-700'
-                                } focus:outline-none focus:border-purple-500 transition-colors resize-none font-mono text-sm`}
+                                } focus:outline-none focus:border-purple-500 transition-colors resize-none font-mono text-sm overflow-y-auto`}
                         />
                         <div className="flex justify-between mt-1">
                             {errors.story && <p className="text-sm text-red-400">{errors.story}</p>}
