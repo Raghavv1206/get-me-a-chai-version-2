@@ -1,6 +1,7 @@
 // components/campaign/BasicInfoStep.js
 "use client"
 import { useState, useEffect } from 'react';
+import { toast } from '@/lib/apiToast';
 
 const CATEGORIES = [
     { value: 'technology', label: '💻 Technology', icon: '💻' },
@@ -37,7 +38,7 @@ export default function BasicInfoStep({ data, onUpdate, onNext }) {
 
     const handleSuggestGoal = async () => {
         if (!formData.category || !formData.projectType) {
-            alert('Please select category and project type first');
+            toast.error('Please select category and project type first');
             return;
         }
 

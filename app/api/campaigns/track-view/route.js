@@ -8,7 +8,6 @@ import CampaignView from '@/models/CampaignView';
 
 export async function POST(req) {
     try {
-        const session = await getServerSession(authOptions);
         const { campaignId } = await req.json();
 
         if (!campaignId) {
@@ -20,20 +19,23 @@ export async function POST(req) {
 
         await connectDb();
 
-        // Increment campaign view count
+        // Always increment the campaign's total view counter
         await Campaign.findByIdAndUpdate(
             campaignId,
             { $inc: { 'stats.views': 1 } },
             { new: true }
         );
 
-        // Track view for logged-in users (for recommendation algorithm)
+        // For logged-in users, record in CampaignView using upsert
+        // (prevents duplicate errors, updates viewedAt timestamp)
+        const session = await getServerSession(authOptions);
         if (session?.user?.id) {
-            await CampaignView.create({
-                userId: session.user.id,
-                campaignId,
-                viewedAt: new Date(),
-            });
+            try {
+                await CampaignView.recordView(session.user.id, campaignId);
+            } catch (err) {
+                // Non-critical: don't fail the whole request if user view tracking fails
+                console.error('CampaignView.recordView error:', err.message);
+            }
         }
 
         return NextResponse.json({ success: true });

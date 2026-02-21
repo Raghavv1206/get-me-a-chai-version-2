@@ -20,6 +20,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Download, RefreshCw } from 'lucide-react';
+import { toast } from '@/lib/apiToast';
 import ContributionsSummary from '@/components/contributions/ContributionsSummary';
 import ContributionsTimeline from '@/components/contributions/ContributionsTimeline';
 import BadgesDisplay from '@/components/contributions/BadgesDisplay';
@@ -135,11 +136,11 @@ Thank you for your generous support!
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
             } else {
-                alert(result.error || 'Failed to generate receipt');
+                toast.error(result.error || 'Failed to generate receipt');
             }
         } catch (err) {
             console.error('Error downloading receipt:', err);
-            alert('Failed to download receipt');
+            toast.error('Failed to download receipt');
         }
     };
 

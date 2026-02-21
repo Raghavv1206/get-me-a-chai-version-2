@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import connectDb from '@/db/connectDb';
 import Campaign from '@/models/Campaign';
+import { closeExpiredCampaigns } from '@/lib/campaignExpiry';
 
 export async function GET(request) {
     try {
@@ -18,6 +19,9 @@ export async function GET(request) {
         const sort = searchParams.get('sort') || 'recent';
 
         await connectDb();
+
+        // Auto-close any expired campaigns before querying
+        await closeExpiredCampaigns();
 
         // Build query
         let query = { creator: session.user.id };

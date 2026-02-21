@@ -8,6 +8,7 @@ import Script from 'next/script';
 import { ToastContainer, toast, Bounce } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { initiate } from '@/actions/useractions';
+import { calculateDaysLeft } from '@/lib/campaignUtils';
 
 export default function CampaignSidebar({ campaign, creator, selectedReward, onSupportClick }) {
     const router = useRouter();
@@ -25,8 +26,9 @@ export default function CampaignSidebar({ campaign, creator, selectedReward, onS
     const goalAmount = campaign.goalAmount || 1;
     const progress = Math.min((currentAmount / goalAmount) * 100, 100);
 
-    // Calculate days remaining
-    const daysRemaining = campaign.daysRemaining || 0;
+    // Calculate days remaining from endDate
+    const daysRemaining = calculateDaysLeft(campaign.endDate);
+    const isEnded = campaign.status === 'completed' || daysRemaining === 0;
 
     // Check for payment success
     useEffect(() => {
@@ -291,94 +293,114 @@ export default function CampaignSidebar({ campaign, creator, selectedReward, onS
                                 <FaHeart className="w-3.5 h-3.5 text-red-400" />
                                 <span>{campaign.stats?.supporters || 0} supporters</span>
                             </div>
-                            <div className="flex items-center gap-1.5 text-gray-400">
-                                <FaClock className="w-3.5 h-3.5 text-orange-400" />
-                                <span>{daysRemaining} days left</span>
+                            <div className={`flex items-center gap-1.5 ${isEnded ? 'text-red-400' : 'text-gray-400'}`}>
+                                <FaClock className={`w-3.5 h-3.5 ${isEnded ? 'text-red-400' : 'text-orange-400'}`} />
+                                <span className={isEnded ? 'font-semibold' : ''}>{isEnded ? 'Campaign Ended' : `${daysRemaining} days left`}</span>
                             </div>
                         </div>
                     </div>
 
-                    {/* Payment Form Fields */}
-                    <div className="space-y-4 mb-4">
-                        {/* Name Input */}
-                        <div>
-                            <label className="block text-xs font-medium text-gray-500 uppercase mb-1 ml-1">
-                                Your Name
-                            </label>
-                            <input
-                                type="text"
-                                name="name"
-                                value={paymentForm.name}
-                                onChange={handleChange}
-                                className="w-full p-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                                placeholder="Enter your name"
-                            />
+                    {/* Campaign Ended Banner */}
+                    {isEnded && (
+                        <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-center">
+                            <div className="text-red-400 font-bold text-lg mb-1">Campaign Has Ended</div>
+                            <p className="text-gray-400 text-sm">This campaign is no longer accepting contributions.</p>
                         </div>
+                    )}
 
-                        {/* Message Input */}
-                        <div>
-                            <label className="block text-xs font-medium text-gray-500 uppercase mb-1 ml-1">
-                                Message
-                            </label>
-                            <input
-                                type="text"
-                                name="message"
-                                value={paymentForm.message}
-                                onChange={handleChange}
-                                className="w-full p-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                                placeholder="Say something nice..."
-                            />
-                        </div>
-
-                        {/* Amount Input */}
-                        <div>
-                            <label className="block text-xs font-medium text-gray-500 uppercase mb-1 ml-1">
-                                Support Amount
-                            </label>
-                            <div className="relative">
-                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-semibold">
-                                    ₹
-                                </span>
+                    {/* Payment Form Fields - Hidden when ended */}
+                    {!isEnded && (
+                        <div className="space-y-4 mb-4">
+                            {/* Name Input */}
+                            <div>
+                                <label className="block text-xs font-medium text-gray-500 uppercase mb-1 ml-1">
+                                    Your Name
+                                </label>
                                 <input
-                                    type="number"
-                                    name="amount"
-                                    value={amount}
+                                    type="text"
+                                    name="name"
+                                    value={paymentForm.name}
                                     onChange={handleChange}
-                                    className="w-full pl-8 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                                    placeholder="Enter amount"
-                                    min="1"
+                                    className="w-full p-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                    placeholder="Enter your name"
                                 />
                             </div>
-                        </div>
-                    </div>
 
-                    {/* Quick Amount Buttons */}
-                    <div className="grid grid-cols-3 gap-2 mb-6">
-                        {[100, 500, 1000].map((quickAmount) => (
-                            <button
-                                key={quickAmount}
-                                type="button"
-                                onClick={() => {
-                                    setAmount(quickAmount);
-                                    setPaymentForm({ ...paymentForm, amount: quickAmount });
-                                }}
-                                className={`py-2 px-3 rounded-lg text-sm font-medium transition-all ${amount === quickAmount
-                                    ? 'bg-purple-500 text-white'
-                                    : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/10'
-                                    }`}
-                            >
-                                ₹{quickAmount}
-                            </button>
-                        ))}
-                    </div>
+                            {/* Message Input */}
+                            <div>
+                                <label className="block text-xs font-medium text-gray-500 uppercase mb-1 ml-1">
+                                    Message
+                                </label>
+                                <input
+                                    type="text"
+                                    name="message"
+                                    value={paymentForm.message}
+                                    onChange={handleChange}
+                                    className="w-full p-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                    placeholder="Say something nice..."
+                                />
+                            </div>
+
+                            {/* Amount Input */}
+                            <div>
+                                <label className="block text-xs font-medium text-gray-500 uppercase mb-1 ml-1">
+                                    Support Amount
+                                </label>
+                                <div className="relative">
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-semibold">
+                                        ₹
+                                    </span>
+                                    <input
+                                        type="number"
+                                        name="amount"
+                                        value={amount}
+                                        onChange={handleChange}
+                                        className="w-full pl-8 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                        placeholder="Enter amount"
+                                        min="1"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Quick Amount Buttons - Hidden when ended */}
+                    {!isEnded && (
+                        <div className="grid grid-cols-3 gap-2 mb-6">
+                            {[100, 500, 1000].map((quickAmount) => (
+                                <button
+                                    key={quickAmount}
+                                    type="button"
+                                    onClick={() => {
+                                        setAmount(quickAmount);
+                                        setPaymentForm({ ...paymentForm, amount: quickAmount });
+                                    }}
+                                    className={`py-2 px-3 rounded-lg text-sm font-medium transition-all ${amount === quickAmount
+                                        ? 'bg-purple-500 text-white'
+                                        : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/10'
+                                        }`}
+                                >
+                                    ₹{quickAmount}
+                                </button>
+                            ))}
+                        </div>
+                    )}
 
                     {/* Support Button */}
                     <button
                         onClick={handleSupport}
-                        disabled={session && (!paymentForm.name || paymentForm.name.length < 3 || !paymentForm.message || paymentForm.message.length < 3 || !amount)}
-                        className="w-full py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-purple-500/50 transition-all hover:scale-105 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                        disabled={isEnded || (session && (!paymentForm.name || paymentForm.name.length < 3 || !paymentForm.message || paymentForm.message.length < 3 || !amount))}
+                        className={`w-full py-4 font-semibold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 ${isEnded
+                            ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                            : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:shadow-purple-500/50 hover:scale-105'
+                            }`}
                     >
-                        {!session ? (
+                        {isEnded ? (
+                            <>
+                                <FaClock className="w-4 h-4" />
+                                <span>Campaign Ended</span>
+                            </>
+                        ) : !session ? (
                             <>
                                 <FaLock className="w-4 h-4" />
                                 <span>Login to Support</span>
@@ -392,7 +414,7 @@ export default function CampaignSidebar({ campaign, creator, selectedReward, onS
                     </button>
 
                     {/* Login Required Message */}
-                    {!session && (
+                    {!session && !isEnded && (
                         <div className="mt-3 text-center text-sm text-gray-400">
                             <p>🔒 You need to be logged in to support this campaign</p>
                         </div>
@@ -434,7 +456,10 @@ export default function CampaignSidebar({ campaign, creator, selectedReward, onS
                         <div className="flex items-center justify-between text-sm">
                             <span className="text-gray-400">Total Raised</span>
                             <span className="font-semibold text-white">
-                                ₹{((creator.stats?.totalRaised || 0) / 1000).toFixed(1)}K
+                                {(creator.stats?.totalRaised || 0) >= 100000
+                                    ? `₹${((creator.stats?.totalRaised || 0) / 1000).toFixed(1)}K`
+                                    : `₹${(creator.stats?.totalRaised || 0).toLocaleString('en-IN')}`
+                                }
                             </span>
                         </div>
                         <div className="flex items-center justify-between text-sm">

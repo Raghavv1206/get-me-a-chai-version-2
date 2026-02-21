@@ -98,6 +98,7 @@ CampaignSchema.index({ creator: 1, status: 1 });
 CampaignSchema.index({ category: 1, status: 1 });
 CampaignSchema.index({ 'stats.views': -1 });
 CampaignSchema.index({ status: 1, featured: 1 });
+CampaignSchema.index({ status: 1, endDate: 1 }); // For efficient expired campaign queries
 
 // Virtual for progress percentage
 CampaignSchema.virtual('progress').get(function () {
@@ -113,11 +114,45 @@ CampaignSchema.virtual('daysRemaining').get(function () {
     return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
 });
 
-// Pre-save middleware
+// Virtual to check if campaign has expired
+CampaignSchema.virtual('isExpired').get(function () {
+    if (!this.endDate) return false;
+    return new Date() > new Date(this.endDate);
+});
+
+// Pre-save middleware - auto-close expired campaigns
 CampaignSchema.pre('save', function (next) {
     this.updatedAt = Date.now();
+
+    // Auto-close: if campaign is active/paused and endDate has passed, mark as completed
+    if (['active', 'paused'].includes(this.status) && this.endDate) {
+        const now = new Date();
+        const end = new Date(this.endDate);
+        if (now > end) {
+            this.status = 'completed';
+        }
+    }
+
     next();
 });
+
+// Static method to bulk-close all expired campaigns
+CampaignSchema.statics.closeExpiredCampaigns = async function () {
+    const now = new Date();
+    const result = await this.updateMany(
+        {
+            status: { $in: ['active', 'paused'] },
+            endDate: { $lt: now }
+        },
+        {
+            $set: {
+                status: 'completed',
+                updatedAt: now
+            }
+        }
+    );
+    return result;
+};
 
 // Ensure virtuals are included in JSON
 CampaignSchema.set('toJSON', { virtuals: true });

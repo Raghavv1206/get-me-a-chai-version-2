@@ -19,6 +19,7 @@ import { useState } from 'react';
 import { AlertTriangle, Check, X, Eye, Flag, Shield, TrendingUp } from 'lucide-react';
 import { reviewFlaggedContent } from '@/actions/moderationActions';
 import Link from 'next/link';
+import { toast } from '@/lib/apiToast';
 
 export default function ModerationQueue({ items, onRefresh }) {
     const [filter, setFilter] = useState('all'); // all, high, medium, low
@@ -35,14 +36,14 @@ export default function ModerationQueue({ items, onRefresh }) {
             const result = await reviewFlaggedContent(itemId, itemType, action, adminId);
 
             if (result.success) {
-                alert(result.message);
+                toast.success(result.message);
                 if (onRefresh) onRefresh();
             } else {
-                alert(result.error);
+                toast.error(result.error);
             }
         } catch (error) {
             console.error('Review error:', error);
-            alert('Failed to review content');
+            toast.error('Failed to review content');
         } finally {
             setActionLoading(null);
         }
@@ -95,8 +96,8 @@ export default function ModerationQueue({ items, onRefresh }) {
                     <button
                         onClick={() => setFilter('all')}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'all'
-                                ? 'bg-purple-600 text-white'
-                                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                            ? 'bg-purple-600 text-white'
+                            : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                             }`}
                     >
                         All
@@ -104,8 +105,8 @@ export default function ModerationQueue({ items, onRefresh }) {
                     <button
                         onClick={() => setFilter('high')}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'high'
-                                ? 'bg-red-600 text-white'
-                                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                            ? 'bg-red-600 text-white'
+                            : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                             }`}
                     >
                         High Risk (70+)
@@ -113,8 +114,8 @@ export default function ModerationQueue({ items, onRefresh }) {
                     <button
                         onClick={() => setFilter('medium')}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'medium'
-                                ? 'bg-orange-600 text-white'
-                                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                            ? 'bg-orange-600 text-white'
+                            : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                             }`}
                     >
                         Medium Risk (50-69)
@@ -122,8 +123,8 @@ export default function ModerationQueue({ items, onRefresh }) {
                     <button
                         onClick={() => setFilter('low')}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'low'
-                                ? 'bg-yellow-600 text-white'
-                                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                            ? 'bg-yellow-600 text-white'
+                            : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                             }`}
                     >
                         Low Risk (&lt;50)
@@ -135,8 +136,8 @@ export default function ModerationQueue({ items, onRefresh }) {
                     <button
                         onClick={() => setTypeFilter('all')}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${typeFilter === 'all'
-                                ? 'bg-purple-600 text-white'
-                                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                            ? 'bg-purple-600 text-white'
+                            : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                             }`}
                     >
                         All Types
@@ -144,8 +145,8 @@ export default function ModerationQueue({ items, onRefresh }) {
                     <button
                         onClick={() => setTypeFilter('campaign')}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${typeFilter === 'campaign'
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                             }`}
                     >
                         Campaigns

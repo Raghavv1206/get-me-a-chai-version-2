@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import CreateUpdateForm from './CreateUpdateForm';
 import UpdatesList from './UpdatesList';
 import { createUpdate, updateUpdate, deleteUpdate } from '@/actions/contentActions';
+import { toast } from '@/lib/apiToast';
 
 export default function ContentClient({ campaigns, updates }) {
     const router = useRouter();
@@ -24,7 +25,7 @@ export default function ContentClient({ campaigns, updates }) {
             setFormKey(prev => prev + 1); // Force form reset
             router.refresh();
         } else {
-            alert(result.error || 'Failed to save');
+            toast.error(result.error || 'Failed to save');
         }
     };
 
@@ -34,7 +35,7 @@ export default function ContentClient({ campaigns, updates }) {
             if (result.success) {
                 router.refresh();
             } else {
-                alert(result.error);
+                toast.error(result.error);
             }
         }
     };

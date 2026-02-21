@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import connectDb from '@/db/connectDb';
+import Campaign from '@/models/Campaign';
+import Payment from '@/models/Payment';
 
 export async function GET(request) {
     try {
-        const session = await getServerSession();
+        const session = await getServerSession(authOptions);
         if (!session) {
             return NextResponse.json(
                 { success: false, message: 'Unauthorized' },
@@ -11,51 +15,67 @@ export async function GET(request) {
             );
         }
 
-        const { searchParams } = new URL(request.url);
-        const period = searchParams.get('period') || '30';
+        await connectDb();
 
-        // Mock data - replace with actual database queries
+        // Get all campaigns owned by this user
+        const campaigns = await Campaign.find({ creator: session.user.id })
+            .select('stats currentAmount goalAmount')
+            .lean();
+
+        if (!campaigns || campaigns.length === 0) {
+            const emptyPeriod = {
+                views: 0, viewsChange: 0,
+                clicks: 0, clicksChange: 0,
+                conversionRate: 0, conversionChange: 0,
+                bounceRate: 0, bounceChange: 0,
+            };
+            return NextResponse.json({
+                success: true,
+                data: { '7': emptyPeriod, '30': emptyPeriod, '90': emptyPeriod, 'all': emptyPeriod }
+            });
+        }
+
+        // Aggregate total views and supporters across all campaigns
+        const totalViews = campaigns.reduce((sum, c) => sum + (c.stats?.views || 0), 0);
+        const totalSupporters = campaigns.reduce((sum, c) => sum + (c.stats?.supporters || 0), 0);
+
+        // Count actual payments for conversion rate
+        const campaignIds = campaigns.map(c => c._id);
+        const totalPayments = await Payment.countDocuments({
+            campaign: { $in: campaignIds },
+            status: 'completed',
+        });
+
+        const conversionRate = totalViews > 0 ? ((totalPayments / totalViews) * 100) : 0;
+
+        // Build period data — for "all" we use real totals;
+        // for time periods we estimate proportionally (real time-based tracking
+        // would require timestamped view events — currently views are just a counter)
+        const buildPeriodData = (fraction) => ({
+            views: Math.round(totalViews * fraction),
+            viewsChange: 0,
+            clicks: Math.round(totalSupporters * fraction),
+            clicksChange: 0,
+            conversionRate: parseFloat(conversionRate.toFixed(1)),
+            conversionChange: 0,
+            bounceRate: 0,
+            bounceChange: 0,
+        });
+
         const data = {
-            '7': {
-                views: 450,
-                viewsChange: 12,
-                clicks: 180,
-                clicksChange: 8,
-                conversionRate: 4.5,
-                conversionChange: 2,
-                bounceRate: 48,
-                bounceChange: -5
-            },
-            '30': {
-                views: 2100,
-                viewsChange: 25,
-                clicks: 850,
-                clicksChange: 15,
-                conversionRate: 5.2,
-                conversionChange: 3,
-                bounceRate: 45,
-                bounceChange: -8
-            },
-            '90': {
-                views: 6500,
-                viewsChange: 18,
-                clicks: 2600,
-                clicksChange: 12,
-                conversionRate: 5.8,
-                conversionChange: 5,
-                bounceRate: 42,
-                bounceChange: -10
-            },
+            '7': buildPeriodData(7 / 90),
+            '30': buildPeriodData(30 / 90),
+            '90': buildPeriodData(1),
             'all': {
-                views: 15000,
+                views: totalViews,
                 viewsChange: 0,
-                clicks: 6000,
+                clicks: totalSupporters,
                 clicksChange: 0,
-                conversionRate: 6.1,
+                conversionRate: parseFloat(conversionRate.toFixed(1)),
                 conversionChange: 0,
-                bounceRate: 40,
-                bounceChange: 0
-            }
+                bounceRate: 0,
+                bounceChange: 0,
+            },
         };
 
         return NextResponse.json({

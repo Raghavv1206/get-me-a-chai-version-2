@@ -75,8 +75,8 @@ const Login = () => {
     setLoading(true);
     try {
       const result = await signIn('credentials', {
-        email: 'demo@advision.com',
-        password: 'demo123',
+        email: 'demo@getmeachai.com',
+        password: 'demo123456',
         redirect: false
       });
       if (result?.ok) {

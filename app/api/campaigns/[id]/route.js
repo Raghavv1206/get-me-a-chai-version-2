@@ -19,8 +19,7 @@ export async function GET(request, { params }) {
         await connectDb();
 
         const campaign = await Campaign.findById(campaignId)
-            .populate('creator', 'name email username profilePicture')
-            .lean();
+            .populate('creator', 'name email username profilePicture');
 
         if (!campaign) {
             return NextResponse.json(
@@ -28,6 +27,14 @@ export async function GET(request, { params }) {
                 { status: 404 }
             );
         }
+
+        // Auto-close if expired (this will trigger pre-save middleware)
+        if (['active', 'paused'].includes(campaign.status) && campaign.endDate && new Date() > new Date(campaign.endDate)) {
+            campaign.status = 'completed';
+            await campaign.save();
+        }
+
+        const campaignData = campaign.toObject();
 
         // Verify ownership
         if (campaign.creator._id.toString() !== session.user.id) {
@@ -39,7 +46,7 @@ export async function GET(request, { params }) {
 
         return NextResponse.json({
             success: true,
-            campaign
+            campaign: campaignData
         });
     } catch (error) {
         console.error('Error fetching campaign:', error);

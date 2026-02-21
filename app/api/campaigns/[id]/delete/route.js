@@ -34,10 +34,8 @@ export async function DELETE(request, { params }) {
             );
         }
 
-        // Soft delete
-        campaign.status = 'deleted';
-        campaign.deletedAt = new Date();
-        await campaign.save();
+        // Hard delete the campaign
+        await Campaign.findByIdAndDelete(campaignId);
 
         return NextResponse.json({
             success: true,

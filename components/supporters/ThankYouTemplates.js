@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { FaEnvelope, FaPaperPlane, FaEye } from 'react-icons/fa';
+import { toast } from '@/lib/apiToast';
 
 export default function ThankYouTemplates({ supporter, onSend, onClose }) {
   const [selectedTemplate, setSelectedTemplate] = useState('basic');
@@ -84,7 +85,7 @@ The Team`
 
   const handleSend = async () => {
     if (!supporter || !supporter.email) {
-      alert('Supporter email not available');
+      toast.error('Supporter email not available');
       return;
     }
 
@@ -98,7 +99,7 @@ The Team`
       onClose();
     } catch (error) {
       console.error('Error sending email:', error);
-      alert('Failed to send email');
+      toast.error('Failed to send email');
     } finally {
       setSending(false);
     }

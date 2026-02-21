@@ -6,332 +6,345 @@ import AmountSelector from './AmountSelector';
 import RewardTierSelector from './RewardTierSelector';
 import PaymentSummary from './PaymentSummary';
 import { FaHeart, FaLock } from 'react-icons/fa';
+import { apiToast, toast } from '@/lib/apiToast';
 
 export default function PaymentSidebar({
-    campaign,
-    creator,
-    selectedReward: initialReward = null,
-    onPaymentSuccess
+  campaign,
+  creator,
+  selectedReward: initialReward = null,
+  onPaymentSuccess
 }) {
-    const { data: session } = useSession();
-    const [isSticky, setIsSticky] = useState(false);
-    const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const { data: session } = useSession();
+  const [isSticky, setIsSticky] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-    // Form state
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [message, setMessage] = useState('');
-    const [amount, setAmount] = useState(100);
-    const [selectedReward, setSelectedReward] = useState(initialReward);
-    const [paymentType, setPaymentType] = useState('one-time');
-    const [isAnonymous, setIsAnonymous] = useState(false);
-    const [hideAmount, setHideAmount] = useState(false);
-    const [isProcessing, setIsProcessing] = useState(false);
+  // Form state
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [amount, setAmount] = useState(100);
+  const [selectedReward, setSelectedReward] = useState(initialReward);
+  const [paymentType, setPaymentType] = useState('one-time');
+  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [hideAmount, setHideAmount] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-    useEffect(() => {
-        if (session) {
-            setName(session.user?.name || '');
-            setEmail(session.user?.email || '');
-        }
-    }, [session]);
+  useEffect(() => {
+    if (session) {
+      setName(session.user?.name || '');
+      setEmail(session.user?.email || '');
+    }
+  }, [session]);
 
-    useEffect(() => {
-        if (initialReward) {
-            setSelectedReward(initialReward);
-            setAmount(initialReward.amount);
-        }
-    }, [initialReward]);
+  useEffect(() => {
+    if (initialReward) {
+      setSelectedReward(initialReward);
+      setAmount(initialReward.amount);
+    }
+  }, [initialReward]);
 
-    useEffect(() => {
-        const handleScroll = () => {
-            setIsSticky(window.scrollY > 500);
-        };
-
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
-
-    const handleRewardSelect = (reward) => {
-        setSelectedReward(reward);
-        if (reward) {
-            setAmount(reward.amount);
-        }
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsSticky(window.scrollY > 500);
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-        if (!name || !email) {
-            alert('Please fill in your name and email');
-            return;
+  const handleRewardSelect = (reward) => {
+    setSelectedReward(reward);
+    if (reward) {
+      setAmount(reward.amount);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!name || !email) {
+      toast.error('Please fill in your name and email');
+      return;
+    }
+
+    if (amount < 10) {
+      toast.error('Minimum amount is ₹10');
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      // Create payment order
+      const orderResponse = await apiToast(
+        () => fetch('/api/payments/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount,
+            campaign: campaign._id,
+            creatorUsername: creator.username,
+            name,
+            email,
+            message,
+            rewardTier: selectedReward?._id,
+            paymentType,
+            anonymous: isAnonymous,
+            hideAmount
+          })
+        }),
+        {
+          loading: 'Creating payment order...',
+          success: 'Payment order created!',
+          error: 'Failed to create payment order'
         }
+      );
 
-        if (amount < 10) {
-            alert('Minimum amount is ₹10');
-            return;
-        }
+      const orderData = await orderResponse.json();
 
-        setIsProcessing(true);
+      if (!orderData.success) {
+        throw new Error(orderData.message || 'Failed to create order');
+      }
 
-        try {
-            // Create payment order
-            const orderResponse = await fetch('/api/payments/create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    amount,
-                    campaign: campaign._id,
-                    creatorUsername: creator.username,
-                    name,
-                    email,
-                    message,
-                    rewardTier: selectedReward?._id,
-                    paymentType,
-                    anonymous: isAnonymous,
-                    hideAmount
-                })
-            });
-
-            const orderData = await orderResponse.json();
-
-            if (!orderData.success) {
-                throw new Error(orderData.message || 'Failed to create order');
+      // Initialize Razorpay
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: orderData.order.amount,
+        currency: orderData.order.currency,
+        name: 'Get Me A Chai',
+        description: `Support ${campaign.title}`,
+        order_id: orderData.order.id,
+        prefill: {
+          name,
+          email
+        },
+        theme: {
+          color: '#667eea'
+        },
+        handler: async function (response) {
+          // Verify payment
+          const verifyResponse = await apiToast(
+            () => fetch('/api/payments/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                paymentData: orderData.paymentData
+              })
+            }),
+            {
+              loading: 'Verifying payment...',
+              success: 'Payment verified!',
+              error: 'Payment verification failed'
             }
+          );
 
-            // Initialize Razorpay
-            const options = {
-                key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-                amount: orderData.order.amount,
-                currency: orderData.order.currency,
-                name: 'Get Me A Chai',
-                description: `Support ${campaign.title}`,
-                order_id: orderData.order.id,
-                prefill: {
-                    name,
-                    email
-                },
-                theme: {
-                    color: '#667eea'
-                },
-                handler: async function (response) {
-                    // Verify payment
-                    const verifyResponse = await fetch('/api/payments/verify', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            razorpay_order_id: response.razorpay_order_id,
-                            razorpay_payment_id: response.razorpay_payment_id,
-                            razorpay_signature: response.razorpay_signature,
-                            paymentData: orderData.paymentData
-                        })
-                    });
+          const verifyData = await verifyResponse.json();
 
-                    const verifyData = await verifyResponse.json();
-
-                    if (verifyData.success) {
-                        if (onPaymentSuccess) {
-                            onPaymentSuccess(verifyData.payment);
-                        }
-                        // Redirect to success page
-                        window.location.href = `/payment-success?id=${verifyData.payment._id}`;
-                    } else {
-                        alert('Payment verification failed');
-                    }
-                },
-                modal: {
-                    ondismiss: function () {
-                        setIsProcessing(false);
-                    }
-                }
-            };
-
-            const razorpay = new window.Razorpay(options);
-            razorpay.open();
-        } catch (error) {
-            console.error('Payment error:', error);
-            alert(error.message || 'Payment failed. Please try again.');
+          if (verifyData.success) {
+            if (onPaymentSuccess) {
+              onPaymentSuccess(verifyData.payment);
+            }
+            // Redirect to success page
+            window.location.href = `/payment-success?id=${verifyData.payment._id}`;
+          }
+        },
+        modal: {
+          ondismiss: function () {
             setIsProcessing(false);
+          }
         }
-    };
+      };
 
-    return (
-        <>
-            {/* Desktop Sidebar */}
-            <div className={`payment-sidebar desktop ${isSticky ? 'sticky' : ''}`} id="payment-sidebar">
-                <div className="sidebar-content">
-                    <h3 className="sidebar-title">
-                        <FaHeart className="title-icon" />
-                        Support this Campaign
-                    </h3>
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast.error(error.message || 'Payment failed. Please try again.');
+      setIsProcessing(false);
+    }
+  };
 
-                    <form onSubmit={handleSubmit} className="payment-form">
-                        {/* Name Input */}
-                        <div className="form-group">
-                            <label htmlFor="name">Your Name *</label>
-                            <input
-                                type="text"
-                                id="name"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                placeholder="Enter your name"
-                                required
-                                className="form-input"
-                            />
-                        </div>
+  return (
+    <>
+      {/* Desktop Sidebar */}
+      <div className={`payment-sidebar desktop ${isSticky ? 'sticky' : ''}`} id="payment-sidebar">
+        <div className="sidebar-content">
+          <h3 className="sidebar-title">
+            <FaHeart className="title-icon" />
+            Support this Campaign
+          </h3>
 
-                        {/* Email Input */}
-                        <div className="form-group">
-                            <label htmlFor="email">Email Address *</label>
-                            <input
-                                type="email"
-                                id="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="your@email.com"
-                                required
-                                className="form-input"
-                            />
-                        </div>
-
-                        {/* Amount Selector */}
-                        <div className="form-group">
-                            <label>Support Amount *</label>
-                            <AmountSelector
-                                amount={amount}
-                                onAmountChange={setAmount}
-                            />
-                        </div>
-
-                        {/* Reward Tier Selector */}
-                        {campaign.rewards && campaign.rewards.length > 0 && (
-                            <div className="form-group">
-                                <label>Select a Reward (Optional)</label>
-                                <RewardTierSelector
-                                    rewards={campaign.rewards}
-                                    selectedReward={selectedReward}
-                                    onSelectReward={handleRewardSelect}
-                                />
-                            </div>
-                        )}
-
-                        {/* Payment Type */}
-                        <div className="form-group">
-                            <label>Payment Type</label>
-                            <div className="radio-group">
-                                <label className="radio-label">
-                                    <input
-                                        type="radio"
-                                        name="paymentType"
-                                        value="one-time"
-                                        checked={paymentType === 'one-time'}
-                                        onChange={(e) => setPaymentType(e.target.value)}
-                                    />
-                                    <span>One-time</span>
-                                </label>
-                                <label className="radio-label">
-                                    <input
-                                        type="radio"
-                                        name="paymentType"
-                                        value="subscription"
-                                        checked={paymentType === 'subscription'}
-                                        onChange={(e) => setPaymentType(e.target.value)}
-                                    />
-                                    <span>Monthly Subscription</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        {/* Message */}
-                        <div className="form-group">
-                            <label htmlFor="message">Message (Optional)</label>
-                            <textarea
-                                id="message"
-                                value={message}
-                                onChange={(e) => setMessage(e.target.value.slice(0, 200))}
-                                placeholder="Leave a message for the creator..."
-                                className="form-textarea"
-                                rows="3"
-                                maxLength="200"
-                            />
-                            <div className="char-count">{message.length}/200</div>
-                        </div>
-
-                        {/* Privacy Options */}
-                        <div className="form-group">
-                            <label className="checkbox-label">
-                                <input
-                                    type="checkbox"
-                                    checked={isAnonymous}
-                                    onChange={(e) => setIsAnonymous(e.target.checked)}
-                                />
-                                <span>Make my support anonymous</span>
-                            </label>
-
-                            <label className="checkbox-label">
-                                <input
-                                    type="checkbox"
-                                    checked={hideAmount}
-                                    onChange={(e) => setHideAmount(e.target.checked)}
-                                />
-                                <span>Hide my support amount</span>
-                            </label>
-                        </div>
-
-                        {/* Payment Summary */}
-                        <PaymentSummary
-                            campaignTitle={campaign.title}
-                            amount={amount}
-                            reward={selectedReward}
-                            paymentType={paymentType}
-                        />
-
-                        {/* Submit Button */}
-                        <button
-                            type="submit"
-                            className="pay-button"
-                            disabled={isProcessing}
-                        >
-                            {isProcessing ? (
-                                <>
-                                    <div className="spinner"></div>
-                                    Processing...
-                                </>
-                            ) : (
-                                <>
-                                    <FaLock className="btn-icon" />
-                                    Pay ₹{amount.toLocaleString('en-IN')}
-                                </>
-                            )}
-                        </button>
-
-                        <div className="secure-badge">
-                            <FaLock /> Secured by Razorpay
-                        </div>
-                    </form>
-                </div>
+          <form onSubmit={handleSubmit} className="payment-form">
+            {/* Name Input */}
+            <div className="form-group">
+              <label htmlFor="name">Your Name *</label>
+              <input
+                type="text"
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter your name"
+                required
+                className="form-input"
+              />
             </div>
 
-            {/* Mobile Bottom Sheet */}
-            <div className={`payment-mobile ${isMobileOpen ? 'open' : ''}`}>
-                <button
-                    className="mobile-trigger"
-                    onClick={() => setIsMobileOpen(!isMobileOpen)}
-                >
-                    <FaHeart /> Support Now - ₹{amount}
-                </button>
-
-                <div className="mobile-sheet">
-                    <div className="sheet-handle"></div>
-                    <div className="sheet-content">
-                        {/* Same form as desktop */}
-                        <form onSubmit={handleSubmit} className="payment-form">
-                            {/* ... same form fields ... */}
-                        </form>
-                    </div>
-                </div>
+            {/* Email Input */}
+            <div className="form-group">
+              <label htmlFor="email">Email Address *</label>
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your@email.com"
+                required
+                className="form-input"
+              />
             </div>
 
-            <style jsx>{`
+            {/* Amount Selector */}
+            <div className="form-group">
+              <label>Support Amount *</label>
+              <AmountSelector
+                amount={amount}
+                onAmountChange={setAmount}
+              />
+            </div>
+
+            {/* Reward Tier Selector */}
+            {campaign.rewards && campaign.rewards.length > 0 && (
+              <div className="form-group">
+                <label>Select a Reward (Optional)</label>
+                <RewardTierSelector
+                  rewards={campaign.rewards}
+                  selectedReward={selectedReward}
+                  onSelectReward={handleRewardSelect}
+                />
+              </div>
+            )}
+
+            {/* Payment Type */}
+            <div className="form-group">
+              <label>Payment Type</label>
+              <div className="radio-group">
+                <label className="radio-label">
+                  <input
+                    type="radio"
+                    name="paymentType"
+                    value="one-time"
+                    checked={paymentType === 'one-time'}
+                    onChange={(e) => setPaymentType(e.target.value)}
+                  />
+                  <span>One-time</span>
+                </label>
+                <label className="radio-label">
+                  <input
+                    type="radio"
+                    name="paymentType"
+                    value="subscription"
+                    checked={paymentType === 'subscription'}
+                    onChange={(e) => setPaymentType(e.target.value)}
+                  />
+                  <span>Monthly Subscription</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Message */}
+            <div className="form-group">
+              <label htmlFor="message">Message (Optional)</label>
+              <textarea
+                id="message"
+                value={message}
+                onChange={(e) => setMessage(e.target.value.slice(0, 200))}
+                placeholder="Leave a message for the creator..."
+                className="form-textarea"
+                rows="3"
+                maxLength="200"
+              />
+              <div className="char-count">{message.length}/200</div>
+            </div>
+
+            {/* Privacy Options */}
+            <div className="form-group">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={isAnonymous}
+                  onChange={(e) => setIsAnonymous(e.target.checked)}
+                />
+                <span>Make my support anonymous</span>
+              </label>
+
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={hideAmount}
+                  onChange={(e) => setHideAmount(e.target.checked)}
+                />
+                <span>Hide my support amount</span>
+              </label>
+            </div>
+
+            {/* Payment Summary */}
+            <PaymentSummary
+              campaignTitle={campaign.title}
+              amount={amount}
+              reward={selectedReward}
+              paymentType={paymentType}
+            />
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              className="pay-button"
+              disabled={isProcessing}
+            >
+              {isProcessing ? (
+                <>
+                  <div className="spinner"></div>
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <FaLock className="btn-icon" />
+                  Pay ₹{amount.toLocaleString('en-IN')}
+                </>
+              )}
+            </button>
+
+            <div className="secure-badge">
+              <FaLock /> Secured by Razorpay
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {/* Mobile Bottom Sheet */}
+      <div className={`payment-mobile ${isMobileOpen ? 'open' : ''}`}>
+        <button
+          className="mobile-trigger"
+          onClick={() => setIsMobileOpen(!isMobileOpen)}
+        >
+          <FaHeart /> Support Now - ₹{amount}
+        </button>
+
+        <div className="mobile-sheet">
+          <div className="sheet-handle"></div>
+          <div className="sheet-content">
+            {/* Same form as desktop */}
+            <form onSubmit={handleSubmit} className="payment-form">
+              {/* ... same form fields ... */}
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <style jsx>{`
         .payment-sidebar {
           display: none;
         }
@@ -593,8 +606,8 @@ export default function PaymentSidebar({
         }
       `}</style>
 
-            {/* Load Razorpay Script */}
-            <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-        </>
-    );
+      {/* Load Razorpay Script */}
+      <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    </>
+  );
 }

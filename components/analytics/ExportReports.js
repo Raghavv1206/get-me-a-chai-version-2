@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { FaFilePdf, FaFileCsv, FaFileExcel, FaDownload, FaCalendar } from 'react-icons/fa';
+import { toast } from '@/lib/apiToast';
 import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
 import Papa from 'papaparse';
@@ -44,7 +45,7 @@ export default function ExportReports({ data }) {
       doc.save(`report-${reportType}-${dateRange}days.pdf`);
     } catch (error) {
       console.error('Error exporting PDF:', error);
-      alert('Failed to export PDF');
+      toast.error('Failed to export PDF');
     } finally {
       setExporting(false);
     }
@@ -96,7 +97,7 @@ export default function ExportReports({ data }) {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error exporting CSV:', error);
-      alert('Failed to export CSV');
+      toast.error('Failed to export CSV');
     } finally {
       setExporting(false);
     }
@@ -127,7 +128,7 @@ export default function ExportReports({ data }) {
       XLSX.writeFile(wb, `report-${reportType}-${dateRange}days.xlsx`);
     } catch (error) {
       console.error('Error exporting Excel:', error);
-      alert('Failed to export Excel');
+      toast.error('Failed to export Excel');
     } finally {
       setExporting(false);
     }

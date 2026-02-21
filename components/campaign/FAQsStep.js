@@ -1,6 +1,7 @@
 // components/campaign/FAQsStep.js
 "use client"
 import { useState } from 'react';
+import { toast } from '@/lib/apiToast';
 
 export default function FAQsStep({ data, onUpdate, onNext, onBack }) {
     const [faqs, setFaqs] = useState(data.faqs || []);
@@ -28,11 +29,11 @@ export default function FAQsStep({ data, onUpdate, onNext, onBack }) {
                 // Show error from API
                 const error = await response.json();
                 console.error('API error:', error);
-                alert(error.error || 'Failed to generate FAQs');
+                toast.error(error.error || 'Failed to generate FAQs');
             }
         } catch (error) {
             console.error('Error generating FAQs:', error);
-            alert('Failed to generate FAQs');
+            toast.error('Failed to generate FAQs');
         } finally {
             setLoading(false);
         }

@@ -25,15 +25,20 @@ export default async function CampaignPage({ params }) {
 
         // Fetch campaign with creator details
         const campaign = await Campaign.findById(id)
-            .populate('creator', 'name email profileImage verified username bio location socialLinks stats coverpic profilepic razorpayid razorpaysecret')
-            .lean();
+            .populate('creator', 'name email profileImage verified username bio location socialLinks stats coverpic profilepic razorpayid razorpaysecret');
 
         if (!campaign) {
             notFound();
         }
 
+        // Auto-close if expired
+        if (['active', 'paused'].includes(campaign.status) && campaign.endDate && new Date() > new Date(campaign.endDate)) {
+            campaign.status = 'completed';
+            await campaign.save();
+        }
+
         // Convert MongoDB ObjectId to string
-        const campaignData = JSON.parse(JSON.stringify(campaign));
+        const campaignData = JSON.parse(JSON.stringify(campaign.toObject()));
 
         // Calculate days remaining
         const deadline = new Date(campaign.endDate);
@@ -50,7 +55,30 @@ export default async function CampaignPage({ params }) {
         campaignData.currentAmount = campaign.currentAmount || 0;
         campaignData.goalAmount = campaign.goalAmount || 0;
 
-        // Ensure creator has required fields with defaults
+        // Compute real creator stats from database
+        const creatorId = campaign.creator._id;
+
+        // Get all campaigns by this creator
+        const creatorCampaigns = await Campaign.find({
+            creator: creatorId,
+            status: { $nin: ['deleted', 'draft'] }
+        }).select('currentAmount goalAmount status').lean();
+
+        const campaignsCount = creatorCampaigns.length;
+        const totalRaised = creatorCampaigns.reduce((sum, c) => sum + (c.currentAmount || 0), 0);
+        const completedCampaigns = creatorCampaigns.filter(c => c.status === 'completed');
+        const successfulCampaigns = completedCampaigns.filter(c => (c.currentAmount || 0) >= (c.goalAmount || 1));
+        const successRate = campaignsCount > 0 ? Math.round((successfulCampaigns.length / campaignsCount) * 100) : 0;
+
+        // Get unique supporters count from payments
+        const Payment = (await import('@/models/Payment')).default;
+        const uniqueSupporters = await Payment.distinct('userId', {
+            to_user: creator.username,
+            done: true
+        });
+        const totalSupporters = uniqueSupporters.length;
+
+        // Ensure creator has required fields with real data
         const creatorData = {
             _id: creator._id,
             name: creator.name || 'Anonymous',
@@ -64,11 +92,11 @@ export default async function CampaignPage({ params }) {
             socialLinks: creator.socialLinks || {},
             razorpayid: creator.razorpayid || '',
             razorpaysecret: creator.razorpaysecret || '',
-            stats: creator.stats || {
-                totalRaised: 0,
-                totalSupporters: 0,
-                campaignsCount: 1,
-                successRate: 0
+            stats: {
+                totalRaised,
+                totalSupporters,
+                campaignsCount,
+                successRate
             }
         };
 

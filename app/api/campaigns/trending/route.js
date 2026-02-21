@@ -2,12 +2,16 @@
 import { NextResponse } from 'next/server';
 import connectDb from '@/db/connectDb';
 import Campaign from '@/models/Campaign';
+import { closeExpiredCampaigns } from '@/lib/campaignExpiry';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req) {
     try {
         await connectDb();
+
+        // Auto-close any expired campaigns before querying
+        await closeExpiredCampaigns();
 
         const { searchParams } = new URL(req.url);
         const limit = parseInt(searchParams.get('limit') || '10');

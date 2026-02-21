@@ -1,6 +1,7 @@
 // components/campaign/RewardsStep.js
 "use client"
 import { useState } from 'react';
+import { toast } from '@/lib/apiToast';
 
 export default function RewardsStep({ data, onUpdate, onNext, onBack }) {
     const [rewards, setRewards] = useState(data.rewards || []);
@@ -28,11 +29,11 @@ export default function RewardsStep({ data, onUpdate, onNext, onBack }) {
                 // Show error from API
                 const error = await response.json();
                 console.error('API error:', error);
-                alert(error.error || 'Failed to generate rewards');
+                toast.error(error.error || 'Failed to generate rewards');
             }
         } catch (error) {
             console.error('Error generating rewards:', error);
-            alert('Failed to generate rewards');
+            toast.error('Failed to generate rewards');
         } finally {
             setLoading(false);
         }

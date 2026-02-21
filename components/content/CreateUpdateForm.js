@@ -5,180 +5,181 @@ import RichTextEditor from './RichTextEditor';
 import SchedulePublishModal from './SchedulePublishModal';
 import UpdatePreview from './UpdatePreview';
 import { FaEye, FaSave, FaPaperPlane, FaClock } from 'react-icons/fa';
+import { toast } from '@/lib/apiToast';
 
 export default function CreateUpdateForm({ campaigns, initialData, onSave }) {
-    const [formData, setFormData] = useState({
-        campaign: initialData?.campaign || '',
-        title: initialData?.title || '',
-        content: initialData?.content || '',
-        visibility: initialData?.visibility || 'public',
-        status: initialData?.status || 'draft'
-    });
+  const [formData, setFormData] = useState({
+    campaign: initialData?.campaign || '',
+    title: initialData?.title || '',
+    content: initialData?.content || '',
+    visibility: initialData?.visibility || 'public',
+    status: initialData?.status || 'draft'
+  });
 
-    const [showScheduleModal, setShowScheduleModal] = useState(false);
-    const [showPreview, setShowPreview] = useState(false);
-    const [saving, setSaving] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-    const handleSubmit = async (action) => {
-        if (!formData.campaign || !formData.title || !formData.content) {
-            alert('Please fill in all required fields');
-            return;
-        }
+  const handleSubmit = async (action) => {
+    if (!formData.campaign || !formData.title || !formData.content) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
 
-        setSaving(true);
-        try {
-            const data = {
-                ...formData,
-                status: action === 'publish' ? 'published' : 'draft'
-            };
+    setSaving(true);
+    try {
+      const data = {
+        ...formData,
+        status: action === 'publish' ? 'published' : 'draft'
+      };
 
-            await onSave(data);
-            alert(`Update ${action === 'publish' ? 'published' : 'saved'} successfully!`);
-        } catch (error) {
-            console.error('Error saving update:', error);
-            alert('Failed to save update');
-        } finally {
-            setSaving(false);
-        }
-    };
+      await onSave(data);
+      toast.success(`Update ${action === 'publish' ? 'published' : 'saved'} successfully!`);
+    } catch (error) {
+      console.error('Error saving update:', error);
+      toast.error('Failed to save update');
+    } finally {
+      setSaving(false);
+    }
+  };
 
-    const handleSchedule = async (scheduledDate) => {
-        setSaving(true);
-        try {
-            const data = {
-                ...formData,
-                status: 'scheduled',
-                scheduledFor: scheduledDate
-            };
+  const handleSchedule = async (scheduledDate) => {
+    setSaving(true);
+    try {
+      const data = {
+        ...formData,
+        status: 'scheduled',
+        scheduledFor: scheduledDate
+      };
 
-            await onSave(data);
-            setShowScheduleModal(false);
-            alert('Update scheduled successfully!');
-        } catch (error) {
-            console.error('Error scheduling update:', error);
-            alert('Failed to schedule update');
-        } finally {
-            setSaving(false);
-        }
-    };
+      await onSave(data);
+      setShowScheduleModal(false);
+      toast.success('Update scheduled successfully!');
+    } catch (error) {
+      console.error('Error scheduling update:', error);
+      toast.error('Failed to schedule update');
+    } finally {
+      setSaving(false);
+    }
+  };
 
-    return (
-        <div className="create-update-form">
-            <div className="form-header">
-                <h2 className="form-title">
-                    {initialData ? 'Edit Update' : 'Create New Update'}
-                </h2>
-                <button
-                    type="button"
-                    className="preview-btn"
-                    onClick={() => setShowPreview(!showPreview)}
-                >
-                    <FaEye /> {showPreview ? 'Hide' : 'Show'} Preview
-                </button>
+  return (
+    <div className="create-update-form">
+      <div className="form-header">
+        <h2 className="form-title">
+          {initialData ? 'Edit Update' : 'Create New Update'}
+        </h2>
+        <button
+          type="button"
+          className="preview-btn"
+          onClick={() => setShowPreview(!showPreview)}
+        >
+          <FaEye /> {showPreview ? 'Hide' : 'Show'} Preview
+        </button>
+      </div>
+
+      <div className="form-layout">
+        <div className="form-main">
+          <div className="form-group">
+            <label className="form-label">Campaign *</label>
+            <select
+              value={formData.campaign}
+              onChange={(e) => setFormData({ ...formData, campaign: e.target.value })}
+              className="form-select"
+              required
+            >
+              <option value="">Select a campaign</option>
+              {campaigns.map((campaign) => (
+                <option key={campaign._id} value={campaign._id}>
+                  {campaign.title}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Title *</label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              placeholder="Enter update title..."
+              className="form-input"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Content *</label>
+            <RichTextEditor
+              content={formData.content}
+              onChange={(content) => setFormData({ ...formData, content })}
+            />
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Visibility</label>
+              <select
+                value={formData.visibility}
+                onChange={(e) => setFormData({ ...formData, visibility: e.target.value })}
+                className="form-select"
+              >
+                <option value="public">Public</option>
+                <option value="supporters">Supporters Only</option>
+              </select>
             </div>
+          </div>
 
-            <div className="form-layout">
-                <div className="form-main">
-                    <div className="form-group">
-                        <label className="form-label">Campaign *</label>
-                        <select
-                            value={formData.campaign}
-                            onChange={(e) => setFormData({ ...formData, campaign: e.target.value })}
-                            className="form-select"
-                            required
-                        >
-                            <option value="">Select a campaign</option>
-                            {campaigns.map((campaign) => (
-                                <option key={campaign._id} value={campaign._id}>
-                                    {campaign.title}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+          <div className="form-actions">
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => handleSubmit('draft')}
+              disabled={saving}
+            >
+              <FaSave /> Save as Draft
+            </button>
 
-                    <div className="form-group">
-                        <label className="form-label">Title *</label>
-                        <input
-                            type="text"
-                            value={formData.title}
-                            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                            placeholder="Enter update title..."
-                            className="form-input"
-                            required
-                        />
-                    </div>
+            <button
+              type="button"
+              className="btn-schedule"
+              onClick={() => setShowScheduleModal(true)}
+              disabled={saving}
+            >
+              <FaClock /> Schedule
+            </button>
 
-                    <div className="form-group">
-                        <label className="form-label">Content *</label>
-                        <RichTextEditor
-                            content={formData.content}
-                            onChange={(content) => setFormData({ ...formData, content })}
-                        />
-                    </div>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => handleSubmit('publish')}
+              disabled={saving}
+            >
+              <FaPaperPlane /> {saving ? 'Publishing...' : 'Publish Now'}
+            </button>
+          </div>
+        </div>
 
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label className="form-label">Visibility</label>
-                            <select
-                                value={formData.visibility}
-                                onChange={(e) => setFormData({ ...formData, visibility: e.target.value })}
-                                className="form-select"
-                            >
-                                <option value="public">Public</option>
-                                <option value="supporters">Supporters Only</option>
-                            </select>
-                        </div>
-                    </div>
+        {showPreview && (
+          <div className="form-preview">
+            <UpdatePreview
+              title={formData.title}
+              content={formData.content}
+              campaign={campaigns.find(c => c._id === formData.campaign)}
+            />
+          </div>
+        )}
+      </div>
 
-                    <div className="form-actions">
-                        <button
-                            type="button"
-                            className="btn-secondary"
-                            onClick={() => handleSubmit('draft')}
-                            disabled={saving}
-                        >
-                            <FaSave /> Save as Draft
-                        </button>
+      {showScheduleModal && (
+        <SchedulePublishModal
+          onSchedule={handleSchedule}
+          onClose={() => setShowScheduleModal(false)}
+        />
+      )}
 
-                        <button
-                            type="button"
-                            className="btn-schedule"
-                            onClick={() => setShowScheduleModal(true)}
-                            disabled={saving}
-                        >
-                            <FaClock /> Schedule
-                        </button>
-
-                        <button
-                            type="button"
-                            className="btn-primary"
-                            onClick={() => handleSubmit('publish')}
-                            disabled={saving}
-                        >
-                            <FaPaperPlane /> {saving ? 'Publishing...' : 'Publish Now'}
-                        </button>
-                    </div>
-                </div>
-
-                {showPreview && (
-                    <div className="form-preview">
-                        <UpdatePreview
-                            title={formData.title}
-                            content={formData.content}
-                            campaign={campaigns.find(c => c._id === formData.campaign)}
-                        />
-                    </div>
-                )}
-            </div>
-
-            {showScheduleModal && (
-                <SchedulePublishModal
-                    onSchedule={handleSchedule}
-                    onClose={() => setShowScheduleModal(false)}
-                />
-            )}
-
-            <style jsx>{`
+      <style jsx>{`
         .create-update-form {
           background: white;
           border-radius: 16px;
@@ -360,6 +361,6 @@ export default function CreateUpdateForm({ campaigns, initialData, onSave }) {
           }
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

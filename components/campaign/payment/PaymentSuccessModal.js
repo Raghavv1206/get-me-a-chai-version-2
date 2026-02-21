@@ -3,121 +3,122 @@
 import { useEffect, useState } from 'react';
 import { FaCheckCircle, FaDownload, FaShare, FaArrowRight } from 'react-icons/fa';
 import confetti from 'canvas-confetti';
+import { toast } from '@/lib/apiToast';
 
 export default function PaymentSuccessModal({ payment, onClose }) {
-    const [showConfetti, setShowConfetti] = useState(true);
+  const [showConfetti, setShowConfetti] = useState(true);
 
-    useEffect(() => {
-        if (showConfetti) {
-            // Trigger confetti animation
-            const duration = 3 * 1000;
-            const animationEnd = Date.now() + duration;
+  useEffect(() => {
+    if (showConfetti) {
+      // Trigger confetti animation
+      const duration = 3 * 1000;
+      const animationEnd = Date.now() + duration;
 
-            const randomInRange = (min, max) => Math.random() * (max - min) + min;
+      const randomInRange = (min, max) => Math.random() * (max - min) + min;
 
-            const interval = setInterval(() => {
-                const timeLeft = animationEnd - Date.now();
+      const interval = setInterval(() => {
+        const timeLeft = animationEnd - Date.now();
 
-                if (timeLeft <= 0) {
-                    setShowConfetti(false);
-                    return clearInterval(interval);
-                }
-
-                confetti({
-                    particleCount: 3,
-                    angle: randomInRange(55, 125),
-                    spread: randomInRange(50, 70),
-                    origin: { x: randomInRange(0.1, 0.9), y: Math.random() - 0.2 },
-                    colors: ['#667eea', '#764ba2', '#f093fb', '#4facfe']
-                });
-            }, 50);
-
-            return () => clearInterval(interval);
+        if (timeLeft <= 0) {
+          setShowConfetti(false);
+          return clearInterval(interval);
         }
-    }, [showConfetti]);
 
-    const handleDownloadReceipt = () => {
-        // Generate and download receipt
-        window.open(`/api/payments/${payment._id}/receipt`, '_blank');
-    };
+        confetti({
+          particleCount: 3,
+          angle: randomInRange(55, 125),
+          spread: randomInRange(50, 70),
+          origin: { x: randomInRange(0.1, 0.9), y: Math.random() - 0.2 },
+          colors: ['#667eea', '#764ba2', '#f093fb', '#4facfe']
+        });
+      }, 50);
 
-    const handleShare = () => {
-        const shareText = `I just supported ${payment.campaign} on Get Me A Chai! 🎉`;
-        const shareUrl = window.location.origin;
+      return () => clearInterval(interval);
+    }
+  }, [showConfetti]);
 
-        if (navigator.share) {
-            navigator.share({
-                title: 'Support Successful!',
-                text: shareText,
-                url: shareUrl
-            });
-        } else {
-            // Fallback to copy to clipboard
-            navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
-            alert('Link copied to clipboard!');
-        }
-    };
+  const handleDownloadReceipt = () => {
+    // Generate and download receipt
+    window.open(`/api/payments/${payment._id}/receipt`, '_blank');
+  };
 
-    return (
-        <div className="modal-overlay">
-            <div className="modal-content">
-                <div className="success-icon-wrapper">
-                    <div className="success-icon-circle">
-                        <FaCheckCircle className="success-icon" />
-                    </div>
-                </div>
+  const handleShare = () => {
+    const shareText = `I just supported ${payment.campaign} on Get Me A Chai! 🎉`;
+    const shareUrl = window.location.origin;
 
-                <h2 className="modal-title">Payment Successful!</h2>
-                <p className="modal-subtitle">Thank you for your generous support</p>
+    if (navigator.share) {
+      navigator.share({
+        title: 'Support Successful!',
+        text: shareText,
+        url: shareUrl
+      });
+    } else {
+      // Fallback to copy to clipboard
+      navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
+      toast.success('Link copied to clipboard!');
+    }
+  };
 
-                <div className="receipt-details">
-                    <div className="detail-row">
-                        <span className="detail-label">Campaign</span>
-                        <span className="detail-value">{payment.campaign}</span>
-                    </div>
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <div className="success-icon-wrapper">
+          <div className="success-icon-circle">
+            <FaCheckCircle className="success-icon" />
+          </div>
+        </div>
 
-                    <div className="detail-row">
-                        <span className="detail-label">Amount</span>
-                        <span className="detail-value amount">₹{payment.amount.toLocaleString('en-IN')}</span>
-                    </div>
+        <h2 className="modal-title">Payment Successful!</h2>
+        <p className="modal-subtitle">Thank you for your generous support</p>
 
-                    <div className="detail-row">
-                        <span className="detail-label">Transaction ID</span>
-                        <span className="detail-value transaction-id">{payment._id}</span>
-                    </div>
+        <div className="receipt-details">
+          <div className="detail-row">
+            <span className="detail-label">Campaign</span>
+            <span className="detail-value">{payment.campaign}</span>
+          </div>
 
-                    <div className="detail-row">
-                        <span className="detail-label">Date</span>
-                        <span className="detail-value">
-                            {new Date().toLocaleDateString('en-IN', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric'
-                            })}
-                        </span>
-                    </div>
-                </div>
+          <div className="detail-row">
+            <span className="detail-label">Amount</span>
+            <span className="detail-value amount">₹{payment.amount.toLocaleString('en-IN')}</span>
+          </div>
 
-                <div className="action-buttons">
-                    <button className="btn-primary" onClick={handleDownloadReceipt}>
-                        <FaDownload /> Download Receipt
-                    </button>
+          <div className="detail-row">
+            <span className="detail-label">Transaction ID</span>
+            <span className="detail-value transaction-id">{payment._id}</span>
+          </div>
 
-                    <button className="btn-secondary" onClick={handleShare}>
-                        <FaShare /> Share
-                    </button>
-                </div>
+          <div className="detail-row">
+            <span className="detail-label">Date</span>
+            <span className="detail-value">
+              {new Date().toLocaleDateString('en-IN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </span>
+          </div>
+        </div>
 
-                <button className="btn-link" onClick={() => window.location.href = '/explore'}>
-                    Support Another Campaign <FaArrowRight />
-                </button>
+        <div className="action-buttons">
+          <button className="btn-primary" onClick={handleDownloadReceipt}>
+            <FaDownload /> Download Receipt
+          </button>
 
-                <button className="close-button" onClick={onClose}>
-                    Close
-                </button>
-            </div>
+          <button className="btn-secondary" onClick={handleShare}>
+            <FaShare /> Share
+          </button>
+        </div>
 
-            <style jsx>{`
+        <button className="btn-link" onClick={() => window.location.href = '/explore'}>
+          Support Another Campaign <FaArrowRight />
+        </button>
+
+        <button className="close-button" onClick={onClose}>
+          Close
+        </button>
+      </div>
+
+      <style jsx>{`
         .modal-overlay {
           position: fixed;
           top: 0;
@@ -350,6 +351,6 @@ export default function PaymentSuccessModal({ payment, onClose }) {
           }
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

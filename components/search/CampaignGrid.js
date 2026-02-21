@@ -210,6 +210,7 @@ function CampaignCard({ campaign, viewMode }) {
     const daysRemaining = campaign.endDate
         ? Math.max(0, Math.ceil((new Date(campaign.endDate) - new Date()) / (1000 * 60 * 60 * 24)))
         : null;
+    const isEnded = campaign.status === 'completed' || daysRemaining === 0;
 
     const handleSave = (e) => {
         e.preventDefault();
@@ -314,8 +315,8 @@ function CampaignCard({ campaign, viewMode }) {
                             {daysRemaining !== null && (
                                 <>
                                     <span>•</span>
-                                    <span className={daysRemaining <= 7 ? 'text-orange-600 dark:text-orange-400 font-medium' : ''}>
-                                        {daysRemaining} days left
+                                    <span className={isEnded ? 'text-red-500 dark:text-red-400 font-medium' : daysRemaining <= 7 ? 'text-orange-600 dark:text-orange-400 font-medium' : ''}>
+                                        {isEnded ? 'Campaign Ended' : `${daysRemaining} days left`}
                                     </span>
                                 </>
                             )}
@@ -414,8 +415,8 @@ function CampaignCard({ campaign, viewMode }) {
                 <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
                     <span>{campaign.supportersCount || 0} supporters</span>
                     {daysRemaining !== null && (
-                        <span className={daysRemaining <= 7 ? 'text-orange-600 dark:text-orange-400 font-medium' : ''}>
-                            {daysRemaining} days left
+                        <span className={isEnded ? 'text-red-500 dark:text-red-400 font-medium' : daysRemaining <= 7 ? 'text-orange-600 dark:text-orange-400 font-medium' : ''}>
+                            {isEnded ? 'Campaign Ended' : `${daysRemaining} days left`}
                         </span>
                     )}
                 </div>

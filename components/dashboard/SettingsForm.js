@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { apiToast } from '@/lib/apiToast';
 
 export default function SettingsForm({ user }) {
     const router = useRouter();
@@ -32,13 +33,20 @@ export default function SettingsForm({ user }) {
         setMessage('');
 
         try {
-            const response = await fetch('/api/user/update', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData),
-            });
+            const response = await apiToast(
+                () => fetch('/api/user/update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData),
+                }),
+                {
+                    loading: 'Saving settings...',
+                    success: 'Settings updated successfully!',
+                    error: 'Failed to update settings'
+                }
+            );
 
             const data = await response.json();
 

@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import SessionWrapper from "@/components/SessionWrapper";
 import ChatbotWidget from "@/components/chatbot/ChatbotWidget";
 import SmoothScroll from "@/components/SmoothScroll";
+import ToastProvider from "@/components/ToastProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -32,7 +33,7 @@ export default function RootLayout({ children }) {
 
           <Navbar />
 
-          <main className="relative z-0 min-h-screen flex flex-col">
+          <main className="relative z-10 min-h-screen flex flex-col">
             {children}
           </main>
 
@@ -40,6 +41,7 @@ export default function RootLayout({ children }) {
 
           {/* Global AI Chatbot Widget */}
           <ChatbotWidget />
+          <ToastProvider />
         </SessionWrapper>
       </body>
     </html>

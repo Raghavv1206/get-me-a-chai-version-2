@@ -18,6 +18,7 @@ import { useState } from 'react';
 import { Flag, Check, X, Star, Eye, AlertTriangle } from 'lucide-react';
 import { moderateCampaign, featureCampaign } from '@/actions/adminActions';
 import Link from 'next/link';
+import { toast } from '@/lib/apiToast';
 
 export default function CampaignModeration({ campaigns, onRefresh }) {
     const [actionLoading, setActionLoading] = useState(null);
@@ -39,14 +40,14 @@ export default function CampaignModeration({ campaigns, onRefresh }) {
             const result = await moderateCampaign(campaignId, action, reason);
 
             if (result.success) {
-                alert(result.message);
+                toast.success(result.message);
                 if (onRefresh) onRefresh();
             } else {
-                alert(result.error);
+                toast.error(result.error);
             }
         } catch (error) {
             console.error('Moderation error:', error);
-            alert('Failed to moderate campaign');
+            toast.error('Failed to moderate campaign');
         } finally {
             setActionLoading(null);
         }
@@ -62,14 +63,14 @@ export default function CampaignModeration({ campaigns, onRefresh }) {
             const result = await featureCampaign(campaignId, parseInt(duration));
 
             if (result.success) {
-                alert(result.message);
+                toast.success(result.message);
                 if (onRefresh) onRefresh();
             } else {
-                alert(result.error);
+                toast.error(result.error);
             }
         } catch (error) {
             console.error('Feature error:', error);
-            alert('Failed to feature campaign');
+            toast.error('Failed to feature campaign');
         } finally {
             setActionLoading(null);
         }
@@ -93,8 +94,8 @@ export default function CampaignModeration({ campaigns, onRefresh }) {
                     <button
                         onClick={() => setFilter('all')}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'all'
-                                ? 'bg-purple-600 text-white'
-                                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                            ? 'bg-purple-600 text-white'
+                            : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                             }`}
                     >
                         All ({campaigns?.length || 0})
@@ -102,8 +103,8 @@ export default function CampaignModeration({ campaigns, onRefresh }) {
                     <button
                         onClick={() => setFilter('pending')}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'pending'
-                                ? 'bg-orange-600 text-white'
-                                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                            ? 'bg-orange-600 text-white'
+                            : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                             }`}
                     >
                         Pending ({campaigns?.filter(c => c.status === 'pending').length || 0})
@@ -111,8 +112,8 @@ export default function CampaignModeration({ campaigns, onRefresh }) {
                     <button
                         onClick={() => setFilter('flagged')}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'flagged'
-                                ? 'bg-red-600 text-white'
-                                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                            ? 'bg-red-600 text-white'
+                            : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                             }`}
                     >
                         Flagged ({campaigns?.filter(c => c.flagged).length || 0})

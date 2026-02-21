@@ -1,6 +1,7 @@
 // components/campaign/MilestonesStep.js
 "use client"
 import { useState } from 'react';
+import { toast } from '@/lib/apiToast';
 
 export default function MilestonesStep({ data, onUpdate, onNext, onBack }) {
     const [milestones, setMilestones] = useState(data.milestones || []);
@@ -26,11 +27,11 @@ export default function MilestonesStep({ data, onUpdate, onNext, onBack }) {
                 // Show error from API
                 const error = await response.json();
                 console.error('API error:', error);
-                alert(error.error || 'Failed to generate milestones');
+                toast.error(error.error || 'Failed to generate milestones');
             }
         } catch (error) {
             console.error('Error generating milestones:', error);
-            alert('Failed to generate milestones');
+            toast.error('Failed to generate milestones');
         } finally {
             setLoading(false);
         }

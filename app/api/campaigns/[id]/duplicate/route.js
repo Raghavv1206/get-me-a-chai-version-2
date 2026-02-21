@@ -34,11 +34,16 @@ export async function POST(request, { params }) {
             );
         }
 
+        // Generate a unique slug for the duplicate
+        const uniqueSuffix = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+        const newSlug = `${originalCampaign.slug}-copy-${uniqueSuffix}`;
+
         // Create duplicate as draft
         const duplicateData = {
             ...originalCampaign,
             _id: undefined,
             title: `${originalCampaign.title} (Copy)`,
+            slug: newSlug,
             status: 'draft',
             currentAmount: 0,
             stats: {

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { FaHeart, FaRegHeart, FaReply, FaFlag, FaTrash, FaThumbtack, FaClock, FaFire, FaSortAmountDown, FaTimes } from 'react-icons/fa';
+import { toast } from '@/lib/apiToast';
 
 export default function DiscussionTab({ campaignId, creatorId }) {
   const { data: session } = useSession();
@@ -40,7 +41,7 @@ export default function DiscussionTab({ campaignId, creatorId }) {
     e.preventDefault();
 
     if (!session) {
-      alert('Please login to comment');
+      toast.error('Please login to comment');
       return;
     }
 
@@ -68,7 +69,7 @@ export default function DiscussionTab({ campaignId, creatorId }) {
 
   const handleLikeComment = async (commentId) => {
     if (!session) {
-      alert('Please login to like comments');
+      toast.error('Please login to like comments');
       return;
     }
 
@@ -152,7 +153,7 @@ export default function DiscussionTab({ campaignId, creatorId }) {
       });
 
       if (response.ok) {
-        alert('Comment reported successfully');
+        toast.success('Comment reported successfully');
       }
     } catch (error) {
       console.error('Error reporting comment:', error);

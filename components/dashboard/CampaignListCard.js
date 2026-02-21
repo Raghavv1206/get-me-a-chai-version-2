@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { FaEllipsisV, FaEdit, FaEye, FaPause, FaPlay, FaChartLine, FaTrash, FaCopy } from 'react-icons/fa';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
+import { apiToast } from '@/lib/apiToast';
+import { calculateDaysLeft } from '@/lib/campaignUtils';
 
 // Default cover image for campaigns without images
 const DEFAULT_COVER_IMAGE = 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=400&fit=crop';
@@ -12,6 +14,18 @@ export default function CampaignListCard({ campaign, viewMode = 'grid', onUpdate
   const [showMenu, setShowMenu] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const menuRef = useRef(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (showMenu && menuRef.current && !menuRef.current.contains(e.target)) {
+        setShowMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showMenu]);
 
   const getStatusStyles = (status) => {
     switch (status) {
@@ -29,6 +43,7 @@ export default function CampaignListCard({ campaign, viewMode = 'grid', onUpdate
   };
 
   const getStatusLabel = (status) => {
+    if (status === 'completed') return 'Ended';
     return status.charAt(0).toUpperCase() + status.slice(1);
   };
 
@@ -48,22 +63,30 @@ export default function CampaignListCard({ campaign, viewMode = 'grid', onUpdate
           break;
 
         case 'view':
-          window.location.href = `/campaign/${campaign.slug}`;
+          window.location.href = `/campaign/${campaign._id}`;
           break;
 
         case 'pause':
-        case 'resume':
+        case 'resume': {
           const newStatus = action === 'pause' ? 'paused' : 'active';
-          const response = await fetch(`/api/campaigns/${campaign._id}/status`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: newStatus })
-          });
+          const response = await apiToast(
+            () => fetch(`/api/campaigns/${campaign._id}/status`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ status: newStatus })
+            }),
+            {
+              loading: action === 'pause' ? 'Pausing campaign...' : 'Resuming campaign...',
+              success: action === 'pause' ? 'Campaign paused!' : 'Campaign resumed!',
+              error: `Failed to ${action} campaign`
+            }
+          );
 
           if (response.ok) {
             onUpdate({ ...campaign, status: newStatus });
           }
           break;
+        }
 
         case 'analytics':
           window.location.href = `/dashboard/campaigns/${campaign._id}/analytics`;
@@ -73,20 +96,27 @@ export default function CampaignListCard({ campaign, viewMode = 'grid', onUpdate
           setShowDeleteModal(true);
           break;
 
-        case 'duplicate':
-          const dupResponse = await fetch(`/api/campaigns/${campaign._id}/duplicate`, {
-            method: 'POST'
-          });
+        case 'duplicate': {
+          const dupResponse = await apiToast(
+            () => fetch(`/api/campaigns/${campaign._id}/duplicate`, {
+              method: 'POST'
+            }),
+            {
+              loading: 'Duplicating campaign...',
+              success: 'Campaign duplicated!',
+              error: 'Failed to duplicate campaign'
+            }
+          );
 
           if (dupResponse.ok) {
             const data = await dupResponse.json();
             window.location.href = `/dashboard/campaigns/${data.campaign._id}/edit`;
           }
           break;
+        }
       }
     } catch (error) {
       console.error('Error performing action:', error);
-      alert('Failed to perform action. Please try again.');
     } finally {
       setIsProcessing(false);
     }
@@ -95,30 +125,35 @@ export default function CampaignListCard({ campaign, viewMode = 'grid', onUpdate
   const handleDelete = async () => {
     setIsProcessing(true);
     try {
-      const response = await fetch(`/api/campaigns/${campaign._id}/delete`, {
-        method: 'DELETE'
-      });
+      const response = await apiToast(
+        () => fetch(`/api/campaigns/${campaign._id}/delete`, {
+          method: 'DELETE'
+        }),
+        {
+          loading: 'Deleting campaign...',
+          success: 'Campaign deleted successfully!',
+          error: 'Failed to delete campaign'
+        }
+      );
 
       if (response.ok) {
         onDelete(campaign._id);
         setShowDeleteModal(false);
-      } else {
-        alert('Failed to delete campaign');
       }
     } catch (error) {
       console.error('Error deleting campaign:', error);
-      alert('Failed to delete campaign');
     } finally {
       setIsProcessing(false);
     }
   };
 
   const progress = calculateProgress();
+  const daysRemaining = calculateDaysLeft(campaign.endDate);
 
   return (
     <>
       <div className={`bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl transition-all hover:bg-white/10 hover:border-white/20 ${viewMode === 'grid' ? 'flex flex-col' : 'flex flex-col md:flex-row'
-        } ${showMenu ? 'z-50 relative' : 'relative'}`} style={{ overflow: 'visible' }}>
+        } ${showMenu ? 'z-[100] relative' : 'relative'}`} style={{ overflow: 'visible' }}>
         {/* Thumbnail */}
         <div className={`relative bg-gray-800 flex-shrink-0 overflow-hidden ${viewMode === 'grid' ? 'w-full h-48 rounded-t-2xl' : 'w-full md:w-48 h-48 md:h-auto md:rounded-l-2xl'
           }`}>
@@ -152,91 +187,89 @@ export default function CampaignListCard({ campaign, viewMode = 'grid', onUpdate
               </button>
 
               {showMenu && (
-                <>
-                  <div
-                    className="fixed inset-0 z-10"
-                    onClick={() => setShowMenu(false)}
-                  />
-                  <div className="absolute top-full right-0 mt-2 w-56 bg-gray-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-20 max-h-96 overflow-y-auto">
-                    {/* Edit */}
-                    <button
-                      className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-all"
-                      onClick={() => handleAction('edit')}
-                      disabled={isProcessing}
-                    >
-                      <FaEdit className="w-4 h-4" />
-                      <span>Edit</span>
-                    </button>
+                <div ref={menuRef} className="absolute top-full right-0 mt-2 w-56 bg-gray-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-[100]">
+                  {/* Edit */}
+                  <button
+                    className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-all"
+                    onClick={() => handleAction('edit')}
+                    disabled={isProcessing}
+                  >
+                    <FaEdit className="w-4 h-4" />
+                    <span>Edit</span>
+                  </button>
 
-                    {/* View */}
-                    <button
-                      className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-all"
-                      onClick={() => handleAction('view')}
-                      disabled={isProcessing}
-                    >
-                      <FaEye className="w-4 h-4" />
-                      <span>View</span>
-                    </button>
+                  {/* View */}
+                  <button
+                    className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-all"
+                    onClick={() => handleAction('view')}
+                    disabled={isProcessing}
+                  >
+                    <FaEye className="w-4 h-4" />
+                    <span>View</span>
+                  </button>
 
-                    {/* Pause/Resume - Conditional */}
-                    {campaign.status === 'active' && (
+                  {/* Non-draft options: Pause/Resume, Analytics, Duplicate */}
+                  {campaign.status !== 'draft' && (
+                    <>
+                      {campaign.status === 'active' && (
+                        <button
+                          className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-all"
+                          onClick={() => handleAction('pause')}
+                          disabled={isProcessing}
+                        >
+                          <FaPause className="w-4 h-4" />
+                          <span>Pause</span>
+                        </button>
+                      )}
+                      {campaign.status === 'paused' && (
+                        <button
+                          className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-all"
+                          onClick={() => handleAction('resume')}
+                          disabled={isProcessing}
+                        >
+                          <FaPlay className="w-4 h-4" />
+                          <span>Resume</span>
+                        </button>
+                      )}
+
+                      {/* Divider */}
+                      <div className="border-t border-white/10 my-1"></div>
+
+                      {/* Analytics */}
                       <button
                         className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-all"
-                        onClick={() => handleAction('pause')}
+                        onClick={() => handleAction('analytics')}
                         disabled={isProcessing}
                       >
-                        <FaPause className="w-4 h-4" />
-                        <span>Pause</span>
+                        <FaChartLine className="w-4 h-4" />
+                        <span>Analytics</span>
                       </button>
-                    )}
-                    {campaign.status === 'paused' && (
+
+                      {/* Duplicate */}
                       <button
                         className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-all"
-                        onClick={() => handleAction('resume')}
+                        onClick={() => handleAction('duplicate')}
                         disabled={isProcessing}
                       >
-                        <FaPlay className="w-4 h-4" />
-                        <span>Resume</span>
+                        <FaCopy className="w-4 h-4" />
+                        <span>Duplicate</span>
                       </button>
-                    )}
+                    </>
+                  )}
 
-                    {/* Divider */}
-                    <div className="border-t border-white/10 my-1"></div>
+                  {/* Divider */}
+                  <div className="border-t border-white/10 my-1"></div>
 
-                    {/* Analytics */}
-                    <button
-                      className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-all"
-                      onClick={() => handleAction('analytics')}
-                      disabled={isProcessing}
-                    >
-                      <FaChartLine className="w-4 h-4" />
-                      <span>Analytics</span>
-                    </button>
-
-                    {/* Duplicate */}
-                    <button
-                      className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-all"
-                      onClick={() => handleAction('duplicate')}
-                      disabled={isProcessing}
-                    >
-                      <FaCopy className="w-4 h-4" />
-                      <span>Duplicate</span>
-                    </button>
-
-                    {/* Divider */}
-                    <div className="border-t border-white/10 my-1"></div>
-
-                    {/* Delete */}
-                    <button
-                      className="flex items-center gap-3 w-full px-4 py-3 text-sm text-red-400 hover:bg-red-500/20 transition-all"
-                      onClick={() => handleAction('delete')}
-                      disabled={isProcessing}
-                    >
-                      <FaTrash className="w-4 h-4" />
-                      <span>Delete</span>
-                    </button>
-                  </div>
-                </>
+                  {/* Delete */}
+                  <button
+                    className="flex items-center gap-3 w-full px-4 py-3 text-sm text-red-400 hover:bg-red-500/20 transition-all"
+                    onClick={() => handleAction('delete')}
+                    disabled={isProcessing}
+                  >
+                    <FaTrash className="w-4 h-4" />
+                    <span>Delete</span>
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -281,11 +314,11 @@ export default function CampaignListCard({ campaign, viewMode = 'grid', onUpdate
               </div>
             </div>
             <div className="text-center">
-              <div className="text-xl font-bold text-white">
-                {campaign.daysRemaining || 0}
+              <div className={`text-xl font-bold ${campaign.status === 'completed' || daysRemaining === 0 ? 'text-red-400' : 'text-white'}`}>
+                {campaign.status === 'completed' || daysRemaining === 0 ? 'Ended' : daysRemaining}
               </div>
               <div className="text-xs text-gray-400 mt-1">
-                Days Left
+                {campaign.status === 'completed' || daysRemaining === 0 ? 'Campaign Ended' : 'Days Left'}
               </div>
             </div>
           </div>

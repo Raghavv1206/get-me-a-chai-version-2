@@ -2,6 +2,7 @@
 "use client"
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { apiToast, toast } from '@/lib/apiToast';
 import BasicInfoStep from './BasicInfoStep';
 import AIStoryStep from './AIStoryStep';
 import MilestonesStep from './MilestonesStep';
@@ -112,46 +113,50 @@ export default function CampaignBuilderWizard() {
 
     const handleSaveDraft = async () => {
         try {
-            const response = await fetch('/api/campaigns/draft', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...campaignData, status: 'draft' }),
-            });
+            const response = await apiToast(
+                () => fetch('/api/campaigns/draft', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ...campaignData, status: 'draft' }),
+                }),
+                {
+                    loading: 'Saving draft...',
+                    success: 'Draft saved successfully!',
+                    error: 'Failed to save draft'
+                }
+            );
 
             if (response.ok) {
                 const { campaignId } = await response.json();
-                // Clear localStorage after successful save
                 localStorage.removeItem(STORAGE_KEY);
-                alert('✅ Draft saved successfully! You can continue editing or view it in your campaigns dashboard.');
-                // Don't redirect - keep user on current page
-            } else {
-                const errorData = await response.json().catch(() => ({}));
-                alert(`Failed to save draft: ${errorData.error || 'Unknown error'}`);
             }
         } catch (error) {
             console.error('Error saving draft:', error);
-            alert('Failed to save draft. Please try again.');
         }
     };
 
     const handlePublish = async () => {
         try {
-            const response = await fetch('/api/campaigns/create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...campaignData, status: 'active' }),
-            });
+            const response = await apiToast(
+                () => fetch('/api/campaigns/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ...campaignData, status: 'active' }),
+                }),
+                {
+                    loading: 'Publishing campaign...',
+                    success: 'Campaign published successfully! 🎉',
+                    error: 'Failed to publish campaign'
+                }
+            );
 
             if (response.ok) {
                 const { campaignId } = await response.json();
-                // Clear localStorage after successful publish
                 localStorage.removeItem(STORAGE_KEY);
-                alert('Campaign published successfully!');
                 router.push(`/dashboard/campaigns`);
             }
         } catch (error) {
             console.error('Error publishing campaign:', error);
-            alert('Failed to publish campaign');
         }
     };
 
@@ -177,7 +182,7 @@ export default function CampaignBuilderWizard() {
             });
             setCurrentStep(1);
             setLastSaved(null);
-            alert('Draft cleared successfully!');
+            toast.success('Draft cleared successfully!');
         }
     };
 

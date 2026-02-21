@@ -4,262 +4,259 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import SubscriptionCard from './SubscriptionCard';
 import { FaSpinner } from 'react-icons/fa';
+import { apiToast, toast } from '@/lib/apiToast';
 
 export default function SubscriptionManager() {
-    const { data: session } = useSession();
-    const [subscriptions, setSubscriptions] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState('all'); // all, active, paused, cancelled
-    const [updateModalOpen, setUpdateModalOpen] = useState(false);
-    const [selectedSubscription, setSelectedSubscription] = useState(null);
-    const [newAmount, setNewAmount] = useState('');
+  const { data: session } = useSession();
+  const [subscriptions, setSubscriptions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('all'); // all, active, paused, cancelled
+  const [updateModalOpen, setUpdateModalOpen] = useState(false);
+  const [selectedSubscription, setSelectedSubscription] = useState(null);
+  const [newAmount, setNewAmount] = useState('');
 
-    useEffect(() => {
-        if (session) {
-            fetchSubscriptions();
-        }
-    }, [session]);
+  useEffect(() => {
+    if (session) {
+      fetchSubscriptions();
+    }
+  }, [session]);
 
-    const fetchSubscriptions = async () => {
-        try {
-            setLoading(true);
-            const response = await fetch('/api/subscription/list');
-            const data = await response.json();
+  const fetchSubscriptions = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/subscription/list');
+      const data = await response.json();
 
-            if (data.success) {
-                setSubscriptions(data.subscriptions);
-            }
-        } catch (error) {
-            console.error('Error fetching subscriptions:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+      if (data.success) {
+        setSubscriptions(data.subscriptions);
+      }
+    } catch (error) {
+      console.error('Error fetching subscriptions:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const handlePause = async (subscriptionId) => {
-        if (!confirm('Are you sure you want to pause this subscription?')) return;
+  const handlePause = async (subscriptionId) => {
+    if (!confirm('Are you sure you want to pause this subscription?')) return;
 
-        try {
-            const response = await fetch('/api/subscription/pause', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ subscriptionId })
-            });
+    try {
+      const response = await apiToast(
+        () => fetch('/api/subscription/pause', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subscriptionId })
+        }),
+        { loading: 'Pausing subscription...', success: 'Subscription paused!', error: 'Failed to pause subscription' }
+      );
 
-            const data = await response.json();
-            if (data.success) {
-                fetchSubscriptions();
-                alert('Subscription paused successfully');
-            } else {
-                alert(data.message || 'Failed to pause subscription');
-            }
-        } catch (error) {
-            console.error('Error pausing subscription:', error);
-            alert('Failed to pause subscription');
-        }
-    };
+      const data = await response.json();
+      if (data.success) {
+        fetchSubscriptions();
+      }
+    } catch (error) {
+      console.error('Error pausing subscription:', error);
+    }
+  };
 
-    const handleResume = async (subscriptionId) => {
-        if (!confirm('Are you sure you want to resume this subscription?')) return;
+  const handleResume = async (subscriptionId) => {
+    if (!confirm('Are you sure you want to resume this subscription?')) return;
 
-        try {
-            const response = await fetch('/api/subscription/resume', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ subscriptionId })
-            });
+    try {
+      const response = await apiToast(
+        () => fetch('/api/subscription/resume', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subscriptionId })
+        }),
+        { loading: 'Resuming subscription...', success: 'Subscription resumed!', error: 'Failed to resume subscription' }
+      );
 
-            const data = await response.json();
-            if (data.success) {
-                fetchSubscriptions();
-                alert('Subscription resumed successfully');
-            } else {
-                alert(data.message || 'Failed to resume subscription');
-            }
-        } catch (error) {
-            console.error('Error resuming subscription:', error);
-            alert('Failed to resume subscription');
-        }
-    };
+      const data = await response.json();
+      if (data.success) {
+        fetchSubscriptions();
+      }
+    } catch (error) {
+      console.error('Error resuming subscription:', error);
+    }
+  };
 
-    const handleCancel = async (subscriptionId) => {
-        if (!confirm('Are you sure you want to cancel this subscription? This action cannot be undone.')) return;
+  const handleCancel = async (subscriptionId) => {
+    if (!confirm('Are you sure you want to cancel this subscription? This action cannot be undone.')) return;
 
-        try {
-            const response = await fetch('/api/subscription/cancel', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ subscriptionId })
-            });
+    try {
+      const response = await apiToast(
+        () => fetch('/api/subscription/cancel', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subscriptionId })
+        }),
+        { loading: 'Cancelling subscription...', success: 'Subscription cancelled!', error: 'Failed to cancel subscription' }
+      );
 
-            const data = await response.json();
-            if (data.success) {
-                fetchSubscriptions();
-                alert('Subscription cancelled successfully');
-            } else {
-                alert(data.message || 'Failed to cancel subscription');
-            }
-        } catch (error) {
-            console.error('Error cancelling subscription:', error);
-            alert('Failed to cancel subscription');
-        }
-    };
+      const data = await response.json();
+      if (data.success) {
+        fetchSubscriptions();
+      }
+    } catch (error) {
+      console.error('Error cancelling subscription:', error);
+    }
+  };
 
-    const handleUpdateClick = (subscription) => {
-        setSelectedSubscription(subscription);
-        setNewAmount(subscription.amount.toString());
-        setUpdateModalOpen(true);
-    };
+  const handleUpdateClick = (subscription) => {
+    setSelectedSubscription(subscription);
+    setNewAmount(subscription.amount.toString());
+    setUpdateModalOpen(true);
+  };
 
-    const handleUpdateSubmit = async (e) => {
-        e.preventDefault();
+  const handleUpdateSubmit = async (e) => {
+    e.preventDefault();
 
-        const amount = parseInt(newAmount);
-        if (amount < 10) {
-            alert('Minimum amount is ₹10');
-            return;
-        }
-
-        try {
-            const response = await fetch('/api/subscription/update', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    subscriptionId: selectedSubscription._id,
-                    amount
-                })
-            });
-
-            const data = await response.json();
-            if (data.success) {
-                fetchSubscriptions();
-                setUpdateModalOpen(false);
-                alert('Subscription amount updated successfully');
-            } else {
-                alert(data.message || 'Failed to update subscription');
-            }
-        } catch (error) {
-            console.error('Error updating subscription:', error);
-            alert('Failed to update subscription');
-        }
-    };
-
-    const filteredSubscriptions = subscriptions.filter(sub => {
-        if (filter === 'all') return true;
-        return sub.status === filter;
-    });
-
-    if (loading) {
-        return (
-            <div className="loading-container">
-                <FaSpinner className="spinner" />
-                <p>Loading subscriptions...</p>
-            </div>
-        );
+    const amount = parseInt(newAmount);
+    if (amount < 10) {
+      toast.error('Minimum amount is ₹10');
+      return;
     }
 
+    try {
+      const response = await apiToast(
+        () => fetch('/api/subscription/update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            subscriptionId: selectedSubscription._id,
+            amount
+          })
+        }),
+        { loading: 'Updating subscription...', success: 'Subscription updated!', error: 'Failed to update subscription' }
+      );
+
+      const data = await response.json();
+      if (data.success) {
+        fetchSubscriptions();
+        setUpdateModalOpen(false);
+      }
+    } catch (error) {
+      console.error('Error updating subscription:', error);
+    }
+  };
+
+  const filteredSubscriptions = subscriptions.filter(sub => {
+    if (filter === 'all') return true;
+    return sub.status === filter;
+  });
+
+  if (loading) {
     return (
-        <div className="subscription-manager">
-            <div className="manager-header">
-                <h2 className="manager-title">My Subscriptions</h2>
+      <div className="loading-container">
+        <FaSpinner className="spinner" />
+        <p>Loading subscriptions...</p>
+      </div>
+    );
+  }
 
-                <div className="filter-tabs">
-                    <button
-                        className={`filter-tab ${filter === 'all' ? 'active' : ''}`}
-                        onClick={() => setFilter('all')}
-                    >
-                        All ({subscriptions.length})
-                    </button>
-                    <button
-                        className={`filter-tab ${filter === 'active' ? 'active' : ''}`}
-                        onClick={() => setFilter('active')}
-                    >
-                        Active ({subscriptions.filter(s => s.status === 'active').length})
-                    </button>
-                    <button
-                        className={`filter-tab ${filter === 'paused' ? 'active' : ''}`}
-                        onClick={() => setFilter('paused')}
-                    >
-                        Paused ({subscriptions.filter(s => s.status === 'paused').length})
-                    </button>
-                    <button
-                        className={`filter-tab ${filter === 'cancelled' ? 'active' : ''}`}
-                        onClick={() => setFilter('cancelled')}
-                    >
-                        Cancelled ({subscriptions.filter(s => s.status === 'cancelled').length})
-                    </button>
-                </div>
-            </div>
+  return (
+    <div className="subscription-manager">
+      <div className="manager-header">
+        <h2 className="manager-title">My Subscriptions</h2>
 
-            {filteredSubscriptions.length === 0 ? (
-                <div className="empty-state">
-                    <div className="empty-icon">💳</div>
-                    <h3>No subscriptions found</h3>
-                    <p>
-                        {filter === 'all'
-                            ? "You don't have any subscriptions yet."
-                            : `You don't have any ${filter} subscriptions.`
-                        }
-                    </p>
-                </div>
-            ) : (
-                <div className="subscriptions-grid">
-                    {filteredSubscriptions.map(subscription => (
-                        <SubscriptionCard
-                            key={subscription._id}
-                            subscription={subscription}
-                            onPause={handlePause}
-                            onResume={handleResume}
-                            onCancel={handleCancel}
-                            onUpdate={handleUpdateClick}
-                        />
-                    ))}
-                </div>
-            )}
+        <div className="filter-tabs">
+          <button
+            className={`filter-tab ${filter === 'all' ? 'active' : ''}`}
+            onClick={() => setFilter('all')}
+          >
+            All ({subscriptions.length})
+          </button>
+          <button
+            className={`filter-tab ${filter === 'active' ? 'active' : ''}`}
+            onClick={() => setFilter('active')}
+          >
+            Active ({subscriptions.filter(s => s.status === 'active').length})
+          </button>
+          <button
+            className={`filter-tab ${filter === 'paused' ? 'active' : ''}`}
+            onClick={() => setFilter('paused')}
+          >
+            Paused ({subscriptions.filter(s => s.status === 'paused').length})
+          </button>
+          <button
+            className={`filter-tab ${filter === 'cancelled' ? 'active' : ''}`}
+            onClick={() => setFilter('cancelled')}
+          >
+            Cancelled ({subscriptions.filter(s => s.status === 'cancelled').length})
+          </button>
+        </div>
+      </div>
 
-            {/* Update Amount Modal */}
-            {updateModalOpen && (
-                <div className="modal-overlay" onClick={() => setUpdateModalOpen(false)}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <h3 className="modal-title">Update Subscription Amount</h3>
-                        <p className="modal-subtitle">
-                            Current amount: ₹{selectedSubscription.amount.toLocaleString('en-IN')}
-                        </p>
+      {filteredSubscriptions.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-icon">💳</div>
+          <h3>No subscriptions found</h3>
+          <p>
+            {filter === 'all'
+              ? "You don't have any subscriptions yet."
+              : `You don't have any ${filter} subscriptions.`
+            }
+          </p>
+        </div>
+      ) : (
+        <div className="subscriptions-grid">
+          {filteredSubscriptions.map(subscription => (
+            <SubscriptionCard
+              key={subscription._id}
+              subscription={subscription}
+              onPause={handlePause}
+              onResume={handleResume}
+              onCancel={handleCancel}
+              onUpdate={handleUpdateClick}
+            />
+          ))}
+        </div>
+      )}
 
-                        <form onSubmit={handleUpdateSubmit}>
-                            <div className="form-group">
-                                <label htmlFor="newAmount">New Amount (₹)</label>
-                                <input
-                                    type="number"
-                                    id="newAmount"
-                                    value={newAmount}
-                                    onChange={(e) => setNewAmount(e.target.value)}
-                                    min="10"
-                                    step="1"
-                                    required
-                                    className="amount-input"
-                                />
-                                <p className="input-hint">Minimum amount is ₹10</p>
-                            </div>
+      {/* Update Amount Modal */}
+      {updateModalOpen && (
+        <div className="modal-overlay" onClick={() => setUpdateModalOpen(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3 className="modal-title">Update Subscription Amount</h3>
+            <p className="modal-subtitle">
+              Current amount: ₹{selectedSubscription.amount.toLocaleString('en-IN')}
+            </p>
 
-                            <div className="modal-actions">
-                                <button
-                                    type="button"
-                                    className="btn-secondary"
-                                    onClick={() => setUpdateModalOpen(false)}
-                                >
-                                    Cancel
-                                </button>
-                                <button type="submit" className="btn-primary">
-                                    Update Amount
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+            <form onSubmit={handleUpdateSubmit}>
+              <div className="form-group">
+                <label htmlFor="newAmount">New Amount (₹)</label>
+                <input
+                  type="number"
+                  id="newAmount"
+                  value={newAmount}
+                  onChange={(e) => setNewAmount(e.target.value)}
+                  min="10"
+                  step="1"
+                  required
+                  className="amount-input"
+                />
+                <p className="input-hint">Minimum amount is ₹10</p>
+              </div>
 
-            <style jsx>{`
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setUpdateModalOpen(false)}
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="btn-primary">
+                  Update Amount
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <style jsx>{`
         .subscription-manager {
           max-width: 1200px;
           margin: 0 auto;
@@ -475,6 +472,6 @@ export default function SubscriptionManager() {
           }
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

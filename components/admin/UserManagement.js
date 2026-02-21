@@ -18,6 +18,7 @@
 import { useState } from 'react';
 import { Search, Filter, UserCheck, UserX, Trash2, Mail, MoreVertical, Shield, AlertTriangle } from 'lucide-react';
 import { banUser, verifyUser } from '@/actions/adminActions';
+import { toast } from '@/lib/apiToast';
 
 export default function UserManagement({ users, total, page, totalPages, onPageChange, onRefresh }) {
     const [searchTerm, setSearchTerm] = useState('');
@@ -56,15 +57,15 @@ export default function UserManagement({ users, total, page, totalPages, onPageC
             }
 
             if (result.success) {
-                alert(result.message || 'Action completed successfully');
+                toast.success(result.message || 'Action completed successfully');
                 if (onRefresh) onRefresh();
             } else {
-                alert(result.error || 'Action failed');
+                toast.error(result.error || 'Action failed');
             }
 
         } catch (error) {
             console.error('User action error:', error);
-            alert('Failed to perform action');
+            toast.error('Failed to perform action');
         } finally {
             setActionLoading(null);
         }

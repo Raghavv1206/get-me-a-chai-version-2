@@ -10,10 +10,15 @@ export const metadata = {
     description: 'Manage your campaigns'
 };
 
+import { closeExpiredCampaigns } from '@/lib/campaignExpiry';
+
 async function getCampaigns(userId) {
     'use server';
 
     await connectDb();
+
+    // Auto-close any expired campaigns before querying
+    await closeExpiredCampaigns();
 
     const campaigns = await Campaign.find({
         creator: userId,
@@ -34,7 +39,20 @@ async function getCampaigns(userId) {
     }
 
     // Convert MongoDB objects to plain objects
-    return JSON.parse(JSON.stringify(campaigns));
+    const serialized = JSON.parse(JSON.stringify(campaigns));
+
+    // Compute daysRemaining from endDate (virtuals are stripped by .lean())
+    const now = new Date();
+    serialized.forEach(c => {
+        if (c.endDate) {
+            const end = new Date(c.endDate);
+            c.daysRemaining = Math.max(0, Math.ceil((end - now) / (1000 * 60 * 60 * 24)));
+        } else {
+            c.daysRemaining = 0;
+        }
+    });
+
+    return serialized;
 }
 
 export default async function CampaignsPage() {

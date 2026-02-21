@@ -1,6 +1,7 @@
 // components/campaign/AIStoryStep.js
 "use client"
 import { useState } from 'react';
+import { toast } from '@/lib/apiToast';
 
 export default function AIStoryStep({ data, onUpdate, onNext, onBack }) {
     const [formData, setFormData] = useState({
@@ -88,7 +89,7 @@ export default function AIStoryStep({ data, onUpdate, onNext, onBack }) {
 
         } catch (error) {
             console.error('Error generating story:', error);
-            alert(`Failed to generate story: ${error.message}\n\nPlease check the console for more details.`);
+            toast.error(`Failed to generate story: ${error.message}`);
         } finally {
             setGenerating(false);
         }

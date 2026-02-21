@@ -4,94 +4,95 @@ import { useState } from 'react';
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import { FaTimes, FaClock } from 'react-icons/fa';
+import { toast } from '@/lib/apiToast';
 
 export default function SchedulePublishModal({ onSchedule, onClose }) {
-    const [selectedDate, setSelectedDate] = useState(new Date());
-    const [time, setTime] = useState('12:00');
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [time, setTime] = useState('12:00');
 
-    const handleSchedule = () => {
-        const [hours, minutes] = time.split(':');
-        const scheduledDate = new Date(selectedDate);
-        scheduledDate.setHours(parseInt(hours), parseInt(minutes));
+  const handleSchedule = () => {
+    const [hours, minutes] = time.split(':');
+    const scheduledDate = new Date(selectedDate);
+    scheduledDate.setHours(parseInt(hours), parseInt(minutes));
 
-        if (scheduledDate <= new Date()) {
-            alert('Please select a future date and time');
-            return;
-        }
+    if (scheduledDate <= new Date()) {
+      toast.error('Please select a future date and time');
+      return;
+    }
 
-        onSchedule(scheduledDate);
-    };
+    onSchedule(scheduledDate);
+  };
 
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                <button className="close-btn" onClick={onClose}>
-                    <FaTimes />
-                </button>
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <button className="close-btn" onClick={onClose}>
+          <FaTimes />
+        </button>
 
-                <div className="modal-header">
-                    <FaClock className="header-icon" />
-                    <h2 className="modal-title">Schedule Publication</h2>
-                    <p className="modal-subtitle">Choose when to publish this update</p>
-                </div>
+        <div className="modal-header">
+          <FaClock className="header-icon" />
+          <h2 className="modal-title">Schedule Publication</h2>
+          <p className="modal-subtitle">Choose when to publish this update</p>
+        </div>
 
-                <div className="modal-body">
-                    <div className="calendar-section">
-                        <label className="section-label">Select Date</label>
-                        <DayPicker
-                            mode="single"
-                            selected={selectedDate}
-                            onSelect={setSelectedDate}
-                            disabled={{ before: new Date() }}
-                            className="custom-calendar"
-                        />
-                    </div>
+        <div className="modal-body">
+          <div className="calendar-section">
+            <label className="section-label">Select Date</label>
+            <DayPicker
+              mode="single"
+              selected={selectedDate}
+              onSelect={setSelectedDate}
+              disabled={{ before: new Date() }}
+              className="custom-calendar"
+            />
+          </div>
 
-                    <div className="time-section">
-                        <label className="section-label">Select Time</label>
-                        <input
-                            type="time"
-                            value={time}
-                            onChange={(e) => setTime(e.target.value)}
-                            className="time-input"
-                        />
-                        <p className="timezone-info">Timezone: {timezone}</p>
-                    </div>
+          <div className="time-section">
+            <label className="section-label">Select Time</label>
+            <input
+              type="time"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+              className="time-input"
+            />
+            <p className="timezone-info">Timezone: {timezone}</p>
+          </div>
 
-                    <div className="preview-section">
-                        <label className="section-label">Scheduled For:</label>
-                        <div className="preview-datetime">
-                            {selectedDate && time ? (
-                                <>
-                                    <span className="preview-date">
-                                        {selectedDate.toLocaleDateString('en-US', {
-                                            weekday: 'long',
-                                            year: 'numeric',
-                                            month: 'long',
-                                            day: 'numeric'
-                                        })}
-                                    </span>
-                                    <span className="preview-time">at {time}</span>
-                                </>
-                            ) : (
-                                <span className="preview-empty">Select date and time</span>
-                            )}
-                        </div>
-                    </div>
-                </div>
+          <div className="preview-section">
+            <label className="section-label">Scheduled For:</label>
+            <div className="preview-datetime">
+              {selectedDate && time ? (
+                <>
+                  <span className="preview-date">
+                    {selectedDate.toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </span>
+                  <span className="preview-time">at {time}</span>
+                </>
+              ) : (
+                <span className="preview-empty">Select date and time</span>
+              )}
+            </div>
+          </div>
+        </div>
 
-                <div className="modal-actions">
-                    <button className="cancel-btn" onClick={onClose}>
-                        Cancel
-                    </button>
-                    <button className="schedule-btn" onClick={handleSchedule}>
-                        <FaClock /> Schedule Update
-                    </button>
-                </div>
+        <div className="modal-actions">
+          <button className="cancel-btn" onClick={onClose}>
+            Cancel
+          </button>
+          <button className="schedule-btn" onClick={handleSchedule}>
+            <FaClock /> Schedule Update
+          </button>
+        </div>
 
-                <style jsx>{`
+        <style jsx>{`
           .modal-overlay {
             position: fixed;
             top: 0;
@@ -323,7 +324,7 @@ export default function SchedulePublishModal({ onSchedule, onClose }) {
             }
           }
         `}</style>
-            </div>
-        </div>
-    );
+      </div>
+    </div>
+  );
 }

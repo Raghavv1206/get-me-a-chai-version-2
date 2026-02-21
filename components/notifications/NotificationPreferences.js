@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Bell, Mail, Save } from 'lucide-react';
+import { toast } from '@/lib/apiToast';
 
 export default function NotificationPreferences({ preferences: initialPreferences, onSave }) {
   const [settings, setSettings] = useState(initialPreferences || {
@@ -43,7 +44,7 @@ export default function NotificationPreferences({ preferences: initialPreference
       setTimeout(() => setSaved(false), 3000);
     } catch (error) {
       console.error('Error saving preferences:', error);
-      alert('Failed to save preferences. Please try again.');
+      toast.error('Failed to save preferences. Please try again.');
     } finally {
       setSaving(false);
     }
