@@ -16,7 +16,7 @@
  */
 
 import { useState } from 'react';
-import { Calendar, Download, ExternalLink, MessageSquare } from 'lucide-react';
+import { Calendar, Download, ExternalLink, MessageSquare, Wallet } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -146,8 +146,8 @@ function PaymentCard({ payment, onDownloadReceipt, isDownloading }) {
                             className="object-cover group-hover:scale-110 transition-transform duration-300"
                         />
                     ) : (
-                        <div className="w-full h-full flex items-center justify-center text-4xl">
-                            💰
+                        <div className="w-full h-full flex items-center justify-center">
+                            <Wallet className="w-10 h-10 text-purple-400" />
                         </div>
                     )}
                 </Link>

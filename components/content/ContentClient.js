@@ -27,6 +27,8 @@ export default function ContentClient({ campaigns, updates }) {
         } else {
             toast.error(result.error || 'Failed to save');
         }
+
+        return result;
     };
 
     const handleDelete = async (id) => {
@@ -53,10 +55,7 @@ export default function ContentClient({ campaigns, updates }) {
 
     return (
         <div className="space-y-6">
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-                <h2 className="text-xl font-bold text-white mb-4">
-                    {editingUpdate ? 'Edit Update' : 'Create New Update'}
-                </h2>
+            <div>
                 <CreateUpdateForm
                     campaigns={campaigns}
                     initialData={editingUpdate}
@@ -73,10 +72,7 @@ export default function ContentClient({ campaigns, updates }) {
                 )}
             </div>
 
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-                <h2 className="text-xl font-bold text-white mb-4">
-                    Your Updates
-                </h2>
+            <div>
                 <UpdatesList
                     updates={updates}
                     onEdit={handleEdit}

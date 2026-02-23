@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Coffee } from 'lucide-react';
 import {
   FaHome,
   FaFolder,
@@ -65,7 +66,7 @@ export default function DashboardSidebar({ user }) {
           <div className="h-20 flex items-center px-8 border-b border-white/10">
             <Link href="/" className="flex items-center gap-3 group">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
-                <span className="text-xl">☕</span>
+                <Coffee className="w-5 h-5 text-white" />
               </div>
               <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400 group-hover:text-white transition-colors">
                 GetMeAChai

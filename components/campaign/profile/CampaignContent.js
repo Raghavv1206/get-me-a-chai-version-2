@@ -5,13 +5,14 @@ import AboutTab from './AboutTab';
 import UpdatesTab from './UpdatesTab';
 import SupportersTab from './SupportersTab';
 import DiscussionTab from './DiscussionTab';
+import { BookOpen, Megaphone, Users, MessageCircle } from 'lucide-react';
 
 export default function CampaignContent({ campaign, creator, activeTab, onTabChange, onSelectReward, isSupporter }) {
     const tabs = [
-        { id: 'about', label: 'About', icon: '📖' },
-        { id: 'updates', label: 'Updates', icon: '📢' },
-        { id: 'supporters', label: 'Supporters', icon: '👥' },
-        { id: 'discussion', label: 'Discussion', icon: '💬' }
+        { id: 'about', label: 'About', icon: BookOpen },
+        { id: 'updates', label: 'Updates', icon: Megaphone },
+        { id: 'supporters', label: 'Supporters', icon: Users },
+        { id: 'discussion', label: 'Discussion', icon: MessageCircle }
     ];
 
     return (
@@ -24,11 +25,11 @@ export default function CampaignContent({ campaign, creator, activeTab, onTabCha
                             key={tab.id}
                             onClick={() => onTabChange(tab.id)}
                             className={`flex items-center gap-2 px-6 py-4 font-medium text-sm whitespace-nowrap transition-all duration-200 border-b-2 ${activeTab === tab.id
-                                    ? 'border-purple-500 text-white bg-white/5'
-                                    : 'border-transparent text-gray-400 hover:text-white hover:bg-white/5'
+                                ? 'border-purple-500 text-white bg-white/5'
+                                : 'border-transparent text-gray-400 hover:text-white hover:bg-white/5'
                                 }`}
                         >
-                            <span>{tab.icon}</span>
+                            <tab.icon className="w-4 h-4" />
                             <span>{tab.label}</span>
                         </button>
                     ))}

@@ -17,7 +17,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, TrendingUp, Users, DollarSign, Award, Filter, X, Heart, Star, Sparkles, Zap, Target, Clock } from 'lucide-react';
+import { Search, TrendingUp, Users, DollarSign, Award, Filter, X, Heart, Star, Sparkles, Zap, Target, Clock, Monitor, Palette, Music, Gamepad2, Pizza, BookOpen, Film, Shirt, Rocket, ArrowRight } from 'lucide-react';
 
 // Demo Success Stories Data
 const DEMO_STORIES = [
@@ -206,15 +206,15 @@ export default function SuccessStoriesPage() {
     });
 
     const categories = [
-        { id: 'all', label: 'All Stories', icon: '🌟' },
-        { id: 'technology', label: 'Technology', icon: '💻' },
-        { id: 'art', label: 'Art & Design', icon: '🎨' },
-        { id: 'music', label: 'Music', icon: '🎵' },
-        { id: 'games', label: 'Games', icon: '🎮' },
-        { id: 'food', label: 'Food', icon: '🍕' },
-        { id: 'education', label: 'Education', icon: '📚' },
-        { id: 'film', label: 'Film & Video', icon: '🎬' },
-        { id: 'fashion', label: 'Fashion', icon: '👗' },
+        { id: 'all', label: 'All Stories', icon: <Star className="w-4 h-4" /> },
+        { id: 'technology', label: 'Technology', icon: <Monitor className="w-4 h-4" /> },
+        { id: 'art', label: 'Art & Design', icon: <Palette className="w-4 h-4" /> },
+        { id: 'music', label: 'Music', icon: <Music className="w-4 h-4" /> },
+        { id: 'games', label: 'Games', icon: <Gamepad2 className="w-4 h-4" /> },
+        { id: 'food', label: 'Food', icon: <Pizza className="w-4 h-4" /> },
+        { id: 'education', label: 'Education', icon: <BookOpen className="w-4 h-4" /> },
+        { id: 'film', label: 'Film & Video', icon: <Film className="w-4 h-4" /> },
+        { id: 'fashion', label: 'Fashion', icon: <Shirt className="w-4 h-4" /> },
     ];
 
     useEffect(() => {
@@ -372,14 +372,21 @@ export default function SuccessStoriesPage() {
                                 <button
                                     key={category.id}
                                     onClick={() => setSelectedCategory(category.id)}
-                                    className={`px-4 py-2 rounded-xl font-medium transition-all duration-300 hover:scale-105 ${selectedCategory === category.id
+                                    className={`flex items-center justify-center 
+px-4 py-2 rounded-xl font-medium 
+transition-all duration-300 hover:scale-105 whitespace-nowrap
+${selectedCategory === category.id
                                             ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg shadow-purple-500/30'
                                             : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
                                         }`}
                                     style={{ animationDelay: `${index * 50}ms` }}
                                 >
-                                    <span className="mr-2">{category.icon}</span>
-                                    {category.label}
+                                    <span className="flex items-center gap-2 whitespace-nowrap">
+                                        <span className="flex items-center">
+                                            {category.icon}
+                                        </span>
+                                        <span>{category.label}</span>
+                                    </span>
                                 </button>
                             ))}
                         </div>
@@ -407,12 +414,14 @@ export default function SuccessStoriesPage() {
                                                 setShowFilters(false);
                                             }}
                                             className={`w-full px-4 py-2 rounded-lg text-left transition-all ${selectedCategory === category.id
-                                                    ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
-                                                    : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                                                ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
+                                                : 'bg-white/5 text-gray-400 hover:bg-white/10'
                                                 }`}
                                         >
-                                            <span className="mr-2">{category.icon}</span>
-                                            {category.label}
+                                            <div className="flex items-center gap-2 whitespace-nowrap">
+                                                {category.icon}
+                                                <span>{category.label}</span>
+                                            </div>
                                         </button>
                                     ))}
                                 </div>
@@ -438,7 +447,7 @@ export default function SuccessStoriesPage() {
                         </div>
                     ) : displayStories.length === 0 ? (
                         <div className="text-center py-20 animate-fade-in">
-                            <div className="text-6xl mb-4 animate-bounce">🔍</div>
+                            <div className="mb-4 flex justify-center animate-bounce"><Search className="w-14 h-14 text-gray-400" /></div>
                             <h3 className="text-2xl font-bold text-white mb-2">No Success Stories Found</h3>
                             <p className="text-gray-400">Try adjusting your search or filters</p>
                         </div>
@@ -554,14 +563,14 @@ function StoryCard({ story }) {
     const overfunded = fundingPercentage > 100;
 
     const categoryIcons = {
-        technology: '💻',
-        art: '🎨',
-        music: '🎵',
-        games: '🎮',
-        food: '🍕',
-        education: '📚',
-        film: '🎬',
-        fashion: '👗',
+        technology: <Monitor className="w-12 h-12 text-blue-400" />,
+        art: <Palette className="w-12 h-12 text-pink-400" />,
+        music: <Music className="w-12 h-12 text-red-400" />,
+        games: <Gamepad2 className="w-12 h-12 text-green-400" />,
+        food: <Pizza className="w-12 h-12 text-orange-400" />,
+        education: <BookOpen className="w-12 h-12 text-indigo-400" />,
+        film: <Film className="w-12 h-12 text-pink-400" />,
+        fashion: <Shirt className="w-12 h-12 text-violet-400" />,
     };
 
     const categoryColors = {
@@ -592,7 +601,7 @@ function StoryCard({ story }) {
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center text-6xl group-hover:scale-110 transition-transform duration-500">
-                        {categoryIcons[story.category] || '🚀'}
+                        {categoryIcons[story.category] || <Rocket className="w-12 h-12 text-gray-400" />}
                     </div>
                 )}
 
@@ -715,7 +724,7 @@ function StoryCard({ story }) {
                 <div className="flex items-center justify-between text-sm">
                     <span className="text-purple-400 font-medium group-hover:text-purple-300 transition-colors flex items-center gap-2">
                         Read Success Story
-                        <span className="group-hover:translate-x-1 transition-transform inline-block">→</span>
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </span>
                     <Heart className="w-4 h-4 text-gray-600 group-hover:text-red-500 group-hover:fill-red-500 transition-all" />
                 </div>

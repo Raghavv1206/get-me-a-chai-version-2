@@ -32,6 +32,11 @@ export async function createUpdate(data) {
             return { error: 'User not found' };
         }
 
+        // Validate required fields first
+        if (!data.campaign || !data.title || !data.content) {
+            return { error: 'Campaign, title, and content are required' };
+        }
+
         // Verify campaign exists and user is the creator
         const campaign = await Campaign.findById(data.campaign);
         if (!campaign) {
@@ -40,11 +45,6 @@ export async function createUpdate(data) {
 
         if (campaign.creator.toString() !== user._id.toString()) {
             return { error: 'You do not have permission to post updates for this campaign' };
-        }
-
-        // Validate required fields
-        if (!data.title || !data.content) {
-            return { error: 'Title and content are required' };
         }
 
         // Create update

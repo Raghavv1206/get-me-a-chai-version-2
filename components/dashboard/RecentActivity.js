@@ -2,6 +2,7 @@
 
 import { formatDistanceToNow } from 'date-fns';
 import { FaHeart, FaTrophy, FaComment, FaUserPlus, FaEdit, FaCheckCircle, FaStar } from 'react-icons/fa';
+import { FileText } from 'lucide-react';
 
 export default function RecentActivity({ activities }) {
   const getActivityIcon = (type) => {
@@ -30,8 +31,8 @@ export default function RecentActivity({ activities }) {
       <div className="p-6">
         {activities.length === 0 ? (
           <div className="text-center py-8">
-            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center text-4xl mx-auto mb-4 border border-white/10">
-              📝
+            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/10">
+              <FileText className="w-8 h-8 text-gray-500" />
             </div>
             <p className="text-gray-400">No recent activity</p>
           </div>

@@ -1,5 +1,7 @@
 'use client';
 
+import { MapPin } from 'lucide-react';
+
 export default function GeographicDistribution({ data }) {
   const topCities = data.cities || [];
   const maxValue = Math.max(...topCities.map(c => c.value));
@@ -37,7 +39,7 @@ export default function GeographicDistribution({ data }) {
 
       {topCities.length === 0 && (
         <div className="empty-state">
-          <div className="empty-icon">🗺️</div>
+          <MapPin className="w-10 h-10 text-gray-500 mx-auto mb-2" />
           <p>No geographic data available yet</p>
         </div>
       )}

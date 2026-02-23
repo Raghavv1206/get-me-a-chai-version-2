@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import {
   LayoutDashboard,
+  Compass,
   Rocket,
   Heart,
   Settings,
@@ -42,6 +43,13 @@ export default function UserProfileDropdown({ user }) {
       href: '/dashboard',
       show: user?.role === 'creator' || user?.role === 'admin',
       description: 'View your overview'
+    },
+    {
+      icon: Compass,
+      label: 'Explore',
+      href: '/explore',
+      show: true,
+      description: 'Discover campaigns'
     },
     {
       icon: Rocket,

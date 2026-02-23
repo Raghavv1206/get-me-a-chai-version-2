@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import RichTextEditor from './RichTextEditor';
 import SchedulePublishModal from './SchedulePublishModal';
 import UpdatePreview from './UpdatePreview';
@@ -8,6 +8,32 @@ import { FaEye, FaSave, FaPaperPlane, FaClock } from 'react-icons/fa';
 import { toast } from '@/lib/apiToast';
 
 export default function CreateUpdateForm({ campaigns, initialData, onSave }) {
+  const previewRef = useRef(null);
+
+  // Prevent page scroll when scrolling inside preview
+  useEffect(() => {
+    const el = previewRef.current;
+    if (!el) return;
+
+    const handleWheel = (e) => {
+      const { scrollTop, scrollHeight, clientHeight } = el;
+      const atTop = scrollTop === 0 && e.deltaY < 0;
+      const atBottom = scrollTop + clientHeight >= scrollHeight - 1 && e.deltaY > 0;
+
+      // Only prevent default if we can scroll in the direction
+      if (!atTop && !atBottom) {
+        e.preventDefault();
+        el.scrollTop += e.deltaY;
+      } else if (scrollHeight > clientHeight) {
+        // At boundary but element is scrollable — still prevent page scroll
+        e.preventDefault();
+      }
+    };
+
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => el.removeEventListener('wheel', handleWheel);
+  });
+
   const [formData, setFormData] = useState({
     campaign: initialData?.campaign || '',
     title: initialData?.title || '',
@@ -33,8 +59,12 @@ export default function CreateUpdateForm({ campaigns, initialData, onSave }) {
         status: action === 'publish' ? 'published' : 'draft'
       };
 
-      await onSave(data);
-      toast.success(`Update ${action === 'publish' ? 'published' : 'saved'} successfully!`);
+      const result = await onSave(data);
+      if (result?.error) {
+        toast.error(result.error);
+      } else {
+        toast.success(`Update ${action === 'publish' ? 'published' : 'saved'} successfully!`);
+      }
     } catch (error) {
       console.error('Error saving update:', error);
       toast.error('Failed to save update');
@@ -44,6 +74,11 @@ export default function CreateUpdateForm({ campaigns, initialData, onSave }) {
   };
 
   const handleSchedule = async (scheduledDate) => {
+    if (!formData.campaign || !formData.title || !formData.content) {
+      toast.error('Please fill in all required fields before scheduling');
+      return;
+    }
+
     setSaving(true);
     try {
       const data = {
@@ -52,9 +87,13 @@ export default function CreateUpdateForm({ campaigns, initialData, onSave }) {
         scheduledFor: scheduledDate
       };
 
-      await onSave(data);
-      setShowScheduleModal(false);
-      toast.success('Update scheduled successfully!');
+      const result = await onSave(data);
+      if (result?.error) {
+        toast.error(result.error);
+      } else {
+        setShowScheduleModal(false);
+        toast.success('Update scheduled successfully!');
+      }
     } catch (error) {
       console.error('Error scheduling update:', error);
       toast.error('Failed to schedule update');
@@ -78,7 +117,7 @@ export default function CreateUpdateForm({ campaigns, initialData, onSave }) {
         </button>
       </div>
 
-      <div className="form-layout">
+      <div className={`form-layout ${showPreview ? 'with-preview' : ''}`}>
         <div className="form-main">
           <div className="form-group">
             <label className="form-label">Campaign *</label>
@@ -162,7 +201,7 @@ export default function CreateUpdateForm({ campaigns, initialData, onSave }) {
         </div>
 
         {showPreview && (
-          <div className="form-preview">
+          <div className="form-preview" ref={previewRef}>
             <UpdatePreview
               title={formData.title}
               content={formData.content}
@@ -179,9 +218,10 @@ export default function CreateUpdateForm({ campaigns, initialData, onSave }) {
         />
       )}
 
-      <style jsx>{`
+      <style jsx global>{`
         .create-update-form {
-          background: white;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: 16px;
           padding: 32px;
         }
@@ -196,7 +236,7 @@ export default function CreateUpdateForm({ campaigns, initialData, onSave }) {
         .form-title {
           font-size: 1.75rem;
           font-weight: 700;
-          color: #111827;
+          color: #f3f4f6;
           margin: 0;
         }
 
@@ -205,18 +245,19 @@ export default function CreateUpdateForm({ campaigns, initialData, onSave }) {
           align-items: center;
           gap: 8px;
           padding: 10px 20px;
-          background: white;
-          border: 2px solid #e5e7eb;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.12);
           border-radius: 10px;
           font-weight: 600;
-          color: #374151;
+          color: #d1d5db;
           cursor: pointer;
           transition: all 0.3s ease;
         }
 
         .preview-btn:hover {
-          border-color: #667eea;
-          color: #667eea;
+          border-color: rgba(139, 92, 246, 0.5);
+          color: #a78bfa;
+          background: rgba(139, 92, 246, 0.1);
         }
 
         .form-layout {
@@ -237,7 +278,7 @@ export default function CreateUpdateForm({ campaigns, initialData, onSave }) {
           display: block;
           font-size: 0.95rem;
           font-weight: 600;
-          color: #374151;
+          color: #d1d5db;
           margin-bottom: 8px;
         }
 
@@ -245,16 +286,28 @@ export default function CreateUpdateForm({ campaigns, initialData, onSave }) {
         .form-select {
           width: 100%;
           padding: 12px 16px;
-          border: 2px solid #e5e7eb;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
           border-radius: 10px;
           font-size: 1rem;
+          color: #f3f4f6;
           transition: all 0.3s ease;
+        }
+
+        .form-input::placeholder {
+          color: #6b7280;
         }
 
         .form-input:focus,
         .form-select:focus {
           outline: none;
-          border-color: #667eea;
+          border-color: rgba(139, 92, 246, 0.5);
+          box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+
+        .form-select option {
+          background: #1f2937;
+          color: #f3f4f6;
         }
 
         .form-row {
@@ -267,7 +320,7 @@ export default function CreateUpdateForm({ campaigns, initialData, onSave }) {
           display: flex;
           gap: 12px;
           padding-top: 24px;
-          border-top: 2px solid #f3f4f6;
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
           flex-wrap: wrap;
         }
 
@@ -286,33 +339,34 @@ export default function CreateUpdateForm({ campaigns, initialData, onSave }) {
         }
 
         .btn-secondary {
-          background: white;
-          color: #6b7280;
-          border: 2px solid #e5e7eb;
+          background: rgba(255, 255, 255, 0.05);
+          color: #9ca3af;
+          border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .btn-secondary:hover:not(:disabled) {
-          background: #f9fafb;
+          background: rgba(255, 255, 255, 0.08);
+          color: #d1d5db;
         }
 
         .btn-schedule {
-          background: white;
-          color: #f59e0b;
-          border: 2px solid #f59e0b;
+          background: rgba(245, 158, 11, 0.1);
+          color: #fbbf24;
+          border: 1px solid rgba(245, 158, 11, 0.3);
         }
 
         .btn-schedule:hover:not(:disabled) {
-          background: #fffbeb;
+          background: rgba(245, 158, 11, 0.2);
         }
 
         .btn-primary {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
           color: white;
         }
 
         .btn-primary:hover:not(:disabled) {
           transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+          box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
         }
 
         .btn-secondary:disabled,
@@ -324,8 +378,29 @@ export default function CreateUpdateForm({ campaigns, initialData, onSave }) {
 
         .form-preview {
           position: sticky;
-          top: 20px;
-          height: fit-content;
+          top: 100px;
+          max-height: calc(100vh - 120px);
+          overflow-y: auto;
+          overflow-x: hidden;
+          overscroll-behavior: contain;
+          border-radius: 16px;
+        }
+
+        .form-preview::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .form-preview::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .form-preview::-webkit-scrollbar-thumb {
+          background: rgba(139, 92, 246, 0.3);
+          border-radius: 3px;
+        }
+
+        .form-preview::-webkit-scrollbar-thumb:hover {
+          background: rgba(139, 92, 246, 0.5);
         }
 
         @media (max-width: 1024px) {
@@ -335,6 +410,7 @@ export default function CreateUpdateForm({ campaigns, initialData, onSave }) {
 
           .form-preview {
             position: static;
+            max-height: 500px;
           }
         }
 

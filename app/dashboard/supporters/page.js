@@ -12,6 +12,7 @@ import Payment from '@/models/Payment';
 import TopSupporters from '@/components/supporters/TopSupporters';
 import SupporterFilters from '@/components/supporters/SupporterFilters';
 import SupportersTable from '@/components/supporters/SupportersTable';
+import { HeartHandshake } from 'lucide-react';
 
 export const metadata = {
     title: 'Supporters - Get Me A Chai',
@@ -112,7 +113,7 @@ export default async function SupportersPage() {
                     {/* Tips */}
                     <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
                         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                            <span>💚</span>
+                            <span><HeartHandshake className="w-5 h-5 text-green-400" /></span>
                             <span>Building Supporter Relationships</span>
                         </h3>
                         <ul className="text-gray-300 text-sm space-y-2">

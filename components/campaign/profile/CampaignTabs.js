@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { BookOpen, Megaphone, Heart, MessageCircle } from 'lucide-react';
 
 export default function CampaignTabs({
   activeTab: initialTab = 'about',
@@ -10,10 +11,10 @@ export default function CampaignTabs({
   const [activeTab, setActiveTab] = useState(initialTab);
 
   const tabs = [
-    { id: 'about', label: 'About', icon: '📖' },
-    { id: 'updates', label: 'Updates', icon: '📢' },
-    { id: 'supporters', label: 'Supporters', icon: '❤️' },
-    { id: 'discussion', label: 'Discussion', icon: '💬' }
+    { id: 'about', label: 'About', icon: BookOpen },
+    { id: 'updates', label: 'Updates', icon: Megaphone },
+    { id: 'supporters', label: 'Supporters', icon: Heart },
+    { id: 'discussion', label: 'Discussion', icon: MessageCircle }
   ];
 
   const handleTabClick = (tabId) => {
@@ -33,7 +34,7 @@ export default function CampaignTabs({
               className={`tab-button ${activeTab === tab.id ? 'active' : ''}`}
               onClick={() => handleTabClick(tab.id)}
             >
-              <span className="tab-icon">{tab.icon}</span>
+              <tab.icon className="w-4 h-4" />
               <span className="tab-label">{tab.label}</span>
             </button>
           ))}

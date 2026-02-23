@@ -1,6 +1,7 @@
 // components/about/Differentiators.js
 "use client"
 import { useInView } from 'react-intersection-observer';
+import { Bot, Target, MessageCircle, BarChart3, Zap, Lock } from 'lucide-react';
 
 export default function Differentiators() {
     const { ref, inView } = useInView({
@@ -10,42 +11,42 @@ export default function Differentiators() {
 
     const features = [
         {
-            icon: '🤖',
+            icon: Bot,
             title: 'AI-Powered Campaign Builder',
             description: 'Create professional campaigns in minutes with our intelligent AI assistant that writes compelling stories, suggests rewards, and optimizes your pitch.',
             highlight: 'Save 10+ hours',
             color: 'from-purple-500 to-pink-500'
         },
         {
-            icon: '🎯',
+            icon: Target,
             title: 'Smart Recommendations',
             description: 'Our ML algorithm connects you with supporters who are genuinely interested in your project, increasing your success rate by 3x.',
             highlight: '3x Success Rate',
             color: 'from-blue-500 to-cyan-500'
         },
         {
-            icon: '💬',
+            icon: MessageCircle,
             title: '24/7 AI Chatbot',
             description: 'Get instant answers to questions, troubleshoot issues, and receive guidance anytime with our intelligent support assistant.',
             highlight: 'Instant Support',
             color: 'from-green-500 to-emerald-500'
         },
         {
-            icon: '📊',
+            icon: BarChart3,
             title: 'Real-Time Analytics',
             description: 'Track your campaign performance with detailed insights, supporter demographics, and AI-powered suggestions for improvement.',
             highlight: 'Data-Driven',
             color: 'from-orange-500 to-red-500'
         },
         {
-            icon: '⚡',
+            icon: Zap,
             title: 'Lightning Fast Setup',
             description: 'Launch your campaign in under 15 minutes. No complex forms, no confusing processes - just your idea and our AI.',
             highlight: '15 Min Setup',
             color: 'from-yellow-500 to-orange-500'
         },
         {
-            icon: '🔒',
+            icon: Lock,
             title: 'Secure & Transparent',
             description: 'Bank-grade security, transparent fees, and automatic fraud detection keep your funds and supporters safe.',
             highlight: '100% Secure',
@@ -84,8 +85,8 @@ export default function Differentiators() {
                             <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-5 rounded-xl transition-opacity`} />
 
                             {/* Icon */}
-                            <div className="text-5xl mb-4 transform group-hover:scale-110 transition-transform">
-                                {feature.icon}
+                            <div className="mb-4 transform group-hover:scale-110 transition-transform">
+                                <feature.icon className="w-10 h-10 text-purple-400" />
                             </div>
 
                             {/* Highlight badge */}

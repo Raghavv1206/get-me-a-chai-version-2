@@ -485,7 +485,7 @@ export async function getBadges(userId) {
                 id: 'first-supporter',
                 name: 'First Supporter',
                 description: 'First to support a campaign',
-                icon: '🥇',
+                icon: 'medal',
                 earnedAt: firstSupporterCampaigns[0].date,
                 count: firstSupporterCampaigns.length,
                 campaigns: firstSupporterCampaigns,
@@ -501,7 +501,7 @@ export async function getBadges(userId) {
                 id: 'top-contributor',
                 name: 'Top Contributor',
                 description: 'Contributed ₹10,000 or more in a single donation',
-                icon: '💎',
+                icon: 'gem',
                 earnedAt: payments.find(p => p.amount === topContribution)?.createdAt,
                 amount: topContribution,
             });
@@ -516,7 +516,7 @@ export async function getBadges(userId) {
                 id: 'loyal-supporter',
                 name: 'Loyal Supporter',
                 description: 'Active monthly subscriber',
-                icon: '❤️',
+                icon: 'heart',
                 earnedAt: activeSubscriptions[0].createdAt,
                 count: activeSubscriptions.length,
             });
@@ -529,7 +529,7 @@ export async function getBadges(userId) {
                 id: 'community-champion',
                 name: 'Community Champion',
                 description: 'Supported 5 or more campaigns',
-                icon: '🏆',
+                icon: 'trophy',
                 earnedAt: payments[4]?.createdAt,
                 count: uniqueCampaigns.length,
             });
@@ -548,7 +548,7 @@ export async function getBadges(userId) {
                 id: 'early-bird',
                 name: 'Early Bird',
                 description: 'Supported a campaign within 24 hours of launch',
-                icon: '🐦',
+                icon: 'bird',
                 earnedAt: earlyBirdSupports[0].createdAt,
                 count: earlyBirdSupports.length,
             });
@@ -561,7 +561,7 @@ export async function getBadges(userId) {
                 id: 'generous-giver',
                 name: 'Generous Giver',
                 description: 'Contributed over ₹50,000 in total',
-                icon: '🌟',
+                icon: 'star',
                 earnedAt: payments[payments.length - 1]?.createdAt,
                 totalAmount,
             });

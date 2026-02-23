@@ -19,7 +19,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Download, RefreshCw } from 'lucide-react';
+import { Download, RefreshCw, HeartHandshake, Star } from 'lucide-react';
 import { toast } from '@/lib/apiToast';
 import ContributionsSummary from '@/components/contributions/ContributionsSummary';
 import ContributionsTimeline from '@/components/contributions/ContributionsTimeline';
@@ -216,7 +216,7 @@ Thank you for your generous support!
                     <div className="flex items-center justify-between">
                         <div>
                             <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-2">
-                                💝 My Contributions
+                                <HeartHandshake className="w-8 h-8 inline-block mr-2 text-pink-400" /> My Contributions
                             </h1>
                             <p className="text-gray-400">
                                 Track your impact and support history
@@ -267,7 +267,7 @@ Thank you for your generous support!
                     {contributionsData?.summary?.totalAmount > 0 && (
                         <div className="bg-gradient-to-br from-purple-900/20 to-blue-900/20 rounded-2xl p-8 border border-white/10 backdrop-blur-xl">
                             <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-                                <span>🌟</span>
+                                <span><Star className="w-5 h-5 text-yellow-400" /></span>
                                 <span>Your Impact</span>
                             </h2>
                             <div className="prose prose-invert max-w-none">

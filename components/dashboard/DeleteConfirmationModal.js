@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { FaExclamationTriangle } from 'react-icons/fa';
+import { AlertTriangle } from 'lucide-react';
 
 export default function DeleteConfirmationModal({ campaign, onConfirm, onCancel, isProcessing }) {
   const [confirmText, setConfirmText] = useState('');
@@ -117,7 +118,7 @@ export default function DeleteConfirmationModal({ campaign, onConfirm, onCancel,
             }}
           >
             <span className="text-amber-400 leading-relaxed text-sm">
-              <strong>⚠️ Warning:</strong> This campaign has {campaign.stats.supporters} supporter(s)
+              <strong><AlertTriangle className="w-4 h-4 inline-block mr-1" /> Warning:</strong> This campaign has {campaign.stats.supporters} supporter(s)
               and has raised ₹{(campaign.currentAmount || 0).toLocaleString('en-IN')}.
               Deleting will affect all supporters.
             </span>

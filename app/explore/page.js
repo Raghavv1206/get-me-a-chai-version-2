@@ -19,7 +19,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import { Filter, X } from 'lucide-react';
+import { Filter, X, Search } from 'lucide-react';
 import AdvancedSearch from '@/components/search/AdvancedSearch';
 import FilterSidebar from '@/components/search/FilterSidebar';
 import CampaignGrid from '@/components/search/CampaignGrid';
@@ -214,8 +214,8 @@ export default function ExplorePage() {
             <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 pt-24 relative">
                 {/* Header */}
                 <div className="mb-8 sm:mb-12">
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3 sm:mb-4">
-                        🔍 Explore Campaigns
+                    <h1 className="text-3xl pt-4 sm:text-4xl md:text-5xl font-bold text-white mb-3 sm:mb-4">
+                        <Search className="w-8 h-8 sm:w-10 sm:h-10 inline-block text-purple-400" /> Explore Campaigns
                     </h1>
                     <p className="text-base sm:text-lg text-gray-400">
                         Discover amazing projects and support creators

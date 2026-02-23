@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { FaSearch, FaSort, FaDownload } from 'react-icons/fa';
+import { Users } from 'lucide-react';
 import Papa from 'papaparse';
 
 export default function SupportersTable({ supporters: initialSupporters }) {
@@ -114,7 +115,7 @@ export default function SupportersTable({ supporters: initialSupporters }) {
             {paginatedSupporters.length === 0 ? (
               <tr>
                 <td colSpan="5" className="empty-state">
-                  <div className="empty-icon">👥</div>
+                  <div className="empty-icon"><Users className="w-12 h-12 text-gray-500 mx-auto" /></div>
                   <p>No supporters found</p>
                 </td>
               </tr>

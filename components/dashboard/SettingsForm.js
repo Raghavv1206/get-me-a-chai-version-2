@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiToast } from '@/lib/apiToast';
+import { CreditCard } from 'lucide-react';
 
 export default function SettingsForm({ user }) {
     const router = useRouter();
@@ -158,7 +159,7 @@ export default function SettingsForm({ user }) {
 
             {/* Payment Settings Section */}
             <div className="pt-6 mt-6 border-t border-gray-700">
-                <h3 className="text-lg font-semibold text-white mb-4">💳 Payment Settings</h3>
+                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2"><CreditCard className="w-5 h-5 text-purple-400" /> Payment Settings</h3>
 
                 <div className="space-y-4">
                     <div>

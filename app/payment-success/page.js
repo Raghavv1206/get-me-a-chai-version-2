@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import RecommendationFeed from '@/components/recommendations/RecommendationFeed';
 import Link from 'next/link';
+import { PartyPopper, Sparkles } from 'lucide-react';
 
 export default function PaymentSuccessPage() {
     const { data: session } = useSession();
@@ -49,7 +50,7 @@ export default function PaymentSuccessPage() {
                         </div>
 
                         <h1 className="text-3xl md:text-4xl font-bold text-white mb-4 tracking-tight">
-                            🎉 Payment Successful!
+                            <PartyPopper className="w-8 h-8 inline-block mr-2 text-green-400" /> Payment Successful!
                         </h1>
                         <p className="text-gray-300 text-lg mb-4">
                             Thank you for your generous support!
@@ -92,7 +93,7 @@ export default function PaymentSuccessPage() {
                         <div className="max-w-6xl mx-auto">
                             <div className="text-center mb-10">
                                 <h2 className="text-3xl font-bold text-white mb-3">
-                                    ✨ Discover More Amazing Campaigns
+                                    <Sparkles className="w-6 h-6 inline-block mr-2 text-yellow-400" /> Discover More Amazing Campaigns
                                 </h2>
                                 <p className="text-gray-400">
                                     Based on your interests, you might also like these projects

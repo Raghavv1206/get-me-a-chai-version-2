@@ -1,6 +1,7 @@
 // components/campaign/PreviewStep.js
 "use client"
 import { useState, useEffect } from 'react';
+import { Loader2, RefreshCw, Lightbulb, CheckCircle2, AlertTriangle, Camera } from 'lucide-react';
 
 export default function PreviewStep({ data, onUpdate, onBack }) {
     const [qualityScore, setQualityScore] = useState(null);
@@ -62,7 +63,7 @@ export default function PreviewStep({ data, onUpdate, onBack }) {
             {/* Quality Score */}
             {loading ? (
                 <div className="p-6 bg-gray-800 rounded-xl text-center">
-                    <div className="animate-spin text-4xl mb-2">⚙️</div>
+                    <Loader2 className="w-10 h-10 animate-spin text-purple-400 mx-auto mb-2" />
                     <p className="text-gray-400">AI is analyzing your campaign...</p>
                 </div>
             ) : qualityScore ? (
@@ -73,7 +74,7 @@ export default function PreviewStep({ data, onUpdate, onBack }) {
                             onClick={handleScore}
                             className="text-sm text-purple-400 hover:text-purple-300"
                         >
-                            🔄 Re-analyze
+                            <RefreshCw className="w-4 h-4 inline-block mr-1" /> Re-analyze
                         </button>
                     </div>
 
@@ -115,7 +116,7 @@ export default function PreviewStep({ data, onUpdate, onBack }) {
                     {/* Insights */}
                     {qualityScore.insights && qualityScore.insights.length > 0 && (
                         <div className="mb-4">
-                            <h4 className="text-sm font-semibold text-white mb-2">💡 AI Insights</h4>
+                            <h4 className="text-sm font-semibold text-white mb-2 flex items-center gap-1"><Lightbulb className="w-4 h-4 text-yellow-400" /> AI Insights</h4>
                             <ul className="space-y-2">
                                 {qualityScore.insights.map((insight, index) => (
                                     <li key={index} className="text-sm text-gray-300 flex items-start gap-2">
@@ -131,7 +132,7 @@ export default function PreviewStep({ data, onUpdate, onBack }) {
                     <div className="grid grid-cols-2 gap-4">
                         {qualityScore.strengths && qualityScore.strengths.length > 0 && (
                             <div>
-                                <h4 className="text-sm font-semibold text-green-400 mb-2">✓ Strengths</h4>
+                                <h4 className="text-sm font-semibold text-green-400 mb-2 flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> Strengths</h4>
                                 <ul className="space-y-1">
                                     {qualityScore.strengths.map((strength, index) => (
                                         <li key={index} className="text-xs text-gray-400">• {strength}</li>
@@ -141,7 +142,7 @@ export default function PreviewStep({ data, onUpdate, onBack }) {
                         )}
                         {qualityScore.improvements && qualityScore.improvements.length > 0 && (
                             <div>
-                                <h4 className="text-sm font-semibold text-yellow-400 mb-2">⚠ Improvements</h4>
+                                <h4 className="text-sm font-semibold text-yellow-400 mb-2 flex items-center gap-1"><AlertTriangle className="w-4 h-4" /> Improvements</h4>
                                 <ul className="space-y-1">
                                     {qualityScore.improvements.map((improvement, index) => (
                                         <li key={index} className="text-xs text-gray-400">• {improvement}</li>
@@ -168,7 +169,7 @@ export default function PreviewStep({ data, onUpdate, onBack }) {
                     ) : (
                         <div className="w-full h-48 bg-gray-900 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-700">
                             <div className="text-center">
-                                <p className="text-gray-400 text-sm">📷 No cover image provided</p>
+                                <p className="text-gray-400 text-sm flex items-center gap-1 justify-center"><Camera className="w-4 h-4" /> No cover image provided</p>
                                 <p className="text-gray-500 text-xs mt-1">A default placeholder will be used</p>
                             </div>
                         </div>

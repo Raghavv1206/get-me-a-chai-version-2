@@ -3,6 +3,7 @@
 import React, { useRef, useEffect, useState, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Sparkles, Coffee } from 'lucide-react';
 
 /**
  * ChaiScrollytelling Component
@@ -380,7 +381,7 @@ export default function ChaiScrollytelling() {
     if (!imagesLoaded && !showFallback) {
         return (
             <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gray-950">
-                <div className="text-6xl mb-8 animate-bounce">☕</div>
+                <div className="mb-8 animate-bounce"><Coffee className="w-16 h-16 text-amber-400 mx-auto" /></div>
                 <div className="w-64 h-2 bg-gray-800 rounded-full overflow-hidden mb-4">
                     <div
                         className="h-full bg-gradient-to-r from-purple-600 to-blue-600 transition-all duration-300 ease-out"
@@ -496,7 +497,7 @@ export default function ChaiScrollytelling() {
                 >
                     <h2 className="text-3xl md:text-5xl font-bold text-left max-w-2xl bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 drop-shadow-[0_4px_4px_rgba(0,0,0,1)]">
                         We're not asking for investments.<br />
-                        We're asking for vibes. ✨
+                        We're asking for vibes. <Sparkles className="w-8 h-8 text-purple-400 inline-block" />
                     </h2>
                 </div>
 

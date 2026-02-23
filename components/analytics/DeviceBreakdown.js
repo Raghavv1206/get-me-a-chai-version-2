@@ -1,6 +1,7 @@
 'use client';
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { Smartphone } from 'lucide-react';
 
 export default function DeviceBreakdown({ data = [] }) {
   const COLORS = {
@@ -47,7 +48,7 @@ export default function DeviceBreakdown({ data = [] }) {
     <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 lg:p-8 h-full">
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-xl font-bold text-white flex items-center gap-2">
-          <span>📱</span> Device Breakdown
+          <Smartphone className="w-5 h-5 text-blue-400" /> Device Breakdown
         </h3>
         <span className="bg-white/5 text-gray-400 text-xs font-medium px-2 py-1 rounded-lg border border-white/5">
           Total: {total.toLocaleString()}

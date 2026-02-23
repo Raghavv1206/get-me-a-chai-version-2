@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import RecommendationCard from './RecommendationCard';
+import { Sparkles, Search } from 'lucide-react';
 
 /**
  * RecommendationFeed Component
@@ -25,7 +26,7 @@ export default function RecommendationFeed() {
     /**
      * Fetch recommendations from API with error handling and retry logic
      */
-    const fetchRecommendations = useCallback(async (isRetry = false) => {
+    const fetchRecommendations = useCallback(async (isRetry = false, signal) => {
         // Don't fetch if not authenticated
         if (!session) {
             return;
@@ -34,9 +35,15 @@ export default function RecommendationFeed() {
         setLoading(true);
         setError(null);
 
+        let timeoutId;
+
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+            // If an external signal is provided (from unmount cleanup), link it
+            if (signal) {
+                signal.addEventListener('abort', () => controller.abort());
+            }
+            timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
             const response = await fetch('/api/ai/recommendations', {
                 signal: controller.signal,
@@ -66,14 +73,17 @@ export default function RecommendationFeed() {
             setRetryCount(0); // Reset retry count on success
             setError(null);
         } catch (err) {
+            // Silently ignore abort errors (timeout or unmount)
+            if (err.name === 'AbortError') {
+                return;
+            }
+
             console.error('[RecommendationFeed] Error fetching recommendations:', err);
 
             // Handle different error types
             let errorMessage = 'Failed to load recommendations';
 
-            if (err.name === 'AbortError') {
-                errorMessage = 'Request timed out. Please try again.';
-            } else if (err.message?.includes('fetch')) {
+            if (err.message?.includes('fetch')) {
                 errorMessage = 'Network error. Please check your connection.';
             } else if (err.message) {
                 errorMessage = err.message;
@@ -82,7 +92,7 @@ export default function RecommendationFeed() {
             setError(errorMessage);
 
             // Automatic retry logic for network errors
-            if (!isRetry && retryCount < MAX_RETRIES && err.name !== 'AbortError') {
+            if (!isRetry && retryCount < MAX_RETRIES) {
                 const newRetryCount = retryCount + 1;
                 setRetryCount(newRetryCount);
 
@@ -93,6 +103,7 @@ export default function RecommendationFeed() {
                 }, RETRY_DELAY_MS * newRetryCount); // Exponential backoff
             }
         } finally {
+            if (timeoutId) clearTimeout(timeoutId);
             setLoading(false);
         }
     }, [session, retryCount]);
@@ -100,7 +111,11 @@ export default function RecommendationFeed() {
     // Fetch recommendations when session becomes available
     useEffect(() => {
         if (status === 'authenticated' && session) {
-            fetchRecommendations();
+            const controller = new AbortController();
+            fetchRecommendations(false, controller.signal);
+
+            // Clean up on unmount — abort any in-flight request
+            return () => controller.abort();
         }
     }, [status, session, fetchRecommendations]);
 
@@ -123,7 +138,7 @@ export default function RecommendationFeed() {
                         id="recommendations-heading"
                         className="text-2xl font-bold text-white flex items-center gap-2"
                     >
-                        <span aria-hidden="true">✨</span> Recommended For You
+                        <Sparkles className="w-5 h-5 text-yellow-400" aria-hidden="true" /> Recommended For You
                     </h2>
                     <p className="text-gray-400 text-sm mt-1">
                         Based on your interests and activity
@@ -222,7 +237,7 @@ export default function RecommendationFeed() {
             {/* Empty State */}
             {!loading && !error && recommendations.length === 0 && (
                 <div className="text-center py-12 bg-gray-800 rounded-xl">
-                    <div className="text-6xl mb-4" aria-hidden="true">🔍</div>
+                    <div className="mb-4 flex justify-center" aria-hidden="true"><Search className="w-14 h-14 text-gray-500" /></div>
                     <p className="text-gray-400 text-lg font-medium mb-2">
                         No recommendations available yet.
                     </p>

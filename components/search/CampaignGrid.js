@@ -16,7 +16,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Loader2, AlertCircle, Heart } from 'lucide-react';
+import { Loader2, AlertCircle, Heart, Sparkles, Star, Search, BadgeCheck } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -136,7 +136,7 @@ export default function CampaignGrid({
     if (!loading && campaigns.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-20 px-4">
-                <div className="text-6xl mb-4">🔍</div>
+                <div className="mb-4 flex justify-center"><Search className="w-14 h-14 text-gray-400" /></div>
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                     {emptyMessage}
                 </h3>
@@ -250,17 +250,17 @@ function CampaignCard({ campaign, viewMode }) {
                         <div className="absolute top-3 left-3 flex flex-wrap gap-2">
                             {campaign.aiGenerated && (
                                 <span className="px-2 py-1 bg-purple-600 text-white text-xs font-medium rounded-full">
-                                    ✨ AI
+                                    <Sparkles className="w-3 h-3 inline-block mr-0.5" /> AI
                                 </span>
                             )}
                             {campaign.featured && (
                                 <span className="px-2 py-1 bg-yellow-500 text-white text-xs font-medium rounded-full">
-                                    ⭐ Featured
+                                    <Star className="w-3 h-3 inline-block mr-0.5" /> Featured
                                 </span>
                             )}
                             {campaign.verified && (
                                 <span className="px-2 py-1 bg-blue-500 text-white text-xs font-medium rounded-full">
-                                    ✓ Verified
+                                    <BadgeCheck className="w-3 h-3 inline-block mr-0.5" /> Verified
                                 </span>
                             )}
                         </div>
@@ -357,17 +357,17 @@ function CampaignCard({ campaign, viewMode }) {
                 <div className="absolute top-3 left-3 flex flex-wrap gap-2">
                     {campaign.aiGenerated && (
                         <span className="px-2 py-1 bg-purple-600 text-white text-xs font-medium rounded-full">
-                            ✨ AI
+                            <Sparkles className="w-3 h-3 inline-block mr-0.5" /> AI
                         </span>
                     )}
                     {campaign.featured && (
                         <span className="px-2 py-1 bg-yellow-500 text-white text-xs font-medium rounded-full">
-                            ⭐ Featured
+                            <Star className="w-3 h-3 inline-block mr-0.5" /> Featured
                         </span>
                     )}
                     {campaign.verified && (
                         <span className="px-2 py-1 bg-blue-500 text-white text-xs font-medium rounded-full">
-                            ✓ Verified
+                            <BadgeCheck className="w-3 h-3 inline-block mr-0.5" /> Verified
                         </span>
                     )}
                 </div>

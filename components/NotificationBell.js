@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { useScrollIsolation } from '../hooks/useScrollIsolation';
+import { Wallet, Rocket, MessageCircle, Target, Bell, Megaphone } from 'lucide-react';
 
 export default function NotificationBell() {
     const { data: session } = useSession();
@@ -95,17 +96,17 @@ export default function NotificationBell() {
     const getNotificationIcon = (type) => {
         switch (type) {
             case 'payment':
-                return '💰';
+                return <Wallet className="w-5 h-5 text-green-400" />;
             case 'campaign':
-                return '🚀';
+                return <Rocket className="w-5 h-5 text-blue-400" />;
             case 'comment':
-                return '💬';
+                return <MessageCircle className="w-5 h-5 text-purple-400" />;
             case 'milestone':
-                return '🎯';
+                return <Target className="w-5 h-5 text-yellow-400" />;
             case 'system':
-                return '🔔';
+                return <Bell className="w-5 h-5 text-gray-400" />;
             default:
-                return '📢';
+                return <Megaphone className="w-5 h-5 text-gray-400" />;
         }
     };
 
@@ -162,7 +163,7 @@ export default function NotificationBell() {
                     <div ref={scrollRef} className="overflow-y-auto flex-1">
                         {notifications.length === 0 ? (
                             <div className="p-8 text-center">
-                                <div className="text-4xl mb-2">🔔</div>
+                                <div className="flex justify-center mb-2"><Bell className="w-8 h-8 text-gray-500" /></div>
                                 <p className="text-gray-400">No notifications yet</p>
                                 <p className="text-sm text-gray-500 mt-1">
                                     We'll notify you when something happens

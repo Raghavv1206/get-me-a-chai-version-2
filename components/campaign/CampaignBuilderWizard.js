@@ -10,6 +10,7 @@ import RewardsStep from './RewardsStep';
 import MediaStep from './MediaStep';
 import FAQsStep from './FAQsStep';
 import PreviewStep from './PreviewStep';
+import { Sparkles, Check, Save, Rocket } from 'lucide-react';
 
 const STEPS = [
     { id: 1, name: 'Basic Info', component: BasicInfoStep },
@@ -145,7 +146,7 @@ export default function CampaignBuilderWizard() {
                 }),
                 {
                     loading: 'Publishing campaign...',
-                    success: 'Campaign published successfully! 🎉',
+                    success: 'Campaign published successfully!',
                     error: 'Failed to publish campaign'
                 }
             );
@@ -194,8 +195,8 @@ export default function CampaignBuilderWizard() {
             <div className="mb-8">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold text-white mb-2">
-                            Create Your Campaign with AI ✨
+                        <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-2">
+                            Create Your Campaign with AI <Sparkles className="w-6 h-6 text-yellow-400" />
                         </h1>
                         <p className="text-gray-400">
                             Let AI help you build a compelling campaign in minutes
@@ -247,7 +248,7 @@ export default function CampaignBuilderWizard() {
                                         : 'bg-gray-700 text-gray-400'
                                     }`}
                             >
-                                {step.id < currentStep ? '✓' : step.id}
+                                {step.id < currentStep ? <Check className="w-4 h-4" /> : step.id}
                             </div>
                             {step.id < STEPS.length && (
                                 <div
@@ -287,7 +288,7 @@ export default function CampaignBuilderWizard() {
                     onClick={handleSaveDraft}
                     className="px-6 py-3 bg-gray-800 text-white rounded-xl hover:bg-gray-700 transition-all"
                 >
-                    💾 Save as Draft
+                    <Save className="w-4 h-4" /> Save as Draft
                 </button>
 
                 <div className="flex gap-4">
@@ -311,7 +312,7 @@ export default function CampaignBuilderWizard() {
                             onClick={handlePublish}
                             className="px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-green-500/50 transition-all hover:scale-105"
                         >
-                            🚀 Publish Campaign
+                            <Rocket className="w-5 h-5" /> Publish Campaign
                         </button>
                     )}
                 </div>

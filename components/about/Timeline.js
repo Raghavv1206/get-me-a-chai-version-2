@@ -1,6 +1,7 @@
 // components/about/Timeline.js
 "use client"
 import { useInView } from 'react-intersection-observer';
+import { Rocket, Bot, Target, Trophy, Globe } from 'lucide-react';
 
 export default function Timeline() {
     const milestones = [
@@ -8,35 +9,35 @@ export default function Timeline() {
             year: '2024',
             title: 'Platform Launch',
             description: 'Get Me a Chai officially launches with AI-powered campaign building',
-            icon: '🚀',
+            icon: Rocket,
             color: 'from-blue-500 to-cyan-500'
         },
         {
             year: '2024',
             title: 'AI Chatbot Integration',
             description: '24/7 AI assistant to help creators and supporters',
-            icon: '🤖',
+            icon: Bot,
             color: 'from-purple-500 to-pink-500'
         },
         {
             year: '2025',
             title: 'Smart Recommendations',
             description: 'Personalized campaign recommendations powered by machine learning',
-            icon: '🎯',
+            icon: Target,
             color: 'from-green-500 to-emerald-500'
         },
         {
             year: '2025',
             title: '1000+ Campaigns',
             description: 'Reached milestone of 1000 successful campaigns funded',
-            icon: '🎉',
+            icon: Trophy,
             color: 'from-orange-500 to-red-500'
         },
         {
             year: '2026',
             title: 'Global Expansion',
             description: 'Expanding to support creators worldwide',
-            icon: '🌍',
+            icon: Globe,
             color: 'from-indigo-500 to-purple-500'
         }
     ];
@@ -85,8 +86,8 @@ function TimelineItem({ milestone, index, isLast }) {
                 }`}>
                 {/* Content */}
                 <div className={`flex-1 transition-all duration-700 ${inView
-                        ? 'opacity-100 translate-y-0'
-                        : `opacity-0 ${isLeft ? 'translate-x-10' : '-translate-x-10'}`
+                    ? 'opacity-100 translate-y-0'
+                    : `opacity-0 ${isLeft ? 'translate-x-10' : '-translate-x-10'}`
                     }`}>
                     <div className={`bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700 hover:border-purple-500/50 transition-all ${isLeft ? 'md:text-right' : 'md:text-left'
                         }`}>
@@ -104,9 +105,9 @@ function TimelineItem({ milestone, index, isLast }) {
 
                 {/* Center icon */}
                 <div className="flex-shrink-0 flex items-center justify-center">
-                    <div className={`w-16 h-16 bg-gradient-to-r ${milestone.color} rounded-full flex items-center justify-center text-3xl shadow-lg transition-all duration-700 ${inView ? 'scale-100 rotate-0' : 'scale-0 rotate-180'
+                    <div className={`w-16 h-16 bg-gradient-to-r ${milestone.color} rounded-full flex items-center justify-center shadow-lg transition-all duration-700 ${inView ? 'scale-100 rotate-0' : 'scale-0 rotate-180'
                         }`}>
-                        {milestone.icon}
+                        <milestone.icon className="w-7 h-7 text-white" />
                     </div>
                 </div>
 

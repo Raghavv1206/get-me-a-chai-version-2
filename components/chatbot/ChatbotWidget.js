@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import ChatWindow from './ChatWindow';
+import { MessageCircle } from 'lucide-react';
 
 export default function ChatbotWidget() {
     const { data: session } = useSession();
@@ -52,7 +53,7 @@ export default function ChatbotWidget() {
                     <div className="relative">
                         {/* Main Button */}
                         <div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform cursor-pointer">
-                            <span className="text-3xl">💬</span>
+                            <MessageCircle className="w-7 h-7 text-white" />
                         </div>
 
                         {/* Unread Badge */}

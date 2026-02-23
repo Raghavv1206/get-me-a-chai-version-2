@@ -15,7 +15,7 @@
  */
 
 import { useState } from 'react';
-import { Award, Lock, Info } from 'lucide-react';
+import { Award, Lock, Info, Medal, Gem, Heart, Trophy, Bird, Star } from 'lucide-react';
 
 export default function BadgesDisplay({ badges, loading = false }) {
     const [hoveredBadge, setHoveredBadge] = useState(null);
@@ -26,42 +26,42 @@ export default function BadgesDisplay({ badges, loading = false }) {
             id: 'first-supporter',
             name: 'First Supporter',
             description: 'First to support a campaign',
-            icon: '🥇',
+            icon: <Medal className="w-10 h-10 text-yellow-400" />,
             requirement: 'Be the first supporter of any campaign',
         },
         {
             id: 'top-contributor',
             name: 'Top Contributor',
             description: 'Contributed ₹10,000 or more in a single donation',
-            icon: '💎',
+            icon: <Gem className="w-10 h-10 text-blue-400" />,
             requirement: 'Make a single contribution of ₹10,000+',
         },
         {
             id: 'loyal-supporter',
             name: 'Loyal Supporter',
             description: 'Active monthly subscriber',
-            icon: '❤️',
+            icon: <Heart className="w-10 h-10 text-red-400" />,
             requirement: 'Subscribe to at least one campaign',
         },
         {
             id: 'community-champion',
             name: 'Community Champion',
             description: 'Supported 5 or more campaigns',
-            icon: '🏆',
+            icon: <Trophy className="w-10 h-10 text-amber-400" />,
             requirement: 'Support 5 different campaigns',
         },
         {
             id: 'early-bird',
             name: 'Early Bird',
             description: 'Supported a campaign within 24 hours of launch',
-            icon: '🐦',
+            icon: <Bird className="w-10 h-10 text-cyan-400" />,
             requirement: 'Support a campaign in its first 24 hours',
         },
         {
             id: 'generous-giver',
             name: 'Generous Giver',
             description: 'Contributed over ₹50,000 in total',
-            icon: '🌟',
+            icon: <Star className="w-10 h-10 text-yellow-400" />,
             requirement: 'Contribute ₹50,000+ in total',
         },
     ];
@@ -194,8 +194,8 @@ function BadgeCard({ badge, earned, index, isHovered, onHover, onLeave }) {
             >
                 {/* Badge Icon */}
                 <div className="text-center">
-                    <div className={`text-5xl mb-2 ${!earned && 'grayscale'}`}>
-                        {earned ? badge.icon : '🔒'}
+                    <div className={`flex justify-center mb-2 ${!earned && 'grayscale'}`}>
+                        {earned ? badge.icon : <Lock className="w-10 h-10 text-gray-400" />}
                     </div>
                     <div className={`text-xs font-semibold ${earned ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}`}>
                         {badge.name}
@@ -219,7 +219,7 @@ function BadgeCard({ badge, earned, index, isHovered, onHover, onLeave }) {
             {isHovered && (
                 <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-4 bg-gray-900 dark:bg-gray-800 text-white rounded-xl shadow-2xl border border-gray-700 animate-fadeIn">
                     <div className="flex items-start gap-3 mb-2">
-                        <div className="text-3xl">{badge.icon}</div>
+                        <div className="flex justify-center mb-2">{badge.icon}</div>
                         <div className="flex-1">
                             <h4 className="font-semibold mb-1">{badge.name}</h4>
                             <p className="text-sm text-gray-300">{badge.description}</p>

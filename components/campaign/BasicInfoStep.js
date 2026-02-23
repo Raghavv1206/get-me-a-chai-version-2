@@ -2,17 +2,18 @@
 "use client"
 import { useState, useEffect } from 'react';
 import { toast } from '@/lib/apiToast';
+import { Monitor, Palette, Music, Film, BookOpen, Gamepad2, UtensilsCrossed, Shirt, Star, Loader2, Sparkles } from 'lucide-react';
 
 const CATEGORIES = [
-    { value: 'technology', label: '💻 Technology', icon: '💻' },
-    { value: 'art', label: '🎨 Art & Design', icon: '🎨' },
-    { value: 'music', label: '🎵 Music', icon: '🎵' },
-    { value: 'film', label: '🎬 Film & Video', icon: '🎬' },
-    { value: 'education', label: '📚 Education', icon: '📚' },
-    { value: 'games', label: '🎮 Games', icon: '🎮' },
-    { value: 'food', label: '🍕 Food & Beverage', icon: '🍕' },
-    { value: 'fashion', label: '👗 Fashion', icon: '👗' },
-    { value: 'other', label: '🌟 Other', icon: '🌟' },
+    { value: 'technology', label: 'Technology', icon: Monitor },
+    { value: 'art', label: 'Art & Design', icon: Palette },
+    { value: 'music', label: 'Music', icon: Music },
+    { value: 'film', label: 'Film & Video', icon: Film },
+    { value: 'education', label: 'Education', icon: BookOpen },
+    { value: 'games', label: 'Games', icon: Gamepad2 },
+    { value: 'food', label: 'Food & Beverage', icon: UtensilsCrossed },
+    { value: 'fashion', label: 'Fashion', icon: Shirt },
+    { value: 'other', label: 'Other', icon: Star },
 ];
 
 export default function BasicInfoStep({ data, onUpdate, onNext }) {
@@ -119,9 +120,9 @@ export default function BasicInfoStep({ data, onUpdate, onNext }) {
                                 : 'border-gray-700 hover:border-gray-600 bg-gray-800'
                                 }`}
                         >
-                            <div className="text-2xl mb-1">{cat.icon}</div>
+                            <div className="mb-1"><cat.icon className="w-6 h-6 text-purple-400" /></div>
                             <div className="text-sm font-medium text-white">
-                                {cat.label.replace(cat.icon + ' ', '')}
+                                {cat.label}
                             </div>
                         </button>
                     ))}
@@ -160,11 +161,11 @@ export default function BasicInfoStep({ data, onUpdate, onNext }) {
                     >
                         {loadingGoal ? (
                             <>
-                                <span className="animate-spin">⚙️</span> Suggesting...
+                                <Loader2 className="w-4 h-4 animate-spin" /> Suggesting...
                             </>
                         ) : (
                             <>
-                                ✨ AI Suggest Goal
+                                <Sparkles className="w-4 h-4" /> AI Suggest Goal
                             </>
                         )}
                     </button>

@@ -5,76 +5,77 @@ import { FaEye, FaEdit, FaTrash, FaClock, FaLock, FaGlobe } from 'react-icons/fa
 import { formatDistanceToNow } from 'date-fns';
 
 export default function UpdateCard({ update, onEdit, onDelete }) {
-    const getStatusBadge = () => {
-        const badges = {
-            published: { color: '#10b981', label: 'Published', icon: FaGlobe },
-            draft: { color: '#6b7280', label: 'Draft', icon: FaEdit },
-            scheduled: { color: '#f59e0b', label: 'Scheduled', icon: FaClock }
-        };
-        return badges[update.status] || badges.draft;
+  const getStatusBadge = () => {
+    const badges = {
+      published: { color: '#10b981', label: 'Published', icon: FaGlobe },
+      draft: { color: '#6b7280', label: 'Draft', icon: FaEdit },
+      scheduled: { color: '#f59e0b', label: 'Scheduled', icon: FaClock }
     };
+    return badges[update.status] || badges.draft;
+  };
 
-    const badge = getStatusBadge();
-    const StatusIcon = badge.icon;
+  const badge = getStatusBadge();
+  const StatusIcon = badge.icon;
 
-    return (
-        <div className="update-card">
-            <div className="card-header">
-                <div className="header-left">
-                    <h3 className="card-title">{update.title}</h3>
-                    <span className="status-badge" style={{ backgroundColor: badge.color }}>
-                        <StatusIcon /> {badge.label}
-                    </span>
-                </div>
-                {update.visibility === 'supporters' && (
-                    <span className="visibility-badge">
-                        <FaLock /> Supporters Only
-                    </span>
-                )}
-            </div>
+  return (
+    <div className="update-card">
+      <div className="card-header">
+        <div className="header-left">
+          <h3 className="card-title">{update.title}</h3>
+          <span className="status-badge" style={{ backgroundColor: badge.color }}>
+            <StatusIcon /> {badge.label}
+          </span>
+        </div>
+        {update.visibility === 'supporters' && (
+          <span className="visibility-badge">
+            <FaLock /> Supporters Only
+          </span>
+        )}
+      </div>
 
-            <p className="campaign-name">
-                Campaign: <strong>{update.campaign?.title || 'Unknown'}</strong>
-            </p>
+      <p className="campaign-name">
+        Campaign: <strong>{update.campaign?.title || 'Unknown'}</strong>
+      </p>
 
-            <div className="card-stats">
-                <span className="stat-item">
-                    <FaEye /> {update.views || 0} views
-                </span>
-                <span className="stat-item">
-                    {update.status === 'published'
-                        ? `Published ${formatDistanceToNow(new Date(update.publishedAt || update.createdAt), { addSuffix: true })}`
-                        : update.status === 'scheduled'
-                            ? `Scheduled for ${new Date(update.scheduledFor).toLocaleString()}`
-                            : `Created ${formatDistanceToNow(new Date(update.createdAt), { addSuffix: true })}`
-                    }
-                </span>
-            </div>
+      <div className="card-stats">
+        <span className="stat-item">
+          <FaEye /> {update.views || 0} views
+        </span>
+        <span className="stat-item">
+          {update.status === 'published'
+            ? `Published ${formatDistanceToNow(new Date(update.publishedAt || update.createdAt), { addSuffix: true })}`
+            : update.status === 'scheduled'
+              ? `Scheduled for ${new Date(update.scheduledFor).toLocaleString()}`
+              : `Created ${formatDistanceToNow(new Date(update.createdAt), { addSuffix: true })}`
+          }
+        </span>
+      </div>
 
-            <div className="card-actions">
-                <Link href={`/dashboard/content/${update._id}`} className="action-btn view-btn">
-                    <FaEye /> View
-                </Link>
-                <button onClick={() => onEdit(update)} className="action-btn edit-btn">
-                    <FaEdit /> Edit
-                </button>
-                <button onClick={() => onDelete(update._id)} className="action-btn delete-btn">
-                    <FaTrash /> Delete
-                </button>
-            </div>
+      <div className="card-actions">
+        <Link href={`/dashboard/content/${update._id}`} className="action-btn view-btn">
+          <FaEye /> View
+        </Link>
+        <button onClick={() => onEdit(update)} className="action-btn edit-btn">
+          <FaEdit /> Edit
+        </button>
+        <button onClick={() => onDelete(update._id)} className="action-btn delete-btn">
+          <FaTrash /> Delete
+        </button>
+      </div>
 
-            <style jsx>{`
+      <style jsx>{`
         .update-card {
-          background: white;
-          border: 2px solid #e5e7eb;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: 12px;
           padding: 20px;
           transition: all 0.3s ease;
         }
 
         .update-card:hover {
-          border-color: #667eea;
-          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+          border-color: rgba(139, 92, 246, 0.3);
+          background: rgba(255, 255, 255, 0.05);
+          box-shadow: 0 4px 20px rgba(139, 92, 246, 0.1);
         }
 
         .card-header {
@@ -95,7 +96,7 @@ export default function UpdateCard({ update, onEdit, onDelete }) {
         .card-title {
           font-size: 1.1rem;
           font-weight: 700;
-          color: #111827;
+          color: #f3f4f6;
           margin: 0;
           line-height: 1.4;
         }
@@ -117,11 +118,12 @@ export default function UpdateCard({ update, onEdit, onDelete }) {
           align-items: center;
           gap: 6px;
           padding: 6px 12px;
-          background: #fef2f2;
-          color: #ef4444;
+          background: rgba(239, 68, 68, 0.15);
+          color: #f87171;
           border-radius: 8px;
           font-size: 0.8rem;
           font-weight: 600;
+          border: 1px solid rgba(239, 68, 68, 0.2);
         }
 
         .campaign-name {
@@ -131,7 +133,7 @@ export default function UpdateCard({ update, onEdit, onDelete }) {
         }
 
         .campaign-name strong {
-          color: #374151;
+          color: #d1d5db;
         }
 
         .card-stats {
@@ -139,7 +141,7 @@ export default function UpdateCard({ update, onEdit, onDelete }) {
           gap: 20px;
           margin-bottom: 16px;
           padding-bottom: 16px;
-          border-bottom: 1px solid #f3f4f6;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
           flex-wrap: wrap;
         }
 
@@ -172,33 +174,33 @@ export default function UpdateCard({ update, onEdit, onDelete }) {
         }
 
         .view-btn {
-          background: white;
-          color: #667eea;
-          border: 2px solid #667eea;
+          background: rgba(139, 92, 246, 0.1);
+          color: #a78bfa;
+          border: 1px solid rgba(139, 92, 246, 0.25);
         }
 
         .view-btn:hover {
-          background: #f0f9ff;
+          background: rgba(139, 92, 246, 0.2);
         }
 
         .edit-btn {
-          background: white;
-          color: #10b981;
-          border: 2px solid #10b981;
+          background: rgba(16, 185, 129, 0.1);
+          color: #34d399;
+          border: 1px solid rgba(16, 185, 129, 0.25);
         }
 
         .edit-btn:hover {
-          background: #f0fdf4;
+          background: rgba(16, 185, 129, 0.2);
         }
 
         .delete-btn {
-          background: white;
-          color: #ef4444;
-          border: 2px solid #ef4444;
+          background: rgba(239, 68, 68, 0.1);
+          color: #f87171;
+          border: 1px solid rgba(239, 68, 68, 0.25);
         }
 
         .delete-btn:hover {
-          background: #fef2f2;
+          background: rgba(239, 68, 68, 0.2);
         }
 
         @media (max-width: 640px) {
@@ -211,6 +213,6 @@ export default function UpdateCard({ update, onEdit, onDelete }) {
           }
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

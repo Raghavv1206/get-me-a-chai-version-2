@@ -11,6 +11,7 @@ import connectDb from '@/db/connectDb';
 import User from '@/models/User';
 import SettingsForm from '@/components/dashboard/SettingsForm';
 import NotificationPreferences from '@/components/notifications/NotificationPreferences';
+import { Shield } from 'lucide-react';
 
 export const metadata = {
     title: 'Settings - Get Me A Chai',
@@ -88,7 +89,7 @@ export default async function SettingsPage() {
                     {/* Security Notice */}
                     <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
                         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                            <span>🔒</span>
+                            <span><Shield className="w-5 h-5 text-yellow-400" /></span>
                             <span>Security & Privacy</span>
                         </h3>
                         <ul className="text-gray-300 text-sm space-y-2">

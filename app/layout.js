@@ -1,5 +1,6 @@
 // C:\Users\ragha\project\get-me-a-chai\app\layout.js
 
+import { Suspense } from "react";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
@@ -8,6 +9,7 @@ import SessionWrapper from "@/components/SessionWrapper";
 import ChatbotWidget from "@/components/chatbot/ChatbotWidget";
 import SmoothScroll from "@/components/SmoothScroll";
 import ToastProvider from "@/components/ToastProvider";
+import RouteProgressBar from "@/components/RouteProgressBar";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,6 +26,9 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className="bg-black text-gray-100 min-h-screen relative overflow-x-hidden selection:bg-purple-500/30">
         <SessionWrapper>
+          <Suspense fallback={null}>
+            <RouteProgressBar />
+          </Suspense>
           <SmoothScroll />
 
           {/* Ambient Background Effects */}

@@ -11,6 +11,7 @@ import connectDb from '@/db/connectDb';
 import Campaign from '@/models/Campaign';
 import CampaignUpdate from '@/models/CampaignUpdate';
 import ContentClient from '@/components/content/ContentClient';
+import { PenLine } from 'lucide-react';
 
 export const metadata = {
     title: 'Content Manager - Get Me A Chai',
@@ -84,7 +85,7 @@ export default async function ContentPage() {
                     {/* Best Practices */}
                     <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
                         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                            <span>✍️</span>
+                            <span><PenLine className="w-5 h-5 text-purple-400" /></span>
                             <span>Update Best Practices</span>
                         </h3>
                         <ul className="text-gray-300 text-sm space-y-2">

@@ -1,6 +1,7 @@
 // components/campaign/AIStoryStep.js
 "use client"
 import { useState } from 'react';
+import { Sparkles, Loader2, RefreshCw } from 'lucide-react';
 import { toast } from '@/lib/apiToast';
 
 export default function AIStoryStep({ data, onUpdate, onNext, onBack }) {
@@ -125,7 +126,7 @@ export default function AIStoryStep({ data, onUpdate, onNext, onBack }) {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-2xl font-bold text-white mb-2">AI Story Generation ✨</h2>
+                <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">AI Story Generation <Sparkles className="w-5 h-5 text-yellow-400" /></h2>
                 <p className="text-gray-400">Let AI craft a compelling story for your campaign</p>
             </div>
 
@@ -158,12 +159,12 @@ export default function AIStoryStep({ data, onUpdate, onNext, onBack }) {
                 >
                     {generating ? (
                         <>
-                            <span className="animate-spin">⚙️</span>
+                            <Loader2 className="w-5 h-5 animate-spin" />
                             Generating with AI...
                         </>
                     ) : (
                         <>
-                            ✨ Generate Campaign Story with AI
+                            <Sparkles className="w-5 h-5" /> Generate Campaign Story with AI
                         </>
                     )}
                 </button>
@@ -192,7 +193,7 @@ export default function AIStoryStep({ data, onUpdate, onNext, onBack }) {
                             onClick={handleRegenerate}
                             className="text-sm text-purple-400 hover:text-purple-300 flex items-center gap-1"
                         >
-                            🔄 Regenerate
+                            <RefreshCw className="w-4 h-4" /> Regenerate
                         </button>
                     </div>
 

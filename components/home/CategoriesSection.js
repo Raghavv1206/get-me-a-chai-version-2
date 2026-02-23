@@ -1,6 +1,7 @@
 "use client"
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Monitor, Palette, Music, Gamepad2, Pizza, BookOpen, Film, Shirt } from 'lucide-react';
 
 export default function CategoriesSection() {
   const router = useRouter();
@@ -10,7 +11,7 @@ export default function CategoriesSection() {
     {
       id: 'technology',
       name: 'Technology',
-      icon: '💻',
+      icon: <Monitor className="w-10 h-10 md:w-12 md:h-12 text-blue-400" />,
       count: 234,
       gradient: 'from-blue-500 to-cyan-500',
       description: 'Software, hardware, AI, and innovation',
@@ -19,7 +20,7 @@ export default function CategoriesSection() {
     {
       id: 'art',
       name: 'Art & Design',
-      icon: '🎨',
+      icon: <Palette className="w-10 h-10 md:w-12 md:h-12 text-pink-400" />,
       count: 189,
       gradient: 'from-purple-500 to-pink-500',
       description: 'Digital art, illustrations, and NFTs',
@@ -28,7 +29,7 @@ export default function CategoriesSection() {
     {
       id: 'music',
       name: 'Music',
-      icon: '🎵',
+      icon: <Music className="w-10 h-10 md:w-12 md:h-12 text-red-400" />,
       count: 156,
       gradient: 'from-red-500 to-orange-500',
       description: 'Albums, concerts, and music videos',
@@ -37,7 +38,7 @@ export default function CategoriesSection() {
     {
       id: 'games',
       name: 'Games',
-      icon: '🎮',
+      icon: <Gamepad2 className="w-10 h-10 md:w-12 md:h-12 text-green-400" />,
       count: 198,
       gradient: 'from-green-500 to-emerald-500',
       description: 'Video games, board games, and more',
@@ -46,7 +47,7 @@ export default function CategoriesSection() {
     {
       id: 'food',
       name: 'Food & Drink',
-      icon: '🍕',
+      icon: <Pizza className="w-10 h-10 md:w-12 md:h-12 text-orange-400" />,
       count: 142,
       gradient: 'from-yellow-500 to-orange-500',
       description: 'Restaurants, products, and cookbooks',
@@ -55,7 +56,7 @@ export default function CategoriesSection() {
     {
       id: 'education',
       name: 'Education',
-      icon: '📚',
+      icon: <BookOpen className="w-10 h-10 md:w-12 md:h-12 text-indigo-400" />,
       count: 167,
       gradient: 'from-indigo-500 to-purple-500',
       description: 'Courses, books, and learning tools',
@@ -64,7 +65,7 @@ export default function CategoriesSection() {
     {
       id: 'film',
       name: 'Film & Video',
-      icon: '🎬',
+      icon: <Film className="w-10 h-10 md:w-12 md:h-12 text-pink-400" />,
       count: 134,
       gradient: 'from-pink-500 to-rose-500',
       description: 'Movies, documentaries, and web series',
@@ -73,7 +74,7 @@ export default function CategoriesSection() {
     {
       id: 'fashion',
       name: 'Fashion',
-      icon: '👗',
+      icon: <Shirt className="w-10 h-10 md:w-12 md:h-12 text-violet-400" />,
       count: 123,
       gradient: 'from-violet-500 to-purple-500',
       description: 'Clothing, accessories, and jewelry',
@@ -121,7 +122,7 @@ export default function CategoriesSection() {
               {/* Content */}
               <div className="relative z-10">
                 {/* Icon */}
-                <div className="text-5xl md:text-6xl mb-4 group-hover:scale-110 transition-transform">
+                <div className="mb-4 group-hover:scale-110 transition-transform">
                   {category.icon}
                 </div>
 

@@ -1,5 +1,7 @@
 'use client';
 
+import { TrendingDown } from 'lucide-react';
+
 export default function ConversionFunnel({ data = {} }) {
   const steps = data.steps || [
     { name: 'Views', value: (data && data.views) || 0, color: 'bg-blue-500' },
@@ -13,7 +15,7 @@ export default function ConversionFunnel({ data = {} }) {
     <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 lg:p-8 h-full">
       <div className="mb-8">
         <h3 className="text-xl font-bold text-white mb-1 flex items-center gap-2">
-          <span>📉</span> Conversion Funnel
+          <TrendingDown className="w-5 h-5 text-purple-400" /> Conversion Funnel
         </h3>
         <p className="text-sm text-gray-400">Visitor journey from view to donation</p>
       </div>
@@ -25,8 +27,12 @@ export default function ConversionFunnel({ data = {} }) {
         {steps.map((step, index) => {
           const width = Math.max((step.value / maxValue) * 100, 5); // Min 5% width
           const prevValue = index > 0 ? steps[index - 1].value : 0;
-          const dropOff = index > 0 ? ((prevValue - step.value) / prevValue * 100).toFixed(1) : 0;
-          const conversionRate = index > 0 ? ((step.value / steps[0].value) * 100).toFixed(1) : null;
+          const dropOff = index > 0 && prevValue > 0
+            ? ((prevValue - step.value) / prevValue * 100).toFixed(1)
+            : '0.0';
+          const conversionRate = index > 0 && steps[0].value > 0
+            ? ((step.value / steps[0].value) * 100).toFixed(1)
+            : null;
 
           return (
             <div key={step.name} className="relative">
@@ -75,7 +81,9 @@ export default function ConversionFunnel({ data = {} }) {
         <div className="bg-black/20 rounded-xl p-4 border border-white/5">
           <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Overall Conversion</p>
           <p className="text-2xl font-bold text-white">
-            {((steps[steps.length - 1].value / Math.max(steps[0].value, 1)) * 100).toFixed(2)}%
+            {steps[0].value > 0
+              ? ((steps[steps.length - 1].value / steps[0].value) * 100).toFixed(2)
+              : '0.00'}%
           </p>
         </div>
         <div className="bg-black/20 rounded-xl p-4 border border-white/5">

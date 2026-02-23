@@ -2,109 +2,110 @@
 
 import { useState } from 'react';
 import NotificationItem from './NotificationItem';
+import { Bell } from 'lucide-react';
 
 export default function NotificationsList({ notifications: initialNotifications, onMarkAsRead }) {
-    const [notifications, setNotifications] = useState(initialNotifications || []);
+  const [notifications, setNotifications] = useState(initialNotifications || []);
 
-    const groupNotifications = () => {
-        const grouped = {
-            today: [],
-            yesterday: [],
-            thisWeek: [],
-            older: []
-        };
-
-        notifications.forEach(notif => {
-            const date = new Date(notif.createdAt);
-            const now = new Date();
-            const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
-
-            if (diffDays === 0) grouped.today.push(notif);
-            else if (diffDays === 1) grouped.yesterday.push(notif);
-            else if (diffDays <= 7) grouped.thisWeek.push(notif);
-            else grouped.older.push(notif);
-        });
-
-        return grouped;
+  const groupNotifications = () => {
+    const grouped = {
+      today: [],
+      yesterday: [],
+      thisWeek: [],
+      older: []
     };
 
-    const grouped = groupNotifications();
+    notifications.forEach(notif => {
+      const date = new Date(notif.createdAt);
+      const now = new Date();
+      const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
 
-    const handleMarkAsRead = async (id) => {
-        if (onMarkAsRead) {
-            await onMarkAsRead(id);
-            setNotifications(prev =>
-                prev.map(n => n._id === id ? { ...n, read: true } : n)
-            );
-        }
-    };
+      if (diffDays === 0) grouped.today.push(notif);
+      else if (diffDays === 1) grouped.yesterday.push(notif);
+      else if (diffDays <= 7) grouped.thisWeek.push(notif);
+      else grouped.older.push(notif);
+    });
 
-    const handleMarkAllAsRead = async () => {
-        try {
-            const response = await fetch('/api/notifications/mark-all-read', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
+    return grouped;
+  };
 
-            if (response.ok) {
-                setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-            }
-        } catch (error) {
-            console.error('Error marking all as read:', error);
-        }
-    };
+  const grouped = groupNotifications();
 
-    const unreadCount = notifications.filter(n => !n.read).length;
+  const handleMarkAsRead = async (id) => {
+    if (onMarkAsRead) {
+      await onMarkAsRead(id);
+      setNotifications(prev =>
+        prev.map(n => n._id === id ? { ...n, read: true } : n)
+      );
+    }
+  };
 
-    return (
-        <div className="notifications-list">
-            <div className="list-header">
-                <div className="header-left">
-                    <h2 className="list-title">Notifications</h2>
-                    {unreadCount > 0 && (
-                        <span className="unread-badge">{unreadCount} unread</span>
-                    )}
+  const handleMarkAllAsRead = async () => {
+    try {
+      const response = await fetch('/api/notifications/mark-all-read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (response.ok) {
+        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      }
+    } catch (error) {
+      console.error('Error marking all as read:', error);
+    }
+  };
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  return (
+    <div className="notifications-list">
+      <div className="list-header">
+        <div className="header-left">
+          <h2 className="list-title">Notifications</h2>
+          {unreadCount > 0 && (
+            <span className="unread-badge">{unreadCount} unread</span>
+          )}
+        </div>
+        {unreadCount > 0 && (
+          <button className="mark-all-btn" onClick={handleMarkAllAsRead}>
+            Mark all as read
+          </button>
+        )}
+      </div>
+
+      {notifications.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-icon"><Bell className="w-12 h-12 text-gray-400 mx-auto" /></div>
+          <h3>No notifications yet</h3>
+          <p>When you receive notifications, they'll appear here</p>
+        </div>
+      ) : (
+        <div className="notifications-content">
+          {Object.entries(grouped).map(([period, items]) => (
+            items.length > 0 && (
+              <div key={period} className="notification-group">
+                <h3 className="group-title">
+                  {period === 'today' ? 'Today' :
+                    period === 'yesterday' ? 'Yesterday' :
+                      period === 'thisWeek' ? 'This Week' :
+                        'Older'}
+                </h3>
+                <div className="group-items">
+                  {items.map(notif => (
+                    <NotificationItem
+                      key={notif._id}
+                      notification={notif}
+                      onMarkAsRead={handleMarkAsRead}
+                    />
+                  ))}
                 </div>
-                {unreadCount > 0 && (
-                    <button className="mark-all-btn" onClick={handleMarkAllAsRead}>
-                        Mark all as read
-                    </button>
-                )}
-            </div>
+              </div>
+            )
+          ))}
+        </div>
+      )}
 
-            {notifications.length === 0 ? (
-                <div className="empty-state">
-                    <div className="empty-icon">🔔</div>
-                    <h3>No notifications yet</h3>
-                    <p>When you receive notifications, they'll appear here</p>
-                </div>
-            ) : (
-                <div className="notifications-content">
-                    {Object.entries(grouped).map(([period, items]) => (
-                        items.length > 0 && (
-                            <div key={period} className="notification-group">
-                                <h3 className="group-title">
-                                    {period === 'today' ? 'Today' :
-                                        period === 'yesterday' ? 'Yesterday' :
-                                            period === 'thisWeek' ? 'This Week' :
-                                                'Older'}
-                                </h3>
-                                <div className="group-items">
-                                    {items.map(notif => (
-                                        <NotificationItem
-                                            key={notif._id}
-                                            notification={notif}
-                                            onMarkAsRead={handleMarkAsRead}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                        )
-                    ))}
-                </div>
-            )}
-
-            <style jsx>{`
+      <style jsx>{`
         .notifications-list {
           background: white;
           border-radius: 16px;
@@ -216,6 +217,6 @@ export default function NotificationsList({ notifications: initialNotifications,
           }
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

@@ -1,6 +1,8 @@
 // components/about/ImpactStats.js
 "use client"
-import { useState, useEffect } from 'react';
+import { useInView } from 'react-intersection-observer';
+import { useState, useEffect, useRef } from 'react';
+import { IndianRupee, Users, TrendingUp, Target } from 'lucide-react';
 
 export default function ImpactStats() {
     const [stats, setStats] = useState({
@@ -33,7 +35,7 @@ export default function ImpactStats() {
 
     const impactStats = [
         {
-            icon: '💰',
+            icon: IndianRupee,
             label: 'Total Raised',
             value: stats.totalRaised,
             prefix: '₹',
@@ -43,7 +45,7 @@ export default function ImpactStats() {
             description: 'Funds raised for creators'
         },
         {
-            icon: '👥',
+            icon: Users,
             label: 'Creators Funded',
             value: stats.creatorsFunded,
             prefix: '',
@@ -53,7 +55,7 @@ export default function ImpactStats() {
             description: 'Dreams brought to life'
         },
         {
-            icon: '📈',
+            icon: TrendingUp,
             label: 'Success Rate',
             value: stats.successRate,
             prefix: '',
@@ -63,7 +65,7 @@ export default function ImpactStats() {
             description: 'Campaigns reach their goal'
         },
         {
-            icon: '🎯',
+            icon: Target,
             label: 'Avg Campaign',
             value: stats.avgCampaign,
             prefix: '₹',
@@ -97,8 +99,8 @@ export default function ImpactStats() {
                             <div className={`absolute inset-0 bg-gradient-to-r ${stat.color} opacity-0 group-hover:opacity-10 rounded-2xl transition-opacity`} />
 
                             {/* Icon */}
-                            <div className="text-5xl mb-4 transform group-hover:scale-110 transition-transform">
-                                {stat.icon}
+                            <div className="mb-4 transform group-hover:scale-110 transition-transform">
+                                <stat.icon className="w-10 h-10 text-purple-400" />
                             </div>
 
                             {/* Value */}

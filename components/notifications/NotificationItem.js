@@ -2,46 +2,47 @@
 
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
+import { Wallet, PartyPopper, MessageCircle, FileEdit, Settings, Megaphone } from 'lucide-react';
 
 export default function NotificationItem({ notification, onMarkAsRead }) {
-    const getIcon = (type) => {
-        const icons = {
-            payment: '💰',
-            milestone: '🎉',
-            comment: '💬',
-            update: '📝',
-            system: '⚙️'
-        };
-        return icons[type] || '📢';
+  const getIcon = (type) => {
+    const icons = {
+      payment: <Wallet className="w-6 h-6 text-green-400" />,
+      milestone: <PartyPopper className="w-6 h-6 text-yellow-400" />,
+      comment: <MessageCircle className="w-6 h-6 text-blue-400" />,
+      update: <FileEdit className="w-6 h-6 text-purple-400" />,
+      system: <Settings className="w-6 h-6 text-gray-400" />
     };
+    return icons[type] || <Megaphone className="w-6 h-6 text-gray-400" />;
+  };
 
-    const handleClick = async () => {
-        if (!notification.read && onMarkAsRead) {
-            await onMarkAsRead(notification._id);
-        }
-    };
+  const handleClick = async () => {
+    if (!notification.read && onMarkAsRead) {
+      await onMarkAsRead(notification._id);
+    }
+  };
 
-    return (
-        <Link
-            href={notification.link || '#'}
-            onClick={handleClick}
-            className={`notification-item ${notification.read ? 'read' : 'unread'}`}
-        >
-            <div className="notif-icon-wrapper">
-                <span className="notif-icon">{getIcon(notification.type)}</span>
-            </div>
+  return (
+    <Link
+      href={notification.link || '#'}
+      onClick={handleClick}
+      className={`notification-item ${notification.read ? 'read' : 'unread'}`}
+    >
+      <div className="notif-icon-wrapper">
+        <span className="notif-icon">{getIcon(notification.type)}</span>
+      </div>
 
-            <div className="notif-content">
-                <h4 className="notif-title">{notification.title}</h4>
-                <p className="notif-message">{notification.message}</p>
-                <span className="notif-time">
-                    {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
-                </span>
-            </div>
+      <div className="notif-content">
+        <h4 className="notif-title">{notification.title}</h4>
+        <p className="notif-message">{notification.message}</p>
+        <span className="notif-time">
+          {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+        </span>
+      </div>
 
-            {!notification.read && <span className="unread-indicator"></span>}
+      {!notification.read && <span className="unread-indicator"></span>}
 
-            <style jsx>{`
+      <style jsx>{`
         .notification-item {
           display: flex;
           gap: 16px;
@@ -132,6 +133,6 @@ export default function NotificationItem({ notification, onMarkAsRead }) {
           }
         }
       `}</style>
-        </Link>
-    );
+    </Link>
+  );
 }

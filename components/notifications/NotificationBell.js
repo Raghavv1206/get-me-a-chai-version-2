@@ -4,150 +4,151 @@ import { useState, useEffect, useRef } from 'react';
 import { FaBell } from 'react-icons/fa';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
+import { Wallet, PartyPopper, MessageCircle, FileEdit, Settings, Megaphone, Bell } from 'lucide-react';
 
 export default function NotificationBell() {
-    const [unreadCount, setUnreadCount] = useState(0);
-    const [notifications, setNotifications] = useState([]);
-    const [showDropdown, setShowDropdown] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const dropdownRef = useRef(null);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notifications, setNotifications] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const dropdownRef = useRef(null);
 
-    useEffect(() => {
-        fetchUnreadCount();
-        const interval = setInterval(fetchUnreadCount, 30000); // Poll every 30s
-        return () => clearInterval(interval);
-    }, []);
+  useEffect(() => {
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 30000); // Poll every 30s
+    return () => clearInterval(interval);
+  }, []);
 
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                setShowDropdown(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    const fetchUnreadCount = async () => {
-        try {
-            const res = await fetch('/api/notifications/count');
-            const data = await res.json();
-            if (data.success) {
-                setUnreadCount(data.count);
-            }
-        } catch (error) {
-            console.error('Error fetching unread count:', error);
-        }
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
     };
 
-    const fetchNotifications = async () => {
-        setLoading(true);
-        try {
-            const res = await fetch('/api/notifications/list?limit=5');
-            const data = await res.json();
-            if (data.success) {
-                setNotifications(data.notifications);
-            }
-        } catch (error) {
-            console.error('Error fetching notifications:', error);
-        } finally {
-            setLoading(false);
-        }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const fetchUnreadCount = async () => {
+    try {
+      const res = await fetch('/api/notifications/count');
+      const data = await res.json();
+      if (data.success) {
+        setUnreadCount(data.count);
+      }
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+    }
+  };
+
+  const fetchNotifications = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/notifications/list?limit=5');
+      const data = await res.json();
+      if (data.success) {
+        setNotifications(data.notifications);
+      }
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggle = () => {
+    if (!showDropdown) {
+      fetchNotifications();
+    }
+    setShowDropdown(!showDropdown);
+  };
+
+  const getNotificationIcon = (type) => {
+    const icons = {
+      payment: <Wallet className="w-5 h-5 text-green-400" />,
+      milestone: <PartyPopper className="w-5 h-5 text-yellow-400" />,
+      comment: <MessageCircle className="w-5 h-5 text-blue-400" />,
+      update: <FileEdit className="w-5 h-5 text-purple-400" />,
+      system: <Settings className="w-5 h-5 text-gray-400" />
     };
+    return icons[type] || <Megaphone className="w-5 h-5 text-gray-400" />;
+  };
 
-    const handleToggle = () => {
-        if (!showDropdown) {
-            fetchNotifications();
-        }
-        setShowDropdown(!showDropdown);
-    };
+  const markAsRead = async (id) => {
+    try {
+      await fetch('/api/notifications/mark-read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      fetchUnreadCount();
+    } catch (error) {
+      console.error('Error marking as read:', error);
+    }
+  };
 
-    const getNotificationIcon = (type) => {
-        const icons = {
-            payment: '💰',
-            milestone: '🎉',
-            comment: '💬',
-            update: '📝',
-            system: '⚙️'
-        };
-        return icons[type] || '📢';
-    };
+  return (
+    <div className="notification-bell" ref={dropdownRef}>
+      <button className="bell-button" onClick={handleToggle}>
+        <FaBell className="bell-icon" />
+        {unreadCount > 0 && (
+          <span className="badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
+        )}
+      </button>
 
-    const markAsRead = async (id) => {
-        try {
-            await fetch('/api/notifications/mark-read', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id })
-            });
-            fetchUnreadCount();
-        } catch (error) {
-            console.error('Error marking as read:', error);
-        }
-    };
-
-    return (
-        <div className="notification-bell" ref={dropdownRef}>
-            <button className="bell-button" onClick={handleToggle}>
-                <FaBell className="bell-icon" />
-                {unreadCount > 0 && (
-                    <span className="badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
-                )}
-            </button>
-
-            {showDropdown && (
-                <div className="dropdown">
-                    <div className="dropdown-header">
-                        <h3>Notifications</h3>
-                        {unreadCount > 0 && (
-                            <span className="unread-count">{unreadCount} unread</span>
-                        )}
-                    </div>
-
-                    <div className="notifications-list">
-                        {loading ? (
-                            <div className="loading-state">
-                                <div className="spinner"></div>
-                                <p>Loading...</p>
-                            </div>
-                        ) : notifications.length === 0 ? (
-                            <div className="empty-state">
-                                <span className="empty-icon">🔔</span>
-                                <p>No notifications yet</p>
-                            </div>
-                        ) : (
-                            notifications.map((notif) => (
-                                <Link
-                                    key={notif._id}
-                                    href={notif.link || '/notifications'}
-                                    className={`notification-item ${notif.read ? '' : 'unread'}`}
-                                    onClick={() => {
-                                        markAsRead(notif._id);
-                                        setShowDropdown(false);
-                                    }}
-                                >
-                                    <span className="notif-icon">{getNotificationIcon(notif.type)}</span>
-                                    <div className="notif-content">
-                                        <p className="notif-title">{notif.title}</p>
-                                        <p className="notif-message">{notif.message}</p>
-                                        <span className="notif-time">
-                                            {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true })}
-                                        </span>
-                                    </div>
-                                    {!notif.read && <span className="unread-dot"></span>}
-                                </Link>
-                            ))
-                        )}
-                    </div>
-
-                    <Link href="/notifications" className="view-all-btn" onClick={() => setShowDropdown(false)}>
-                        View All Notifications
-                    </Link>
-                </div>
+      {showDropdown && (
+        <div className="dropdown">
+          <div className="dropdown-header">
+            <h3>Notifications</h3>
+            {unreadCount > 0 && (
+              <span className="unread-count">{unreadCount} unread</span>
             )}
+          </div>
 
-            <style jsx>{`
+          <div className="notifications-list">
+            {loading ? (
+              <div className="loading-state">
+                <div className="spinner"></div>
+                <p>Loading...</p>
+              </div>
+            ) : notifications.length === 0 ? (
+              <div className="empty-state">
+                <span className="empty-icon"><Bell className="w-8 h-8 text-gray-400 mx-auto" /></span>
+                <p>No notifications yet</p>
+              </div>
+            ) : (
+              notifications.map((notif) => (
+                <Link
+                  key={notif._id}
+                  href={notif.link || '/notifications'}
+                  className={`notification-item ${notif.read ? '' : 'unread'}`}
+                  onClick={() => {
+                    markAsRead(notif._id);
+                    setShowDropdown(false);
+                  }}
+                >
+                  <span className="notif-icon">{getNotificationIcon(notif.type)}</span>
+                  <div className="notif-content">
+                    <p className="notif-title">{notif.title}</p>
+                    <p className="notif-message">{notif.message}</p>
+                    <span className="notif-time">
+                      {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true })}
+                    </span>
+                  </div>
+                  {!notif.read && <span className="unread-dot"></span>}
+                </Link>
+              ))
+            )}
+          </div>
+
+          <Link href="/notifications" className="view-all-btn" onClick={() => setShowDropdown(false)}>
+            View All Notifications
+          </Link>
+        </div>
+      )}
+
+      <style jsx>{`
         .notification-bell {
           position: relative;
         }
@@ -375,6 +376,6 @@ export default function NotificationBell() {
           }
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

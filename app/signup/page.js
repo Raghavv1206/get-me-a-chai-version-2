@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useSession } from "next-auth/react";
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Palette, Heart } from 'lucide-react';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -193,21 +194,21 @@ const Signup = () => {
                   type="button"
                   onClick={() => setFormData(prev => ({ ...prev, accountType: 'creator' }))}
                   className={`p-3 rounded-xl border text-sm font-medium transition-all ${formData.accountType === 'creator'
-                      ? 'bg-purple-600/20 border-purple-500 text-white shadow-lg shadow-purple-900/20'
-                      : 'bg-black/40 border-white/10 text-gray-400 hover:bg-white/5 hover:text-white'
+                    ? 'bg-purple-600/20 border-purple-500 text-white shadow-lg shadow-purple-900/20'
+                    : 'bg-black/40 border-white/10 text-gray-400 hover:bg-white/5 hover:text-white'
                     }`}
                 >
-                  🎨 Creator
+                  <Palette className="w-4 h-4 inline-block mr-1" /> Creator
                 </button>
                 <button
                   type="button"
                   onClick={() => setFormData(prev => ({ ...prev, accountType: 'supporter' }))}
                   className={`p-3 rounded-xl border text-sm font-medium transition-all ${formData.accountType === 'supporter'
-                      ? 'bg-blue-600/20 border-blue-500 text-white shadow-lg shadow-blue-900/20'
-                      : 'bg-black/40 border-white/10 text-gray-400 hover:bg-white/5 hover:text-white'
+                    ? 'bg-blue-600/20 border-blue-500 text-white shadow-lg shadow-blue-900/20'
+                    : 'bg-black/40 border-white/10 text-gray-400 hover:bg-white/5 hover:text-white'
                     }`}
                 >
-                  💝 Supporter
+                  <Heart className="w-4 h-4 inline-block mr-1" /> Supporter
                 </button>
               </div>
             </div>

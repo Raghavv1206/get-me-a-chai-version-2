@@ -8,6 +8,7 @@ import UserProfileDropdown from './UserProfileDropdown';
 import NotificationBell from './NotificationBell';
 import SearchModal from './SearchModal';
 import { useScrollIsolation } from '../hooks/useScrollIsolation';
+import { Search, Lightbulb, Star } from 'lucide-react';
 
 export default function Navbar() {
   const { data: session } = useSession();
@@ -52,9 +53,9 @@ export default function Navbar() {
   }, []);
 
   const navLinks = [
-    { name: 'Explore', href: '/explore', icon: '🔍' },
-    { name: 'How It Works', href: '/about', icon: '💡' },
-    { name: 'Success Stories', href: '/stories', icon: '⭐' }
+    { name: 'Explore', href: '/explore', icon: <Search className="w-5 h-5" /> },
+    { name: 'How It Works', href: '/about', icon: <Lightbulb className="w-5 h-5" /> },
+    { name: 'Success Stories', href: '/stories', icon: <Star className="w-5 h-5" /> }
   ];
 
   const dashboardLinks = [
@@ -235,7 +236,7 @@ export default function Navbar() {
                     }`}
                   onClick={() => setShowMobileMenu(false)}
                 >
-                  <span className="text-xl">{link.icon}</span>
+                  <span className="flex-shrink-0">{link.icon}</span>
                   <span className="font-medium">{link.name}</span>
                 </Link>
               ))

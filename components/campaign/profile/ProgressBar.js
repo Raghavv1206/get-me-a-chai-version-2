@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { Trophy } from 'lucide-react';
 
 export default function ProgressBar({
   current,
@@ -120,7 +121,7 @@ export default function ProgressBar({
 
       {percentage >= 100 && (
         <div className="goal-reached-badge">
-          🎉 Goal Reached!
+          <Trophy className="w-5 h-5 inline-block mr-1" /> Goal Reached!
         </div>
       )}
 

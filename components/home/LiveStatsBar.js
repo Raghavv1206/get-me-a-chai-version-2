@@ -1,6 +1,7 @@
 // components/home/LiveStatsBar.js
 "use client"
 import { useState, useEffect } from 'react';
+import { Wallet, Rocket, Users, TrendingUp } from 'lucide-react';
 
 export default function LiveStatsBar() {
     const [stats, setStats] = useState({
@@ -31,7 +32,7 @@ export default function LiveStatsBar() {
 
     const statCards = [
         {
-            icon: '💰',
+            icon: <Wallet className="w-10 h-10 sm:w-12 sm:h-12 text-green-400" />,
             label: 'Total Raised',
             value: stats.totalRaised,
             prefix: '₹',
@@ -40,7 +41,7 @@ export default function LiveStatsBar() {
             color: 'from-green-500 to-emerald-500'
         },
         {
-            icon: '🚀',
+            icon: <Rocket className="w-10 h-10 sm:w-12 sm:h-12 text-blue-400" />,
             label: 'Active Campaigns',
             value: stats.activeCampaigns,
             prefix: '',
@@ -49,7 +50,7 @@ export default function LiveStatsBar() {
             color: 'from-blue-500 to-cyan-500'
         },
         {
-            icon: '👥',
+            icon: <Users className="w-10 h-10 sm:w-12 sm:h-12 text-purple-400" />,
             label: 'Creators Funded',
             value: stats.creatorsFunded,
             prefix: '',
@@ -58,7 +59,7 @@ export default function LiveStatsBar() {
             color: 'from-purple-500 to-pink-500'
         },
         {
-            icon: '📈',
+            icon: <TrendingUp className="w-10 h-10 sm:w-12 sm:h-12 text-orange-400" />,
             label: 'Success Rate',
             value: stats.successRate,
             prefix: '',
@@ -81,7 +82,7 @@ export default function LiveStatsBar() {
                                 className="flex items-center gap-5 sm:gap-6 group px-4 md:px-8 border-r last:border-0 border-gray-700/50 relative"
                             >
                                 {/* Icon */}
-                                <div className="text-4xl sm:text-5xl transform group-hover:scale-110 transition-transform duration-300 drop-shadow-lg grayscale group-hover:grayscale-0">
+                                <div className="transform group-hover:scale-110 transition-transform duration-300 drop-shadow-lg grayscale group-hover:grayscale-0">
                                     {stat.icon}
                                 </div>
 

@@ -1,6 +1,7 @@
 // C:\Users\ragha\project\get-me-a-chai\components\Footer.js
 "use client"
 import Link from 'next/link';
+import { Heart } from 'lucide-react';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -12,7 +13,6 @@ export default function Footer() {
         { name: 'About Us', href: '/about' },
         { name: 'How It Works', href: '/how-it-works' },
         { name: 'Explore', href: '/explore' },
-        { name: 'Pricing', href: '/pricing' },
       ]
     },
     {
@@ -128,7 +128,7 @@ export default function Footer() {
               Secure
             </span>
             <span className="text-gray-700">·</span>
-            <span className="text-gray-600 text-xs">Built with ❤️ in India</span>
+            <span className="text-gray-600 text-xs flex items-center gap-1">Built with <Heart className="w-3 h-3 text-red-500 fill-red-500" /> in India</span>
           </div>
         </div>
       </div>

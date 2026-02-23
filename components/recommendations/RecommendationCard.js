@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
+import { Sparkles } from 'lucide-react';
 
 /**
  * RecommendationCard Component
@@ -135,7 +136,7 @@ export default function RecommendationCard({ campaign }) {
                     >
                         <div className={`px-3 py-1 bg-gray-900/90 backdrop-blur-sm rounded-full flex items-center gap-1 ${getMatchColor(validMatchScore)}`}>
                             <span className="text-xs font-bold">{validMatchScore}%</span>
-                            <span className="text-xs" aria-hidden="true">✨</span>
+                            <Sparkles className="w-3 h-3" aria-hidden="true" />
                         </div>
 
                         {/* Tooltip */}

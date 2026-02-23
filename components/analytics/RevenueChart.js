@@ -1,6 +1,7 @@
 'use client';
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { IndianRupee } from 'lucide-react';
 
 export default function RevenueChart({ data = {} }) {
     const campaigns = (data && data.campaigns) || [];
@@ -43,7 +44,7 @@ export default function RevenueChart({ data = {} }) {
     return (
         <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 lg:p-8 h-full">
             <h3 className="text-xl font-bold text-white mb-1 flex items-center gap-2">
-                <span>💰</span> Revenue by Campaign
+                <IndianRupee className="w-5 h-5 text-green-400" /> Revenue by Campaign
             </h3>
             <p className="text-sm text-gray-400 mb-6">Compare performance across your campaigns</p>
 

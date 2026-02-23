@@ -1,6 +1,7 @@
 "use client"
 import { useState } from 'react';
 import { useInView } from 'react-intersection-observer';
+import { Bot, Rocket, Wallet, Film } from 'lucide-react';
 
 export default function HowItWorksSection() {
   const [showVideo, setShowVideo] = useState(false);
@@ -14,7 +15,7 @@ export default function HowItWorksSection() {
       number: '01',
       title: 'Create with AI',
       description: 'Use our AI-powered campaign builder to craft compelling stories, set goals, and create reward tiers in minutes.',
-      icon: '🤖',
+      icon: <Bot className="w-12 h-12 text-white" />,
       gradient: 'from-purple-500 to-pink-500',
       features: ['AI Story Generation', 'Smart Goal Suggestions', 'Auto-generated FAQs']
     },
@@ -22,7 +23,7 @@ export default function HowItWorksSection() {
       number: '02',
       title: 'Launch & Share',
       description: 'Publish your campaign and share it with your community across social media, email, and more.',
-      icon: '🚀',
+      icon: <Rocket className="w-12 h-12 text-white" />,
       gradient: 'from-blue-500 to-cyan-500',
       features: ['One-click Publishing', 'Social Sharing', 'Email Campaigns']
     },
@@ -30,7 +31,7 @@ export default function HowItWorksSection() {
       number: '03',
       title: 'Get Funded',
       description: 'Receive support from backers worldwide with secure payments, subscriptions, and real-time analytics.',
-      icon: '💰',
+      icon: <Wallet className="w-12 h-12 text-white" />,
       gradient: 'from-green-500 to-emerald-500',
       features: ['Instant Payments', 'Recurring Support', 'Live Dashboard']
     }
@@ -81,7 +82,7 @@ export default function HowItWorksSection() {
                 </div>
 
                 {/* Icon */}
-                <div className="text-6xl mb-6 mt-4 group-hover:scale-110 transition-transform">
+                <div className="mb-6 mt-4 group-hover:scale-110 transition-transform">
                   {step.icon}
                 </div>
 
@@ -135,7 +136,7 @@ export default function HowItWorksSection() {
 
                 {/* Fake thumbnail */}
                 <div className="w-full h-full flex items-center justify-center">
-                  <div className="text-6xl">🎬</div>
+                  <div className="flex justify-center"><Film className="w-16 h-16 text-gray-500" /></div>
                 </div>
 
                 <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent">

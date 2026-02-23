@@ -7,6 +7,7 @@ import { useSearchParams } from 'next/navigation'
 import { ToastContainer, toast, Bounce } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useRouter } from 'next/navigation'
+import { BadgeCheck, Trophy, Zap } from 'lucide-react'
 
 const PaymentPage = ({ username }) => {
 
@@ -207,7 +208,7 @@ const PaymentPage = ({ username }) => {
         <div className="info flex flex-col items-center mt-20 mb-8 gap-2 px-4 text-center">
           <div className="font-bold text-3xl text-white tracking-tight flex items-center gap-2">
             @{username}
-            {currentUser.verified && <span className="text-blue-500 text-xl" title="Verified">✓</span>}
+            {currentUser.verified && <BadgeCheck className="w-5 h-5 text-blue-500" title="Verified" />}
           </div>
           <div className="text-gray-400 text-lg font-light">Lets help {username} get a chai!</div>
           <div className="text-purple-400 font-medium bg-purple-900/20 px-4 py-1 rounded-full border border-purple-500/20">
@@ -221,7 +222,7 @@ const PaymentPage = ({ username }) => {
             {/* Supporters List */}
             <div className="w-full md:w-1/2 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 hover:bg-white/10 transition-all duration-300">
               <h2 className="text-2xl font-bold mb-6 text-white flex items-center gap-2">
-                <span>🏆</span> Top Supporters
+                <Trophy className="w-6 h-6 text-yellow-400" /> Top Supporters
               </h2>
               <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
                 {payments.length === 0 && (
@@ -251,7 +252,7 @@ const PaymentPage = ({ username }) => {
             {/* Make Payment Form */}
             <div className="w-full md:w-1/2 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 md:p-8 sticky top-24 h-fit hover:bg-white/10 transition-all duration-300">
               <h2 className="text-2xl font-bold mb-6 text-white flex items-center gap-2">
-                <span>⚡</span> Make a Payment
+                <Zap className="w-6 h-6 text-yellow-400" /> Make a Payment
               </h2>
               <div className="flex gap-4 flex-col">
                 <div>

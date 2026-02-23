@@ -5,6 +5,7 @@ import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
 import SuggestedActions from './SuggestedActions';
 import { ChatHistory } from './ChatHistory';
+import { Bot } from 'lucide-react';
 
 export default function ChatWindow({ onClose, onMinimize, userContext }) {
     const [messages, setMessages] = useState([]);
@@ -40,7 +41,7 @@ export default function ChatWindow({ onClose, onMinimize, userContext }) {
         } else {
             setMessages([{
                 role: 'assistant',
-                content: `Hi ${userContext.name}! 👋 I'm your AI assistant. How can I help you today?`,
+                content: `Hi ${userContext.name}! I'm your AI assistant. How can I help you today?`,
                 timestamp: new Date(),
             }]);
         }
@@ -126,7 +127,7 @@ export default function ChatWindow({ onClose, onMinimize, userContext }) {
         if (confirm('Clear chat history?')) {
             const welcomeMessage = {
                 role: 'assistant',
-                content: `Hi ${userContext.name}! 👋 I'm your AI assistant. How can I help you today?`,
+                content: `Hi ${userContext.name}! I'm your AI assistant. How can I help you today?`,
                 timestamp: new Date(),
             };
             setMessages([welcomeMessage]);
@@ -140,7 +141,7 @@ export default function ChatWindow({ onClose, onMinimize, userContext }) {
             <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                        <span className="text-xl">🤖</span>
+                        <Bot className="w-5 h-5 text-white" />
                     </div>
                     <div>
                         <h3 className="font-semibold">AI Assistant</h3>

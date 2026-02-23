@@ -281,7 +281,7 @@ export async function deleteNotification(notificationId) {
  */
 export async function notifyPaymentReceived(creatorId, paymentData) {
     return await createNotification(creatorId, 'payment', {
-        title: '💰 New Payment Received!',
+        title: 'New Payment Received!',
         message: `${paymentData.supporterName} supported your campaign "${paymentData.campaignTitle}" with ₹${paymentData.amount}`,
         link: `/dashboard/campaigns/${paymentData.campaignId}`,
         metadata: {
@@ -300,7 +300,7 @@ export async function notifyPaymentReceived(creatorId, paymentData) {
  */
 export async function notifyMilestoneReached(creatorId, milestoneData) {
     return await createNotification(creatorId, 'milestone', {
-        title: '🎉 Milestone Reached!',
+        title: 'Milestone Reached!',
         message: `Your campaign "${milestoneData.campaignTitle}" reached ${milestoneData.percentage}% of its goal!`,
         link: `/dashboard/campaigns/${milestoneData.campaignId}`,
         metadata: {
@@ -319,7 +319,7 @@ export async function notifyMilestoneReached(creatorId, milestoneData) {
  */
 export async function notifyNewComment(creatorId, commentData) {
     return await createNotification(creatorId, 'comment', {
-        title: '💬 New Comment',
+        title: 'New Comment',
         message: `${commentData.commenterName} commented on your campaign "${commentData.campaignTitle}"`,
         link: `/${commentData.campaignSlug}#comments`,
         metadata: {
@@ -340,7 +340,7 @@ export async function notifyCampaignUpdate(supporterIds, updateData) {
         const notifications = supporterIds.map(supporterId => ({
             user: supporterId,
             type: 'update',
-            title: '📝 New Campaign Update',
+            title: 'New Campaign Update',
             message: `${updateData.creatorName} posted an update: "${updateData.updateTitle}"`,
             link: `/${updateData.campaignSlug}#updates`,
             metadata: {

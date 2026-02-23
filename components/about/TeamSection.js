@@ -1,6 +1,7 @@
 // components/about/TeamSection.js
 "use client"
 import { useInView } from 'react-intersection-observer';
+import { Bot, Monitor, Palette, MessageCircle } from 'lucide-react';
 
 export default function TeamSection() {
     const { ref, inView } = useInView({
@@ -14,7 +15,7 @@ export default function TeamSection() {
             role: 'Artificial Intelligence',
             bio: 'Building cutting-edge AI solutions for creators',
             skills: ['Machine Learning', 'NLP', 'Deep Learning'],
-            icon: '🤖',
+            icon: Bot,
             color: 'from-purple-500 to-pink-500'
         },
         {
@@ -22,7 +23,7 @@ export default function TeamSection() {
             role: 'Full Stack Development',
             bio: 'Creating seamless user experiences',
             skills: ['Next.js', 'React', 'Node.js'],
-            icon: '💻',
+            icon: Monitor,
             color: 'from-blue-500 to-cyan-500'
         },
         {
@@ -30,7 +31,7 @@ export default function TeamSection() {
             role: 'UI/UX Design',
             bio: 'Crafting beautiful and intuitive interfaces',
             skills: ['UI Design', 'UX Research', 'Prototyping'],
-            icon: '🎨',
+            icon: Palette,
             color: 'from-green-500 to-emerald-500'
         },
         {
@@ -38,7 +39,7 @@ export default function TeamSection() {
             role: 'Customer Success',
             bio: 'Ensuring every creator succeeds',
             skills: ['Support', 'Training', 'Community'],
-            icon: '💬',
+            icon: MessageCircle,
             color: 'from-orange-500 to-red-500'
         }
     ];
@@ -66,8 +67,8 @@ export default function TeamSection() {
                             }}
                         >
                             {/* Icon/Avatar */}
-                            <div className={`w-20 h-20 mx-auto mb-4 bg-gradient-to-r ${member.color} rounded-full flex items-center justify-center text-4xl transform group-hover:scale-110 transition-transform`}>
-                                {member.icon}
+                            <div className={`w-20 h-20 mx-auto mb-4 bg-gradient-to-r ${member.color} rounded-full flex items-center justify-center transform group-hover:scale-110 transition-transform`}>
+                                <member.icon className="w-8 h-8 text-white" />
                             </div>
 
                             {/* Name & Role */}

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { FaHeart, FaShare, FaFlag, FaClock, FaFire, FaLock } from 'react-icons/fa';
+import { Lock } from 'lucide-react';
 import Script from 'next/script';
 import { ToastContainer, toast, Bounce } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -416,7 +417,7 @@ export default function CampaignSidebar({ campaign, creator, selectedReward, onS
                     {/* Login Required Message */}
                     {!session && !isEnded && (
                         <div className="mt-3 text-center text-sm text-gray-400">
-                            <p>🔒 You need to be logged in to support this campaign</p>
+                            <p><Lock className="w-4 h-4 inline-block mr-1" /> You need to be logged in to support this campaign</p>
                         </div>
                     )}
 

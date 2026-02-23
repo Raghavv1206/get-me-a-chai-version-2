@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Monitor, Palette, Music, Gamepad2, Pizza, BookOpen, Star, Package, Flame } from 'lucide-react';
 
 // Reusable Campaign Card Component
 function CampaignCard({ campaign, featured = false }) {
@@ -17,12 +18,12 @@ function CampaignCard({ campaign, featured = false }) {
   };
 
   const categoryIcons = {
-    technology: '💻',
-    art: '🎨',
-    music: '🎵',
-    games: '🎮',
-    food: '🍕',
-    education: '📚'
+    technology: <Monitor className="w-12 h-12 text-blue-400" />,
+    art: <Palette className="w-12 h-12 text-pink-400" />,
+    music: <Music className="w-12 h-12 text-red-400" />,
+    games: <Gamepad2 className="w-12 h-12 text-green-400" />,
+    food: <Pizza className="w-12 h-12 text-orange-400" />,
+    education: <BookOpen className="w-12 h-12 text-indigo-400" />
   };
 
   const router = useRouter();
@@ -35,14 +36,14 @@ function CampaignCard({ campaign, featured = false }) {
       {/* Featured badge */}
       {featured && (
         <div className="absolute top-4 left-4 z-10 px-3 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full text-xs font-bold text-white shadow-lg flex items-center gap-1">
-          <span>⭐</span> Featured
+          <Star className="w-3 h-3 text-white fill-white" /> Featured
         </div>
       )}
 
       {/* Campaign Image */}
       <div className="relative h-48 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center text-6xl">
-          {categoryIcons[campaign.category] || '📦'}
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
+          {categoryIcons[campaign.category] || <Package className="w-12 h-12 text-gray-400" />}
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
 
@@ -230,7 +231,7 @@ export default function TrendingCampaigns() {
           <div>
             <div className="inline-block mb-4">
               <span className="px-4 py-2 bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/20 rounded-full text-orange-400 text-sm font-semibold backdrop-blur-sm">
-                🔥 Trending Now
+                <Flame className="w-4 h-4 inline-block mr-1" /> Trending Now
               </span>
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-2">

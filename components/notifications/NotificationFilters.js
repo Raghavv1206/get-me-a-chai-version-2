@@ -30,12 +30,12 @@ export default function NotificationFilters({ filter, setFilter }) {
 
   // Memoized filter options
   const types = useMemo(() => [
-    { value: 'all', label: 'All Notifications', icon: '📬' },
-    { value: 'payment', label: 'Payments', icon: '💰' },
-    { value: 'milestone', label: 'Milestones', icon: '🎯' },
-    { value: 'comment', label: 'Comments', icon: '💬' },
-    { value: 'update', label: 'Updates', icon: '📝' },
-    { value: 'system', label: 'System', icon: '⚙️' }
+    { value: 'all', label: 'All Notifications' },
+    { value: 'payment', label: 'Payments' },
+    { value: 'milestone', label: 'Milestones' },
+    { value: 'comment', label: 'Comments' },
+    { value: 'update', label: 'Updates' },
+    { value: 'system', label: 'System' }
   ], []);
 
   const statuses = useMemo(() => [
@@ -79,7 +79,7 @@ export default function NotificationFilters({ filter, setFilter }) {
           >
             {types.map(type => (
               <option key={type.value} value={type.value}>
-                {type.icon} {type.label}
+                {type.label}
               </option>
             ))}
           </select>

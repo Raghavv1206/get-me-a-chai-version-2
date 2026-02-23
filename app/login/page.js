@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useSession, signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { Rocket } from 'lucide-react';
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '', remember: false });
@@ -129,7 +130,7 @@ const Login = () => {
             disabled={loading}
             className="w-full mb-6 flex items-center justify-center gap-2 py-3 bg-white/5 hover:bg-white/10 text-white text-sm font-semibold rounded-xl border border-white/10 transition-all group"
           >
-            <span className="group-hover:scale-110 transition-transform">🚀</span>
+            <span className="group-hover:scale-110 transition-transform"><Rocket className="w-4 h-4" /></span>
             Try Demo Account
           </button>
 

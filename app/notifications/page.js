@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
+import { DollarSign, Rocket, MessageCircle, Target, Bell, Megaphone } from 'lucide-react';
 
 export default function NotificationsPage() {
     const { data: session, status } = useSession();
@@ -89,13 +90,14 @@ export default function NotificationsPage() {
     };
 
     const getNotificationIcon = (type) => {
+        const iconClass = "w-5 h-5";
         switch (type) {
-            case 'payment': return '💰';
-            case 'campaign': return '🚀';
-            case 'comment': return '💬';
-            case 'milestone': return '🎯';
-            case 'system': return '🔔';
-            default: return '📢';
+            case 'payment': return <DollarSign className={`${iconClass} text-green-400`} />;
+            case 'campaign': return <Rocket className={`${iconClass} text-purple-400`} />;
+            case 'comment': return <MessageCircle className={`${iconClass} text-blue-400`} />;
+            case 'milestone': return <Target className={`${iconClass} text-yellow-400`} />;
+            case 'system': return <Bell className={`${iconClass} text-gray-400`} />;
+            default: return <Megaphone className={`${iconClass} text-gray-400`} />;
         }
     };
 
@@ -188,7 +190,7 @@ export default function NotificationsPage() {
                     {/* Notifications List */}
                     {filteredNotifications.length === 0 ? (
                         <div className="text-center py-20 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl">
-                            <div className="text-6xl mb-4">🔔</div>
+                            <div className="mb-4 flex justify-center"><Bell className="w-14 h-14 text-gray-500" /></div>
                             <h3 className="text-xl font-bold text-white mb-2">
                                 {filter === 'unread' ? 'No unread notifications' : 'No notifications'}
                             </h3>

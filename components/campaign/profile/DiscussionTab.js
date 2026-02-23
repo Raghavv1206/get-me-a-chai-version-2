@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
+import { MessageCircle } from 'lucide-react';
 import { FaHeart, FaRegHeart, FaReply, FaFlag, FaTrash, FaThumbtack, FaClock, FaFire, FaSortAmountDown, FaTimes } from 'react-icons/fa';
 import { toast } from '@/lib/apiToast';
 
@@ -447,7 +448,7 @@ export default function DiscussionTab({ campaignId, creatorId }) {
         </div>
       ) : comments.length === 0 ? (
         <div className="text-center py-16 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl">
-          <div className="text-6xl mb-4">💬</div>
+          <MessageCircle className="w-12 h-12 text-purple-400 mx-auto mb-4" />
           <h3 className="text-xl font-bold text-white mb-2">No comments yet</h3>
           <p className="text-gray-400">Be the first to share your thoughts!</p>
         </div>

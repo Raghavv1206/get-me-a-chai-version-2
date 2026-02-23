@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import SubscriptionCard from './SubscriptionCard';
 import { FaSpinner } from 'react-icons/fa';
+import { CreditCard } from 'lucide-react';
 import { apiToast, toast } from '@/lib/apiToast';
 
 export default function SubscriptionManager() {
@@ -190,7 +191,7 @@ export default function SubscriptionManager() {
 
       {filteredSubscriptions.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-icon">💳</div>
+          <div className="empty-icon"><CreditCard className="w-12 h-12 text-gray-500 mx-auto" /></div>
           <h3>No subscriptions found</h3>
           <p>
             {filter === 'all'

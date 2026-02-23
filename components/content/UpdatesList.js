@@ -4,111 +4,113 @@ import { useState } from 'react';
 import UpdateCard from './UpdateCard';
 import { FaSearch, FaPlus, FaFilter } from 'react-icons/fa';
 import Link from 'next/link';
+import { FileText } from 'lucide-react';
 
 export default function UpdatesList({ updates: initialUpdates, onEdit, onDelete }) {
-    const [updates, setUpdates] = useState(initialUpdates || []);
-    const [filter, setFilter] = useState('all');
-    const [search, setSearch] = useState('');
-    const [sortBy, setSortBy] = useState('recent');
+  const [updates, setUpdates] = useState(initialUpdates || []);
+  const [filter, setFilter] = useState('all');
+  const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState('recent');
 
-    const filtered = updates.filter(update => {
-        const matchesFilter = filter === 'all' || update.status === filter;
-        const matchesSearch = update.title.toLowerCase().includes(search.toLowerCase()) ||
-            update.campaign?.title.toLowerCase().includes(search.toLowerCase());
-        return matchesFilter && matchesSearch;
-    });
+  const filtered = updates.filter(update => {
+    const matchesFilter = filter === 'all' || update.status === filter;
+    const matchesSearch = update.title.toLowerCase().includes(search.toLowerCase()) ||
+      update.campaign?.title.toLowerCase().includes(search.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
 
-    const sorted = [...filtered].sort((a, b) => {
-        if (sortBy === 'recent') {
-            return new Date(b.createdAt) - new Date(a.createdAt);
-        } else if (sortBy === 'oldest') {
-            return new Date(a.createdAt) - new Date(b.createdAt);
-        } else if (sortBy === 'views') {
-            return (b.views || 0) - (a.views || 0);
-        }
-        return 0;
-    });
+  const sorted = [...filtered].sort((a, b) => {
+    if (sortBy === 'recent') {
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    } else if (sortBy === 'oldest') {
+      return new Date(a.createdAt) - new Date(b.createdAt);
+    } else if (sortBy === 'views') {
+      return (b.views || 0) - (a.views || 0);
+    }
+    return 0;
+  });
 
-    return (
-        <div className="updates-list">
-            <div className="list-header">
-                <div className="header-left">
-                    <h2 className="list-title">Campaign Updates</h2>
-                    <p className="list-subtitle">{updates.length} total updates</p>
-                </div>
-                <Link href="/dashboard/content/new" className="create-btn">
-                    <FaPlus /> Create Update
-                </Link>
-            </div>
+  return (
+    <div className="updates-list">
+      <div className="list-header">
+        <div className="header-left">
+          <h2 className="list-title">Campaign Updates</h2>
+          <p className="list-subtitle">{updates.length} total updates</p>
+        </div>
+        <Link href="/dashboard/content/new" className="create-btn">
+          <FaPlus /> Create Update
+        </Link>
+      </div>
 
-            <div className="list-filters">
-                <div className="search-box">
-                    <FaSearch className="search-icon" />
-                    <input
-                        type="text"
-                        placeholder="Search updates..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="search-input"
-                    />
-                </div>
+      <div className="list-filters">
+        <div className="search-box">
+          <FaSearch className="search-icon" />
+          <input
+            type="text"
+            placeholder="Search updates..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="search-input"
+          />
+        </div>
 
-                <div className="filter-group">
-                    <FaFilter className="filter-icon" />
-                    <select
-                        value={filter}
-                        onChange={(e) => setFilter(e.target.value)}
-                        className="filter-select"
-                    >
-                        <option value="all">All Updates</option>
-                        <option value="published">Published</option>
-                        <option value="draft">Drafts</option>
-                        <option value="scheduled">Scheduled</option>
-                    </select>
-                </div>
+        <div className="filter-group">
+          <FaFilter className="filter-icon" />
+          <select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="filter-select"
+          >
+            <option value="all">All Updates</option>
+            <option value="published">Published</option>
+            <option value="draft">Drafts</option>
+            <option value="scheduled">Scheduled</option>
+          </select>
+        </div>
 
-                <div className="sort-group">
-                    <select
-                        value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value)}
-                        className="sort-select"
-                    >
-                        <option value="recent">Most Recent</option>
-                        <option value="oldest">Oldest First</option>
-                        <option value="views">Most Viewed</option>
-                    </select>
-                </div>
-            </div>
+        <div className="sort-group">
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="sort-select"
+          >
+            <option value="recent">Most Recent</option>
+            <option value="oldest">Oldest First</option>
+            <option value="views">Most Viewed</option>
+          </select>
+        </div>
+      </div>
 
-            {sorted.length === 0 ? (
-                <div className="empty-state">
-                    <div className="empty-icon">📝</div>
-                    <h3>No updates found</h3>
-                    <p>
-                        {search || filter !== 'all'
-                            ? 'Try adjusting your filters'
-                            : 'Create your first campaign update to engage with your supporters'}
-                    </p>
-                    <Link href="/dashboard/content/new" className="empty-cta">
-                        <FaPlus /> Create Your First Update
-                    </Link>
-                </div>
-            ) : (
-                <div className="updates-grid">
-                    {sorted.map(update => (
-                        <UpdateCard
-                            key={update._id}
-                            update={update}
-                            onEdit={onEdit}
-                            onDelete={onDelete}
-                        />
-                    ))}
-                </div>
-            )}
+      {sorted.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-icon"><FileText className="w-16 h-16 text-gray-500 mx-auto" /></div>
+          <h3>No updates found</h3>
+          <p>
+            {search || filter !== 'all'
+              ? 'Try adjusting your filters'
+              : 'Create your first campaign update to engage with your supporters'}
+          </p>
+          <Link href="/dashboard/content/new" className="empty-cta">
+            <FaPlus /> Create Your First Update
+          </Link>
+        </div>
+      ) : (
+        <div className="updates-grid">
+          {sorted.map(update => (
+            <UpdateCard
+              key={update._id}
+              update={update}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
+          ))}
+        </div>
+      )}
 
-            <style jsx>{`
+      <style jsx>{`
         .updates-list {
-          background: white;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: 16px;
           padding: 32px;
         }
@@ -128,7 +130,7 @@ export default function UpdatesList({ updates: initialUpdates, onEdit, onDelete 
         .list-title {
           font-size: 1.75rem;
           font-weight: 700;
-          color: #111827;
+          color: #f3f4f6;
           margin: 0 0 4px 0;
         }
 
@@ -143,7 +145,7 @@ export default function UpdatesList({ updates: initialUpdates, onEdit, onDelete 
           align-items: center;
           gap: 8px;
           padding: 12px 24px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
           color: white;
           border: none;
           border-radius: 10px;
@@ -155,7 +157,7 @@ export default function UpdatesList({ updates: initialUpdates, onEdit, onDelete 
 
         .create-btn:hover {
           transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+          box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
         }
 
         .list-filters {
@@ -176,21 +178,28 @@ export default function UpdatesList({ updates: initialUpdates, onEdit, onDelete 
           left: 14px;
           top: 50%;
           transform: translateY(-50%);
-          color: #9ca3af;
+          color: #6b7280;
         }
 
         .search-input {
           width: 100%;
           padding: 10px 14px 10px 40px;
-          border: 2px solid #e5e7eb;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
           border-radius: 10px;
           font-size: 0.95rem;
+          color: #e5e7eb;
           transition: all 0.3s ease;
+        }
+
+        .search-input::placeholder {
+          color: #6b7280;
         }
 
         .search-input:focus {
           outline: none;
-          border-color: #667eea;
+          border-color: rgba(139, 92, 246, 0.5);
+          box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
         }
 
         .filter-group,
@@ -207,23 +216,30 @@ export default function UpdatesList({ updates: initialUpdates, onEdit, onDelete 
         .filter-select,
         .sort-select {
           padding: 10px 14px;
-          border: 2px solid #e5e7eb;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
           border-radius: 10px;
           font-size: 0.95rem;
-          background: white;
+          color: #e5e7eb;
           cursor: pointer;
           transition: all 0.3s ease;
         }
 
+        .filter-select option,
+        .sort-select option {
+          background: #1f2937;
+          color: #f3f4f6;
+        }
+
         .filter-select:hover,
         .sort-select:hover {
-          border-color: #d1d5db;
+          border-color: rgba(255, 255, 255, 0.2);
         }
 
         .filter-select:focus,
         .sort-select:focus {
           outline: none;
-          border-color: #667eea;
+          border-color: rgba(139, 92, 246, 0.5);
         }
 
         .updates-grid {
@@ -245,7 +261,7 @@ export default function UpdatesList({ updates: initialUpdates, onEdit, onDelete 
         .empty-state h3 {
           font-size: 1.5rem;
           font-weight: 700;
-          color: #111827;
+          color: #e5e7eb;
           margin: 0 0 8px 0;
         }
 
@@ -260,7 +276,7 @@ export default function UpdatesList({ updates: initialUpdates, onEdit, onDelete 
           align-items: center;
           gap: 8px;
           padding: 12px 24px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
           color: white;
           border-radius: 10px;
           font-weight: 600;
@@ -270,7 +286,7 @@ export default function UpdatesList({ updates: initialUpdates, onEdit, onDelete 
 
         .empty-cta:hover {
           transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+          box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
         }
 
         @media (max-width: 768px) {
@@ -301,6 +317,6 @@ export default function UpdatesList({ updates: initialUpdates, onEdit, onDelete 
           }
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

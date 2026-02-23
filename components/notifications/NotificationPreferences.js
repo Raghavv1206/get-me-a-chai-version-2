@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Bell, Mail, Save } from 'lucide-react';
+import { Bell, Mail, Save, Wallet, PartyPopper, MessageCircle, FileEdit, Settings } from 'lucide-react';
 import { toast } from '@/lib/apiToast';
 
 export default function NotificationPreferences({ preferences: initialPreferences, onSave }) {
@@ -51,11 +51,11 @@ export default function NotificationPreferences({ preferences: initialPreference
   };
 
   const notificationTypes = [
-    { key: 'payment', label: 'Payment Received', icon: '💰', description: 'When you receive a new payment' },
-    { key: 'milestone', label: 'Milestone Reached', icon: '🎉', description: 'When your campaign reaches a milestone' },
-    { key: 'comment', label: 'New Comments', icon: '💬', description: 'When someone comments on your campaign' },
-    { key: 'update', label: 'Campaign Updates', icon: '📝', description: 'Updates from campaigns you support' },
-    { key: 'system', label: 'System Notifications', icon: '⚙️', description: 'Important system announcements' }
+    { key: 'payment', label: 'Payment Received', icon: <Wallet className="w-6 h-6 text-green-400" />, description: 'When you receive a new payment' },
+    { key: 'milestone', label: 'Milestone Reached', icon: <PartyPopper className="w-6 h-6 text-yellow-400" />, description: 'When your campaign reaches a milestone' },
+    { key: 'comment', label: 'New Comments', icon: <MessageCircle className="w-6 h-6 text-blue-400" />, description: 'When someone comments on your campaign' },
+    { key: 'update', label: 'Campaign Updates', icon: <FileEdit className="w-6 h-6 text-purple-400" />, description: 'Updates from campaigns you support' },
+    { key: 'system', label: 'System Notifications', icon: <Settings className="w-6 h-6 text-gray-400" />, description: 'Important system announcements' }
   ];
 
   return (

@@ -1,6 +1,7 @@
 // components/campaign/MediaStep.js
 "use client"
 import { useState } from 'react';
+import { Lightbulb } from 'lucide-react';
 
 export default function MediaStep({ data, onUpdate, onNext, onBack }) {
     const [formData, setFormData] = useState({
@@ -67,7 +68,7 @@ export default function MediaStep({ data, onUpdate, onNext, onBack }) {
                     </div>
                 )}
                 <p className="mt-2 text-xs text-gray-500">
-                    💡 Tip: Use a high-quality image (recommended: 1200×630px). If no image is provided, a default placeholder will be used.
+                    <Lightbulb className="w-3 h-3 inline-block mr-1 text-yellow-400" /> Tip: Use a high-quality image (recommended: 1200×630px). If no image is provided, a default placeholder will be used.
                 </p>
             </div>
 
@@ -117,7 +118,7 @@ export default function MediaStep({ data, onUpdate, onNext, onBack }) {
                     placeholder="https://youtube.com/watch?v=..."
                 />
                 <p className="mt-2 text-xs text-gray-500">
-                    💡 Supports YouTube and Vimeo links
+                    <Lightbulb className="w-3 h-3 inline-block mr-1 text-yellow-400" /> Supports YouTube and Vimeo links
                 </p>
             </div>
 

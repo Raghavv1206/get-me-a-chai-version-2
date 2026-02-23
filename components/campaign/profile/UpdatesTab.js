@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { FaHeart, FaRegHeart, FaComment, FaLock, FaClock } from 'react-icons/fa';
+import { Megaphone } from 'lucide-react';
 
 export default function UpdatesTab({ campaignId, isSupporter = false }) {
   const [updates, setUpdates] = useState([]);
@@ -95,7 +96,7 @@ export default function UpdatesTab({ campaignId, isSupporter = false }) {
   if (updates.length === 0) {
     return (
       <div className="text-center py-16">
-        <div className="text-6xl mb-4">📢</div>
+        <Megaphone className="w-12 h-12 text-purple-400 mx-auto mb-4" />
         <h3 className="text-xl font-bold text-white mb-2">No Updates Yet</h3>
         <p className="text-gray-400">The creator hasn't posted any updates for this campaign yet.</p>
       </div>
@@ -166,8 +167,8 @@ export default function UpdatesTab({ campaignId, isSupporter = false }) {
                 <div className="flex items-center gap-4 pt-4 border-t border-white/10">
                   <button
                     className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${likedUpdates.has(update._id)
-                        ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                        : 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10 hover:text-white'
+                      ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                      : 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10 hover:text-white'
                       }`}
                     onClick={() => handleLike(update._id)}
                   >

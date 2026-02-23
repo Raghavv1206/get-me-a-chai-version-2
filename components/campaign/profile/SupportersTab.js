@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { FaTrophy, FaHeart, FaClock } from 'react-icons/fa';
+import { Medal, HeartHandshake } from 'lucide-react';
 
 export default function SupportersTab({ campaignId }) {
   const [supporters, setSupporters] = useState([]);
@@ -97,11 +98,11 @@ export default function SupportersTab({ campaignId }) {
                   }`}
               >
                 {/* Rank Badge */}
-                <div className="text-3xl min-w-[50px] text-center">
-                  {index === 0 && '🥇'}
-                  {index === 1 && '🥈'}
-                  {index === 2 && '🥉'}
-                  {index > 2 && <span className="text-gray-400 font-bold">#{index + 1}</span>}
+                <div className="min-w-[50px] text-center flex items-center justify-center">
+                  {index === 0 && <Medal className="w-8 h-8 text-yellow-400" />}
+                  {index === 1 && <Medal className="w-8 h-8 text-gray-400" />}
+                  {index === 2 && <Medal className="w-8 h-8 text-orange-400" />}
+                  {index > 2 && <span className="text-gray-400 font-bold text-xl">#{index + 1}</span>}
                 </div>
 
                 {/* Avatar */}
@@ -143,7 +144,7 @@ export default function SupportersTab({ campaignId }) {
 
         {supporters.length === 0 ? (
           <div className="text-center py-16 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl">
-            <div className="text-6xl mb-4">💝</div>
+            <HeartHandshake className="w-12 h-12 text-pink-400 mx-auto mb-4" />
             <p className="text-gray-400">No supporters yet. Be the first to support this campaign!</p>
           </div>
         ) : (

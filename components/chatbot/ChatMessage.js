@@ -1,6 +1,7 @@
 // components/chatbot/ChatMessage.js
 "use client"
 import { formatDistanceToNow } from 'date-fns';
+import { User, Bot } from 'lucide-react';
 
 // Simple markdown parser
 function parseMarkdown(text) {
@@ -41,14 +42,14 @@ export default function ChatMessage({ message }) {
         {/* Avatar */}
         <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isUser ? 'bg-blue-600' : 'bg-purple-600'
           }`}>
-          <span className="text-sm">{isUser ? '👤' : '🤖'}</span>
+          {isUser ? <User className="w-4 h-4 text-white" /> : <Bot className="w-4 h-4 text-white" />}
         </div>
 
         {/* Message Content */}
         <div className="flex flex-col gap-1">
           <div className={`px-4 py-2 rounded-2xl ${isUser
-              ? 'bg-blue-600 text-white rounded-tr-none'
-              : 'bg-gray-800 text-gray-100 rounded-tl-none'
+            ? 'bg-blue-600 text-white rounded-tr-none'
+            : 'bg-gray-800 text-gray-100 rounded-tl-none'
             }`}>
             {isUser ? (
               <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>

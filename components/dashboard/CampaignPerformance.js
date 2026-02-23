@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { FaEye, FaEdit, FaChartBar, FaPlus } from 'react-icons/fa';
+import { BarChart3 } from 'lucide-react';
 
 export default function CampaignPerformance({ campaigns }) {
   const getProgressColor = (progress) => {
@@ -26,8 +27,8 @@ export default function CampaignPerformance({ campaigns }) {
       <div className="p-4 space-y-4">
         {campaigns.length === 0 ? (
           <div className="py-12 text-center">
-            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center text-4xl mx-auto mb-4 border border-white/10">
-              📊
+            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/10">
+              <BarChart3 className="w-8 h-8 text-gray-500" />
             </div>
             <p className="text-gray-400 mb-6">No campaigns yet</p>
             <Link
@@ -80,7 +81,7 @@ export default function CampaignPerformance({ campaigns }) {
                     />
                   </div>
                   <span className={`text-xs font-bold w-10 text-right ${progress >= 100 ? 'text-green-400' :
-                      progress >= 50 ? 'text-blue-400' : 'text-purple-400'
+                    progress >= 50 ? 'text-blue-400' : 'text-purple-400'
                     }`}>
                     {progress.toFixed(0)}%
                   </span>

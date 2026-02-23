@@ -1,11 +1,12 @@
 "use client"
 import { useRouter } from 'next/navigation';
+import { Bot, MessageCircle, BarChart3, CreditCard, Target, ShieldCheck, Zap } from 'lucide-react';
 
 export default function PlatformFeatures() {
   const router = useRouter();
   const features = [
     {
-      icon: '🤖',
+      icon: <Bot className="w-7 h-7 text-white" />,
       title: 'AI Campaign Builder',
       description: 'Create professional campaigns in minutes with AI-generated stories, milestones, and reward tiers.',
       benefits: ['Smart story generation', 'Goal suggestions', 'Auto FAQs'],
@@ -13,7 +14,7 @@ export default function PlatformFeatures() {
       link: '/features/ai-builder'
     },
     {
-      icon: '💬',
+      icon: <MessageCircle className="w-7 h-7 text-white" />,
       title: 'AI Assistant',
       description: 'Get instant help with our AI chatbot that understands your needs and provides personalized guidance.',
       benefits: ['24/7 support', 'Smart answers', 'Context-aware'],
@@ -21,7 +22,7 @@ export default function PlatformFeatures() {
       link: '/features/ai-assistant'
     },
     {
-      icon: '📊',
+      icon: <BarChart3 className="w-7 h-7 text-white" />,
       title: 'Advanced Analytics',
       description: 'Track your campaign performance with real-time analytics, insights, and AI-powered recommendations.',
       benefits: ['Real-time data', 'AI insights', 'Export reports'],
@@ -29,7 +30,7 @@ export default function PlatformFeatures() {
       link: '/dashboard/analytics'
     },
     {
-      icon: '💳',
+      icon: <CreditCard className="w-7 h-7 text-white" />,
       title: 'Seamless Payments',
       description: 'Accept one-time payments and recurring subscriptions with industry-leading security.',
       benefits: ['Multiple payment methods', 'Subscriptions', 'Instant transfers'],
@@ -37,7 +38,7 @@ export default function PlatformFeatures() {
       link: '/features/payments'
     },
     {
-      icon: '🎯',
+      icon: <Target className="w-7 h-7 text-white" />,
       title: 'Smart Recommendations',
       description: 'AI-powered recommendations connect supporters with campaigns they will love.',
       benefits: ['Personalized', 'ML-powered', 'Higher conversions'],
@@ -45,7 +46,7 @@ export default function PlatformFeatures() {
       link: '/features/recommendations'
     },
     {
-      icon: '🛡️',
+      icon: <ShieldCheck className="w-7 h-7 text-white" />,
       title: 'Fraud Protection',
       description: 'Advanced AI moderation and fraud detection keeps the platform safe and trustworthy.',
       benefits: ['AI moderation', 'Spam detection', 'Secure platform'],
@@ -66,8 +67,11 @@ export default function PlatformFeatures() {
         {/* Section Header */}
         <div className="text-center mb-16">
           <div className="inline-block mb-4">
-            <span className="px-4 py-2 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-full text-purple-400 text-sm font-semibold backdrop-blur-sm">
-              ⚡ Powerful Features
+            <span className="inline-flex items-center gap-2 px-4 py-2 
+    bg-gradient-to-r from-purple-500/10 to-blue-500/10 
+    border border-purple-500/20 rounded-full 
+    text-purple-400 text-sm font-semibold backdrop-blur-sm">
+              <Zap className="w-4 h-4 text-purple-400" /> Powerful Features
             </span>
           </div>
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
@@ -91,7 +95,7 @@ export default function PlatformFeatures() {
               {/* Icon */}
               <div className="relative">
                 <div className={`inline-flex items-center justify-center w-16 h-16 mb-6 bg-gradient-to-br ${feature.gradient} rounded-2xl shadow-lg group-hover:scale-110 transition-transform`}>
-                  <span className="text-3xl">{feature.icon}</span>
+                  <span className="flex items-center justify-center">{feature.icon}</span>
                 </div>
               </div>
 

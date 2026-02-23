@@ -18,6 +18,7 @@
 
 import React from 'react';
 import { createLogger } from '@/lib/logger';
+import { AlertTriangle } from 'lucide-react';
 
 const logger = createLogger('ErrorBoundary');
 
@@ -159,7 +160,7 @@ class ErrorBoundary extends React.Component {
 
                                 {this.state.errorCount > 1 && (
                                     <p className="text-yellow-500 text-sm mt-4">
-                                        ⚠️ This error has occurred {this.state.errorCount} times.
+                                        <AlertTriangle className="w-4 h-4 inline-block mr-1" /> This error has occurred {this.state.errorCount} times.
                                         If it persists, please contact support.
                                     </p>
                                 )}

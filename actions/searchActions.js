@@ -441,9 +441,9 @@ export async function searchCampaigns(params) {
             dbQuery.$and.push({ goalAmount: { $lte: validFilters.maxGoal } });
         }
 
-        if (validFilters.status) {
-            dbQuery.$and.push({ status: validFilters.status });
-        }
+        // Default to 'active' status if no status filter is explicitly set
+        // This ensures draft and ended campaigns don't appear in search results
+        dbQuery.$and.push({ status: validFilters.status || 'active' });
 
         if (validFilters.aiGenerated) {
             dbQuery.$and.push({ aiGenerated: true });
@@ -638,9 +638,9 @@ export async function filterCampaigns(params) {
             }
         }
 
-        if (validFilters.status) {
-            dbQuery.status = validFilters.status;
-        }
+        // Default to 'active' status if no status filter is explicitly set
+        // This ensures draft and ended campaigns don't appear in explore results
+        dbQuery.status = validFilters.status || 'active';
 
         if (validFilters.aiGenerated) {
             dbQuery.aiGenerated = true;

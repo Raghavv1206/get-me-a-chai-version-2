@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
+import { CreditCard, EyeOff, MessageCircle } from 'lucide-react';
 
 export default function RecentTransactions({ transactions: initialTransactions }) {
   const [transactions] = useState(initialTransactions || []);
@@ -56,7 +57,7 @@ export default function RecentTransactions({ transactions: initialTransactions }
             {paginatedTransactions.length === 0 ? (
               <tr>
                 <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
-                  <div className="text-4xl mb-3">💳</div>
+                  <div className="flex justify-center mb-3"><CreditCard className="w-10 h-10 text-gray-500" /></div>
                   <p>No transactions yet</p>
                 </td>
               </tr>
@@ -66,14 +67,14 @@ export default function RecentTransactions({ transactions: initialTransactions }
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center text-white text-sm font-bold shadow-lg">
-                        {transaction.anonymous ? '🎭' : transaction.name?.charAt(0) || 'U'}
+                        {transaction.anonymous ? <EyeOff className="w-4 h-4 text-white" /> : transaction.name?.charAt(0) || 'U'}
                       </div>
                       <div className="flex flex-col">
                         <span className="text-sm font-medium text-white">
                           {transaction.anonymous ? 'Anonymous' : transaction.name}
                         </span>
                         <span className="text-xs text-gray-500 hidden sm:block">
-                          {transaction.message ? '💬 Message' : 'No message'}
+                          {transaction.message ? <><MessageCircle className="w-3 h-3 inline-block mr-1" /> Message</> : 'No message'}
                         </span>
                       </div>
                     </div>

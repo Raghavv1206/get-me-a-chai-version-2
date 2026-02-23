@@ -8,6 +8,7 @@ import MilestonesSection from './MilestonesSection';
 import RewardTiers from './RewardTiers';
 import FAQAccordion from './FAQAccordion';
 import { FaClock, FaImage, FaHeart, FaEye, FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { BookOpen, Sparkles } from 'lucide-react';
 
 export default function AboutTab({ campaign, onSelectReward }) {
   const [lightboxIndex, setLightboxIndex] = useState(null);
@@ -32,7 +33,7 @@ export default function AboutTab({ campaign, onSelectReward }) {
       {/* Campaign Story */}
       <div>
         <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-          <span className="text-purple-400">📖</span>
+          <BookOpen className="w-5 h-5 text-purple-400" />
           Campaign Story
         </h2>
 
@@ -66,7 +67,7 @@ export default function AboutTab({ campaign, onSelectReward }) {
 
         {campaign.aiGenerated && (
           <div className="inline-flex items-center gap-2 mt-6 px-4 py-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-full">
-            <span className="text-yellow-400">✨</span>
+            <Sparkles className="w-4 h-4 text-yellow-400" />
             <span className="text-sm font-semibold text-yellow-300">Enhanced with AI</span>
           </div>
         )}

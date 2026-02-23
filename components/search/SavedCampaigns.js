@@ -188,7 +188,7 @@ export default function SavedCampaignsPage() {
                 {/* Header */}
                 <div className="mb-12">
                     <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-                        💖 Saved Campaigns
+                        <Heart className="w-8 h-8 inline-block mr-2 text-pink-400" /> Saved Campaigns
                     </h1>
                     <p className="text-lg text-gray-600 dark:text-gray-400">
                         Your bookmarked campaigns in one place

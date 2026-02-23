@@ -1,6 +1,7 @@
 // components/about/TrustBadges.js
 "use client"
 import { useInView } from 'react-intersection-observer';
+import { Lock, CreditCard, CheckCircle2, Shield, Award, Phone, Smartphone, Landmark } from 'lucide-react';
 
 export default function TrustBadges() {
     const { ref, inView } = useInView({
@@ -10,37 +11,37 @@ export default function TrustBadges() {
 
     const trustFeatures = [
         {
-            icon: '🔒',
+            icon: Lock,
             title: 'Bank-Grade Security',
             description: '256-bit SSL encryption protects all transactions',
             badge: 'SSL Certified'
         },
         {
-            icon: '💳',
+            icon: CreditCard,
             title: 'Razorpay Powered',
             description: 'Trusted payment gateway used by millions',
             badge: 'PCI DSS Compliant'
         },
         {
-            icon: '✅',
+            icon: CheckCircle2,
             title: 'Verified Creators',
             description: 'All creators undergo identity verification',
             badge: 'KYC Verified'
         },
         {
-            icon: '🛡️',
+            icon: Shield,
             title: 'Fraud Detection',
             description: 'AI-powered fraud prevention system',
             badge: 'AI Protected'
         },
         {
-            icon: '💯',
+            icon: Award,
             title: 'Money-Back Guarantee',
             description: 'Full refund if campaign is fraudulent',
             badge: '100% Guarantee'
         },
         {
-            icon: '📞',
+            icon: Phone,
             title: '24/7 Support',
             description: 'Round-the-clock customer assistance',
             badge: 'Always Available'
@@ -48,11 +49,11 @@ export default function TrustBadges() {
     ];
 
     const paymentPartners = [
-        { name: 'Razorpay', logo: '💳' },
-        { name: 'UPI', logo: '📱' },
-        { name: 'Visa', logo: '💳' },
-        { name: 'Mastercard', logo: '💳' },
-        { name: 'NetBanking', logo: '🏦' }
+        { name: 'Razorpay', logo: CreditCard },
+        { name: 'UPI', logo: Smartphone },
+        { name: 'Visa', logo: CreditCard },
+        { name: 'Mastercard', logo: CreditCard },
+        { name: 'NetBanking', logo: Landmark }
     ];
 
     return (
@@ -79,8 +80,8 @@ export default function TrustBadges() {
                             }}
                         >
                             <div className="flex items-start gap-4">
-                                <div className="text-4xl flex-shrink-0">
-                                    {feature.icon}
+                                <div className="flex-shrink-0">
+                                    <feature.icon className="w-8 h-8 text-green-400" />
                                 </div>
                                 <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-2">
@@ -111,7 +112,7 @@ export default function TrustBadges() {
                                 key={index}
                                 className="flex flex-col items-center gap-2 p-4 bg-gray-700/50 rounded-xl hover:bg-gray-700 transition-colors"
                             >
-                                <div className="text-4xl">{partner.logo}</div>
+                                <partner.logo className="w-8 h-8 text-gray-300" />
                                 <span className="text-sm text-gray-400 font-medium">
                                     {partner.name}
                                 </span>
@@ -123,7 +124,7 @@ export default function TrustBadges() {
                 {/* Security Statement */}
                 <div className="mt-12 text-center">
                     <p className="text-gray-500 text-sm max-w-3xl mx-auto">
-                        🔐 All payments are processed through secure, PCI DSS compliant payment gateways.
+                        <Lock className="w-4 h-4 inline-block mr-1" /> All payments are processed through secure, PCI DSS compliant payment gateways.
                         We never store your complete card details. Your financial information is encrypted
                         and protected at all times.
                     </p>

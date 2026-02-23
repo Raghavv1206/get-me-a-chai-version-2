@@ -1,10 +1,11 @@
 'use client';
 
+import { Medal, Trophy } from 'lucide-react';
+
 export default function TopSupporters({ supporters = [] }) {
   const getMedal = (rank) => {
-    if (rank === 1) return '🥇';
-    if (rank === 2) return '🥈';
-    if (rank === 3) return '🥉';
+    const colors = { 1: 'text-yellow-400', 2: 'text-gray-300', 3: 'text-amber-600' };
+    if (rank >= 1 && rank <= 3) return <Medal className={`w-5 h-5 ${colors[rank]}`} />;
     return null;
   };
 
@@ -16,7 +17,7 @@ export default function TopSupporters({ supporters = [] }) {
       <div className="supporters-list">
         {supporters.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">🏆</div>
+            <div className="empty-icon"><Trophy className="w-12 h-12 text-gray-500 mx-auto" /></div>
             <p>No supporters yet</p>
           </div>
         ) : (

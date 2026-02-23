@@ -43,7 +43,7 @@ export default function PaymentSuccessModal({ payment, onClose }) {
   };
 
   const handleShare = () => {
-    const shareText = `I just supported ${payment.campaign} on Get Me A Chai! 🎉`;
+    const shareText = `I just supported ${payment.campaign} on Get Me A Chai!`;
     const shareUrl = window.location.origin;
 
     if (navigator.share) {

@@ -14,6 +14,7 @@ import {
     FaSpinner,
     FaTrophy
 } from 'react-icons/fa';
+import { Check } from 'lucide-react';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -403,8 +404,8 @@ export default function CampaignAnalyticsPage() {
                                         <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
                                             <div
                                                 className={`h-full rounded-full transition-all duration-500 ${milestone.completed
-                                                        ? 'bg-green-500'
-                                                        : 'bg-gradient-to-r from-purple-500 to-blue-500'
+                                                    ? 'bg-green-500'
+                                                    : 'bg-gradient-to-r from-purple-500 to-blue-500'
                                                     }`}
                                                 style={{ width: `${milestoneProgress}%` }}
                                             />
@@ -412,7 +413,7 @@ export default function CampaignAnalyticsPage() {
                                         <div className="flex items-center justify-between mt-2">
                                             <span className="text-xs text-gray-400">{milestoneProgress.toFixed(1)}% Complete</span>
                                             {milestone.completed && (
-                                                <span className="text-xs text-green-400 font-medium">✓ Completed</span>
+                                                <span className="text-xs text-green-400 font-medium flex items-center gap-1"><Check className="w-3 h-3" /> Completed</span>
                                             )}
                                         </div>
                                     </div>

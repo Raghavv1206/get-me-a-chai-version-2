@@ -1,6 +1,7 @@
 // components/about/AboutHero.js
 "use client"
 import { useInView } from 'react-intersection-observer';
+import { Rocket, Target, Lightbulb } from 'lucide-react';
 
 export default function AboutHero() {
     const { ref, inView } = useInView({
@@ -58,7 +59,7 @@ export default function AboutHero() {
                                 <div className="space-y-6">
                                     <div className="flex items-center gap-4 p-4 bg-gray-700/50 rounded-xl animate-float">
                                         <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-2xl">
-                                            🚀
+                                            <Rocket className="w-6 h-6 text-white" />
                                         </div>
                                         <div>
                                             <div className="h-3 w-32 bg-gray-600 rounded mb-2" />
@@ -68,7 +69,7 @@ export default function AboutHero() {
 
                                     <div className="flex items-center gap-4 p-4 bg-gray-700/50 rounded-xl animate-float" style={{ animationDelay: '0.5s' }}>
                                         <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-2xl">
-                                            🎯
+                                            <Target className="w-6 h-6 text-white" />
                                         </div>
                                         <div>
                                             <div className="h-3 w-28 bg-gray-600 rounded mb-2" />
@@ -78,7 +79,7 @@ export default function AboutHero() {
 
                                     <div className="flex items-center gap-4 p-4 bg-gray-700/50 rounded-xl animate-float" style={{ animationDelay: '1s' }}>
                                         <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-2xl">
-                                            💡
+                                            <Lightbulb className="w-6 h-6 text-white" />
                                         </div>
                                         <div>
                                             <div className="h-3 w-36 bg-gray-600 rounded mb-2" />

@@ -2,6 +2,7 @@
 "use client"
 import { useState } from 'react';
 import { toast } from '@/lib/apiToast';
+import { Loader2, Sparkles } from 'lucide-react';
 
 export default function FAQsStep({ data, onUpdate, onNext, onBack }) {
     const [faqs, setFaqs] = useState(data.faqs || []);
@@ -77,7 +78,7 @@ export default function FAQsStep({ data, onUpdate, onNext, onBack }) {
                 disabled={loading}
                 className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-purple-500/50 transition-all hover:scale-105 disabled:opacity-50"
             >
-                {loading ? '⚙️ Generating...' : '✨ AI Generate FAQs'}
+                {loading ? (<><Loader2 className="w-5 h-5 animate-spin inline-block mr-1" /> Generating...</>) : (<><Sparkles className="w-5 h-5 inline-block mr-1" /> AI Generate FAQs</>)}
             </button>
 
             {/* FAQs List */}

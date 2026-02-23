@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useScrollIsolation } from '../hooks/useScrollIsolation';
+import { Monitor, Palette, Music, Gamepad2, Pizza, BookOpen, Search } from 'lucide-react';
 
 export default function SearchModal({ isOpen, onClose }) {
     const [query, setQuery] = useState('');
@@ -16,12 +17,12 @@ export default function SearchModal({ isOpen, onClose }) {
     const scrollRef = useScrollIsolation();
 
     const categories = [
-        { id: 'technology', name: 'Technology', icon: '💻' },
-        { id: 'art', name: 'Art & Design', icon: '🎨' },
-        { id: 'music', name: 'Music', icon: '🎵' },
-        { id: 'games', name: 'Games', icon: '🎮' },
-        { id: 'food', name: 'Food & Drink', icon: '🍕' },
-        { id: 'education', name: 'Education', icon: '📚' },
+        { id: 'technology', name: 'Technology', icon: <Monitor className="w-6 h-6 text-blue-400" /> },
+        { id: 'art', name: 'Art & Design', icon: <Palette className="w-6 h-6 text-pink-400" /> },
+        { id: 'music', name: 'Music', icon: <Music className="w-6 h-6 text-green-400" /> },
+        { id: 'games', name: 'Games', icon: <Gamepad2 className="w-6 h-6 text-purple-400" /> },
+        { id: 'food', name: 'Food & Drink', icon: <Pizza className="w-6 h-6 text-orange-400" /> },
+        { id: 'education', name: 'Education', icon: <BookOpen className="w-6 h-6 text-yellow-400" /> },
     ];
 
     // Load recent searches from localStorage
@@ -204,7 +205,7 @@ export default function SearchModal({ isOpen, onClose }) {
                         ) : (
                             !loading && (
                                 <div className="p-12 text-center">
-                                    <div className="text-4xl mb-2">🔍</div>
+                                    <div className="mb-2 flex justify-center"><Search className="w-10 h-10 text-gray-400" /></div>
                                     <p className="text-gray-400">No results found</p>
                                     <p className="text-sm text-gray-500 mt-1">
                                         Try different keywords
