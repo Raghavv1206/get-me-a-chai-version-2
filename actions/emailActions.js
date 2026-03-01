@@ -952,12 +952,3 @@ export const sendBulkWeeklySummaries = withErrorBoundary(
     rateLimiters.weekly
 );
 
-export default {
-    sendWelcomeEmail,
-    sendPaymentConfirmation,
-    sendCreatorNotification,
-    sendMilestoneEmail,
-    sendUpdateNotifications,
-    sendWeeklySummary,
-    sendBulkWeeklySummaries,
-};

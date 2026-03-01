@@ -9,9 +9,9 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import connectDb from '@/db/connectDb';
 import Payment from '@/models/Payment';
+import Campaign from '@/models/Campaign';
 import TopSupporters from '@/components/supporters/TopSupporters';
-import SupporterFilters from '@/components/supporters/SupporterFilters';
-import SupportersTable from '@/components/supporters/SupportersTable';
+import SupportersPageClient from '@/components/supporters/SupportersPageClient';
 import { HeartHandshake } from 'lucide-react';
 
 export const metadata = {
@@ -19,34 +19,56 @@ export const metadata = {
     description: 'Manage your campaign supporters and send thank you messages'
 };
 
-async function getSupportersData(userId) {
+async function getPageData(userId) {
     await connectDb();
 
     // Get current user's username
-    const user = await import('@/models/User').then(m => m.default.findById(userId).select('username'));
+    const User = (await import('@/models/User')).default;
+    const user = await User.findById(userId).select('username');
 
-    if (!user) return [];
+    if (!user) return { payments: [], campaigns: [], topSupporters: [] };
 
-    // Fetch successful payments
-    const payments = await Payment.find({
-        to_user: user.username,
-        done: true
-    }).sort({ createdAt: -1 }).lean();
+    // Fetch payments and campaigns in parallel
+    const [payments, campaigns] = await Promise.all([
+        Payment.find({
+            to_user: user.username,
+            done: true
+        }).sort({ createdAt: -1 }).lean(),
 
-    // Aggregate supporters
+        Campaign.find({
+            username: user.username
+        }).select('_id title').lean()
+    ]);
+
+    // Serialize for client component (convert ObjectIds & Dates to strings)
+    const serializedPayments = payments.map(p => ({
+        _id: p._id.toString(),
+        name: p.name || 'Anonymous',
+        email: p.email || '',
+        amount: p.amount,
+        type: p.type || 'one-time',
+        campaign: p.campaign ? p.campaign.toString() : null,
+        createdAt: p.createdAt ? new Date(p.createdAt).toISOString() : new Date().toISOString(),
+        message: p.message || ''
+    }));
+
+    const serializedCampaigns = campaigns.map(c => ({
+        _id: c._id.toString(),
+        title: c.title
+    }));
+
+    // Aggregate top supporters (for the TopSupporters card — unfiltered, always show overall top 3)
     const supportersMap = {};
-
     payments.forEach(payment => {
-        const supporterId = payment.email || 'anonymous'; // Use email as unique identifier
-
+        const supporterId = payment.email || 'anonymous';
         if (!supportersMap[supporterId]) {
             supportersMap[supporterId] = {
-                _id: payment._id.toString(), // Use first payment ID as key reference
+                _id: payment._id.toString(),
                 name: payment.name || 'Anonymous',
                 email: payment.email || 'No Email',
                 totalContributed: 0,
                 donationsCount: 0,
-                lastDonation: new Date(0), // Initialize with old date
+                lastDonation: new Date(0).toISOString(),
                 campaignsSupported: new Set()
             };
         }
@@ -54,23 +76,24 @@ async function getSupportersData(userId) {
         const supporter = supportersMap[supporterId];
         supporter.totalContributed += payment.amount;
         supporter.donationsCount += 1;
-        supporter.campaignsSupported.add(payment.campaign);
+        if (payment.campaign) supporter.campaignsSupported.add(payment.campaign.toString());
 
         const paymentDate = new Date(payment.createdAt);
-        if (paymentDate > supporter.lastDonation) {
-            supporter.lastDonation = paymentDate;
+        if (paymentDate > new Date(supporter.lastDonation)) {
+            supporter.lastDonation = paymentDate.toISOString();
         }
     });
 
-    // Convert map to array and format
-    const supporters = Object.values(supportersMap).map(s => ({
-        ...s,
-        lastDonation: s.lastDonation.toISOString(),
-        campaignsSupported: Array.from(s.campaignsSupported).length
-    }));
+    const topSupporters = Object.values(supportersMap)
+        .map(s => ({ ...s, campaignsSupported: s.campaignsSupported.size }))
+        .sort((a, b) => b.totalContributed - a.totalContributed)
+        .slice(0, 3);
 
-    // Sort by total contributed (descending)
-    return supporters.sort((a, b) => b.totalContributed - a.totalContributed);
+    return {
+        payments: serializedPayments,
+        campaigns: serializedCampaigns,
+        topSupporters
+    };
 }
 
 export default async function SupportersPage() {
@@ -81,7 +104,7 @@ export default async function SupportersPage() {
         redirect('/login?callbackUrl=/dashboard/supporters');
     }
 
-    const supporters = await getSupportersData(session.user.id);
+    const { payments, campaigns, topSupporters } = await getPageData(session.user.id);
 
     return (
         <div className="min-h-screen bg-black text-gray-100">
@@ -101,14 +124,11 @@ export default async function SupportersPage() {
                         </p>
                     </div>
 
-                    {/* Top Supporters */}
-                    <TopSupporters supporters={supporters.slice(0, 3)} />
+                    {/* Top Supporters (always unfiltered) */}
+                    <TopSupporters supporters={topSupporters} />
 
-                    {/* Filters */}
-                    <SupporterFilters />
-
-                    {/* Supporters Table */}
-                    <SupportersTable supporters={supporters} />
+                    {/* Filters + Table (connected via client wrapper) */}
+                    <SupportersPageClient payments={payments} campaigns={campaigns} />
 
                     {/* Tips */}
                     <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">

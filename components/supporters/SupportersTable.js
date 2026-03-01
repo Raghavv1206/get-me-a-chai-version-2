@@ -1,17 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { FaSearch, FaSort, FaDownload } from 'react-icons/fa';
 import { Users } from 'lucide-react';
 import Papa from 'papaparse';
 
-export default function SupportersTable({ supporters: initialSupporters }) {
-  const [supporters, setSupporters] = useState(initialSupporters || []);
+export default function SupportersTable({ supporters = [] }) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('totalContributed'); // name, email, totalContributed, lastDonation, donationsCount
-  const [sortOrder, setSortOrder] = useState('desc'); // asc, desc
+  const [sortBy, setSortBy] = useState('totalContributed');
+  const [sortOrder, setSortOrder] = useState('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  // Reset to page 1 when supporters data changes (from filters)
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [supporters]);
 
   const handleSort = (field) => {
     if (sortBy === field) {
@@ -22,12 +26,13 @@ export default function SupportersTable({ supporters: initialSupporters }) {
     }
   };
 
-  const filteredSupporters = supporters.filter(supporter =>
-    supporter.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    supporter.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredSupporters = useMemo(() =>
+    supporters.filter(supporter =>
+      supporter.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      supporter.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    ), [supporters, searchTerm]);
 
-  const sortedSupporters = [...filteredSupporters].sort((a, b) => {
+  const sortedSupporters = useMemo(() => [...filteredSupporters].sort((a, b) => {
     let aVal = a[sortBy];
     let bVal = b[sortBy];
 
@@ -40,7 +45,7 @@ export default function SupportersTable({ supporters: initialSupporters }) {
       return aVal > bVal ? 1 : -1;
     }
     return aVal < bVal ? 1 : -1;
-  });
+  }), [filteredSupporters, sortBy, sortOrder]);
 
   const paginatedSupporters = sortedSupporters.slice(
     (currentPage - 1) * itemsPerPage,
@@ -49,6 +54,7 @@ export default function SupportersTable({ supporters: initialSupporters }) {
 
   const totalPages = Math.ceil(sortedSupporters.length / itemsPerPage);
 
+
   const exportToCSV = () => {
     const csvData = [
       ['Name', 'Email', 'Total Contributed', 'Last Donation', 'Donations Count'],
@@ -56,7 +62,7 @@ export default function SupportersTable({ supporters: initialSupporters }) {
         s.name,
         s.email,
         s.totalContributed,
-        new Date(s.lastDonation).toLocaleDateString(),
+        new Date(s.lastDonation).toLocaleDateString('en-IN'),
         s.donationsCount
       ])
     ];
@@ -75,7 +81,7 @@ export default function SupportersTable({ supporters: initialSupporters }) {
     <div className="supporters-table">
       <div className="table-header">
         <div className="search-box">
-          <FaSearch className="search-icon top-10 left-10" />
+          <FaSearch className="search-icon flex absolute top-4 left-4  " />
           <input
             type="text"
             placeholder="Search supporters..."
@@ -135,7 +141,7 @@ export default function SupportersTable({ supporters: initialSupporters }) {
                     ₹{supporter.totalContributed.toLocaleString('en-IN')}
                   </td>
                   <td className="date-cell">
-                    {new Date(supporter.lastDonation).toLocaleDateString()}
+                    {new Date(supporter.lastDonation).toLocaleDateString('en-IN')}
                   </td>
                   <td className="count-cell">{supporter.donationsCount}</td>
                 </tr>

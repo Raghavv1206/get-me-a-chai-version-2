@@ -42,7 +42,7 @@ const CampaignViewSchema = new mongoose.Schema({
     viewedAt: {
         type: Date,
         default: Date.now,
-        index: true,
+        // Note: indexed via TTL index below (line ~71), do NOT add index: true here
         validate: {
             validator: function (v) {
                 // Ensure viewedAt is not in the future

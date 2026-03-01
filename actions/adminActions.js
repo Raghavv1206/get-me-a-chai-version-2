@@ -730,10 +730,3 @@ export async function moderateCampaign(campaignId, action, reason = '') {
     }
 }
 
-export default {
-    getUsers,
-    banUser,
-    verifyUser,
-    featureCampaign,
-    moderateCampaign,
-};

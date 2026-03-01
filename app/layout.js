@@ -24,7 +24,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="bg-black text-gray-100 min-h-screen relative overflow-x-hidden selection:bg-purple-500/30">
+      <body className="bg-black text-gray-100 min-h-screen relative overflow-x-hidden selection:bg-purple-500/30 flex flex-col">
         <SessionWrapper>
           <Suspense fallback={null}>
             <RouteProgressBar />
@@ -38,7 +38,7 @@ export default function RootLayout({ children }) {
 
           <Navbar />
 
-          <main className="relative z-10 min-h-screen flex flex-col">
+          <main className="relative z-10 flex-1">
             {children}
           </main>
 

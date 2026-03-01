@@ -1,16 +1,7 @@
 // app/api/cron/publish-scheduled/route.js
-/**
- * Publish Scheduled Updates Cron Job
- * Runs every 5 minutes to publish scheduled campaign updates
- * 
- * Vercel Cron Configuration (add to vercel.json):
- * {
- *   "crons": [{
- *     "path": "/api/cron/publish-scheduled",
- *     "schedule": "*/5 * * * * "
-    *   }]
- * }
- */
+// Publish Scheduled Updates Cron Job
+// Runs every 5 minutes to publish scheduled campaign updates
+// Vercel Cron: { "crons": [{ "path": "/api/cron/publish-scheduled", "schedule": "0/5 * * * *" }] }
 
 import { NextResponse } from 'next/server';
 import connectDb from '@/db/connectDb';

@@ -13,7 +13,7 @@
  */
 
 import { NextResponse } from 'next/server';
-import connectDB from '@/db/connectDB';
+import connectDb from '@/db/connectDb';
 import Campaign from '@/models/Campaign';
 import User from '@/models/User';
 
@@ -118,7 +118,7 @@ export async function GET(request) {
         // CONNECT TO DATABASE
         // ========================================================================
 
-        await connectDB();
+        await connectDb();
 
         // ========================================================================
         // GENERATE SUGGESTIONS

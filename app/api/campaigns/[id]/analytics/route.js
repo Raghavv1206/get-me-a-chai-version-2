@@ -4,6 +4,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import connectDb from '@/db/connectDb';
 import Campaign from '@/models/Campaign';
 import Payment from '@/models/Payment';
+import Analytics from '@/models/Analytics';
 
 export async function GET(request, { params }) {
     try {
@@ -46,8 +47,8 @@ export async function GET(request, { params }) {
             console.log('Payment model not found or error fetching payments:', err);
         }
 
-        // Generate analytics data
-        const analytics = generateAnalytics(campaign, payments);
+        // Generate analytics data (now async because it queries Analytics collection)
+        const analytics = await generateAnalytics(campaign, payments, campaignId);
 
         return NextResponse.json({
             success: true,
@@ -62,7 +63,7 @@ export async function GET(request, { params }) {
     }
 }
 
-function generateAnalytics(campaign, payments) {
+async function generateAnalytics(campaign, payments, campaignId) {
     const now = new Date();
     const startDate = new Date(campaign.createdAt);
     const daysSinceStart = Math.max(1, Math.ceil((now - startDate) / (1000 * 60 * 60 * 24)));
@@ -79,7 +80,6 @@ function generateAnalytics(campaign, payments) {
         data: []
     };
 
-    // Simulate weekly growth (in production, this should come from actual tracking data)
     const totalViews = campaign.stats?.views || 0;
     const totalAmount = campaign.currentAmount || 0;
 
@@ -97,11 +97,14 @@ function generateAnalytics(campaign, payments) {
         contributionsOverTime.data.unshift(weekAmount);
     }
 
-    // Traffic sources (simulated - in production, track with analytics tools)
-    const trafficSources = {
-        labels: ['Direct', 'Social Media', 'Search', 'Referral', 'Email'],
-        data: [35, 30, 20, 10, 5] // Percentages
-    };
+    // ── Traffic sources: query REAL data from Analytics collection ──
+    let trafficSources = { labels: [], data: [], total: 0 };
+    try {
+        trafficSources = await Analytics.getTrafficSources(campaignId);
+    } catch (err) {
+        console.error('Error fetching traffic sources:', err.message);
+        // trafficSources remains empty — frontend will show "No data" state
+    }
 
     // Top supporters (from payments)
     const topSupporters = payments
@@ -169,3 +172,4 @@ function generateAnalytics(campaign, payments) {
         }
     };
 }
+

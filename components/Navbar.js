@@ -133,37 +133,38 @@ export default function Navbar() {
             </div>
 
             {/* Right Actions */}
-            <div className="flex items-center gap-3">
-              <div className="hidden md:flex items-center gap-3">
-                <button
-                  onClick={() => setShowSearchModal(true)}
-                  className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full border border-white/5 transition-all group"
-                  title="Search (Ctrl+K)"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                  <span className="hidden lg:inline text-xs text-gray-500 group-hover:text-gray-400">⌘K</span>
-                </button>
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* Desktop-only: Search button */}
+              <button
+                onClick={() => setShowSearchModal(true)}
+                className="hidden md:flex items-center gap-2 px-3 py-1.5 text-sm text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full border border-white/5 transition-all group"
+                title="Search (Ctrl+K)"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <span className="hidden lg:inline text-xs text-gray-500 group-hover:text-gray-400">⌘K</span>
+              </button>
 
-                {session ? (
-                  <>
-                    <NotificationBell />
-                    <UserProfileDropdown user={session.user} />
-                  </>
-                ) : (
-                  <>
-                    <Link href="/login" className="text-sm font-medium text-gray-300 hover:text-white transition-colors px-2">
-                      Log in
-                    </Link>
-                    <Link href="/login">
-                      <button className="px-4 py-1.5 text-sm font-semibold bg-white text-black rounded-full hover:bg-gray-100 transition-all hover:scale-105 shadow-lg shadow-white/10">
-                        Start for free
-                      </button>
-                    </Link>
-                  </>
-                )}
-              </div>
+              {session ? (
+                <>
+                  {/* Always visible: Notification Bell + User Dropdown */}
+                  <NotificationBell />
+                  <UserProfileDropdown user={session.user} />
+                </>
+              ) : (
+                /* Desktop-only: Login/Signup buttons */
+                <div className="hidden md:flex items-center gap-3">
+                  <Link href="/login" className="text-sm font-medium text-gray-300 hover:text-white transition-colors px-2">
+                    Log in
+                  </Link>
+                  <Link href="/login">
+                    <button className="px-4 py-1.5 text-sm font-semibold bg-white text-black rounded-full hover:bg-gray-100 transition-all hover:scale-105 shadow-lg shadow-white/10">
+                      Start for free
+                    </button>
+                  </Link>
+                </div>
+              )}
 
               {/* Mobile Menu Button */}
               <button

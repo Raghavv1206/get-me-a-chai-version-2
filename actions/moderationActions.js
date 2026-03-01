@@ -641,8 +641,3 @@ export async function reviewFlaggedContent(contentId, contentType, action, admin
     }
 }
 
-export default {
-    moderateContent,
-    flagContent,
-    reviewFlaggedContent,
-};

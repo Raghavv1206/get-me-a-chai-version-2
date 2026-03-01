@@ -10,6 +10,8 @@ import { ToastContainer, toast, Bounce } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { initiate } from '@/actions/useractions';
 import { calculateDaysLeft } from '@/lib/campaignUtils';
+import ShareModal from './ShareModal';
+import ReportModal from './ReportModal';
 
 export default function CampaignSidebar({ campaign, creator, selectedReward, onSupportClick }) {
     const router = useRouter();
@@ -21,6 +23,8 @@ export default function CampaignSidebar({ campaign, creator, selectedReward, onS
         message: '',
         amount: selectedReward?.amount || 100
     });
+    const [showShareModal, setShowShareModal] = useState(false);
+    const [showReportModal, setShowReportModal] = useState(false);
 
     // Calculate progress
     const currentAmount = campaign.currentAmount || 0;
@@ -439,11 +443,37 @@ export default function CampaignSidebar({ campaign, creator, selectedReward, onS
 
                 {/* Action Buttons */}
                 <div className="grid grid-cols-2 gap-3">
-                    <button className="flex items-center justify-center gap-2 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-gray-300 hover:bg-white/10 hover:text-white transition-all">
+                    <button
+                        onClick={() => {
+                            setShowShareModal(true);
+                            // Increment share count (fire-and-forget)
+                            fetch(`/api/campaigns/${campaign._id}/share`, {
+                                method: 'POST',
+                            }).catch(() => { /* non-critical */ });
+                        }}
+                        className="flex items-center justify-center gap-2 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-gray-300 hover:bg-white/10 hover:text-white transition-all"
+                    >
                         <FaShare className="w-4 h-4" />
                         <span className="text-sm font-medium">Share</span>
                     </button>
-                    <button className="flex items-center justify-center gap-2 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-gray-300 hover:bg-white/10 hover:text-white transition-all">
+                    <button
+                        onClick={() => {
+                            if (!session) {
+                                toast.error('Please login to report a campaign', {
+                                    position: 'top-right',
+                                    autoClose: 3000,
+                                    theme: 'dark',
+                                    transition: Bounce,
+                                });
+                                setTimeout(() => {
+                                    router.push(`/login?callbackUrl=/campaign/${campaign._id}`);
+                                }, 1000);
+                                return;
+                            }
+                            setShowReportModal(true);
+                        }}
+                        className="flex items-center justify-center gap-2 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-gray-300 hover:bg-white/10 hover:text-red-400 transition-all"
+                    >
                         <FaFlag className="w-4 h-4" />
                         <span className="text-sm font-medium">Report</span>
                     </button>
@@ -491,6 +521,25 @@ export default function CampaignSidebar({ campaign, creator, selectedReward, onS
                     </button>
                 </div>
             </div>
+
+            {/* Share Modal */}
+            {showShareModal && (
+                <ShareModal
+                    campaignId={campaign._id}
+                    campaignTitle={campaign.title}
+                    creatorUsername={creator.username}
+                    onClose={() => setShowShareModal(false)}
+                />
+            )}
+
+            {/* Report Modal */}
+            {showReportModal && (
+                <ReportModal
+                    campaignId={campaign._id}
+                    campaignTitle={campaign.title}
+                    onClose={() => setShowReportModal(false)}
+                />
+            )}
         </>
     );
 }

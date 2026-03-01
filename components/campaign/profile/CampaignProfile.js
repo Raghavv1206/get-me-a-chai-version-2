@@ -12,17 +12,32 @@ export default function CampaignProfile({ campaign, creator, isSupporter = false
     const [viewCount, setViewCount] = useState(campaign.stats?.views || 0);
     const viewTracked = useRef(false);
 
-    // Track page view on mount
+    // Track page view on mount with traffic source data
     useEffect(() => {
         if (viewTracked.current) return;
         viewTracked.current = true;
 
         const trackView = async () => {
             try {
+                // Extract UTM parameters from the current URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const utmSource = urlParams.get('utm_source') || '';
+                const utmMedium = urlParams.get('utm_medium') || '';
+                const utmCampaign = urlParams.get('utm_campaign') || '';
+
+                // Get the referrer (previous page URL)
+                const referrer = document.referrer || '';
+
                 const res = await fetch('/api/campaigns/track-view', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ campaignId: campaign._id }),
+                    body: JSON.stringify({
+                        campaignId: campaign._id,
+                        referrer,
+                        utmSource,
+                        utmMedium,
+                        utmCampaign,
+                    }),
                 });
                 if (res.ok) {
                     // Optimistically increment the view count shown on this page

@@ -15,9 +15,9 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 /**
  * Track a campaign visit
  * @param {string} campaignId - Campaign ID
- * @param {string} source - Traffic source
+ * @param {string} source - Traffic source (or raw referrer for classification)
  * @param {string} device - Device type
- * @param {Object} metadata - Additional metadata
+ * @param {Object} metadata - Additional metadata (referrer, utmSource, utmMedium, utmCampaign)
  * @returns {Promise<Object>} Success or error
  */
 export async function trackVisit(campaignId, source = 'direct', device = 'desktop', metadata = {}) {
@@ -30,14 +30,43 @@ export async function trackVisit(campaignId, source = 'direct', device = 'deskto
             return { error: 'Campaign not found' };
         }
 
+        // Classify source if a raw referrer is provided in metadata
+        let classifiedSource = source;
+        if (metadata.referrer || metadata.utmSource || metadata.utmMedium) {
+            classifiedSource = Analytics.classifySource(metadata.referrer || '', {
+                utmSource: metadata.utmSource || '',
+                utmMedium: metadata.utmMedium || '',
+                utmCampaign: metadata.utmCampaign || '',
+            });
+        }
+
+        // Validate source enum
+        const validSources = ['direct', 'social', 'search', 'referral', 'email', 'unknown'];
+        if (!validSources.includes(classifiedSource)) {
+            classifiedSource = 'unknown';
+        }
+
+        // Validate device enum
+        const validDevices = ['mobile', 'desktop', 'tablet', 'unknown'];
+        if (!validDevices.includes(device)) {
+            device = 'unknown';
+        }
+
         // Create analytics event
         await Analytics.create({
             campaign: campaignId,
+            date: new Date(),
             eventType: 'visit',
-            source,
+            source: classifiedSource,
+            referrer: (metadata.referrer || '').substring(0, 2048),
+            utmSource: (metadata.utmSource || '').substring(0, 255),
+            utmMedium: (metadata.utmMedium || '').substring(0, 255),
+            utmCampaign: (metadata.utmCampaign || '').substring(0, 255),
             device,
-            metadata,
-            timestamp: new Date()
+            metadata: {
+                ...metadata,
+                referrer: undefined, // Already stored at top level
+            },
         });
 
         return { success: true };
@@ -65,9 +94,9 @@ export async function trackClick(campaignId, buttonType = 'support') {
 
         await Analytics.create({
             campaign: campaignId,
+            date: new Date(),
             eventType: 'click',
             metadata: { buttonType },
-            timestamp: new Date()
         });
 
         return { success: true };
@@ -96,10 +125,10 @@ export async function trackConversion(campaignId, amount, metadata = {}) {
 
         await Analytics.create({
             campaign: campaignId,
+            date: new Date(),
             eventType: 'conversion',
             amount,
             metadata,
-            timestamp: new Date()
         });
 
         return { success: true };
@@ -134,13 +163,13 @@ export async function getAnalytics(campaignId, dateRange = {}) {
         // Build date filter
         const filter = { campaign: campaignId };
         if (dateRange.start || dateRange.end) {
-            filter.timestamp = {};
-            if (dateRange.start) filter.timestamp.$gte = new Date(dateRange.start);
-            if (dateRange.end) filter.timestamp.$lte = new Date(dateRange.end);
+            filter.date = {};
+            if (dateRange.start) filter.date.$gte = new Date(dateRange.start);
+            if (dateRange.end) filter.date.$lte = new Date(dateRange.end);
         }
 
         // Fetch analytics events
-        const events = await Analytics.find(filter).sort({ timestamp: -1 }).lean();
+        const events = await Analytics.find(filter).sort({ date: -1 }).lean();
 
         // Calculate metrics
         const totalViews = events.filter(e => e.eventType === 'visit').length;
@@ -170,7 +199,7 @@ export async function getAnalytics(campaignId, dateRange = {}) {
 
         // Time series data (daily)
         const dailyData = events.reduce((acc, e) => {
-            const date = new Date(e.timestamp).toISOString().split('T')[0];
+            const date = new Date(e.date || e.createdAt).toISOString().split('T')[0];
             if (!acc[date]) {
                 acc[date] = { visits: 0, clicks: 0, conversions: 0, revenue: 0 };
             }

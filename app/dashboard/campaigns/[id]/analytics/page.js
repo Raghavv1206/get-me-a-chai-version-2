@@ -139,21 +139,33 @@ export default function CampaignAnalyticsPage() {
         ],
     };
 
-    const trafficSourcesData = {
-        labels: analytics?.trafficSources?.labels || ['Direct', 'Social Media', 'Search', 'Referral'],
-        datasets: [
-            {
-                data: analytics?.trafficSources?.data || [35, 30, 20, 15],
-                backgroundColor: [
-                    'rgba(147, 51, 234, 0.8)',
-                    'rgba(59, 130, 246, 0.8)',
-                    'rgba(16, 185, 129, 0.8)',
-                    'rgba(245, 158, 11, 0.8)',
-                ],
-                borderWidth: 0,
-            },
-        ],
-    };
+    // Traffic sources - use REAL data from analytics API, no fake fallback
+    const hasTrafficData = analytics?.trafficSources?.data?.length > 0 &&
+        analytics.trafficSources.data.some(v => v > 0);
+
+    const trafficSourceColors = [
+        'rgba(147, 51, 234, 0.8)',   // Purple - Direct
+        'rgba(59, 130, 246, 0.8)',   // Blue - Social Media
+        'rgba(16, 185, 129, 0.8)',   // Green - Search
+        'rgba(245, 158, 11, 0.8)',   // Amber - Referral
+        'rgba(239, 68, 68, 0.8)',    // Red - Email
+        'rgba(107, 114, 128, 0.8)',  // Gray - Unknown
+    ];
+
+    const trafficSourcesData = hasTrafficData
+        ? {
+            labels: analytics.trafficSources.labels,
+            datasets: [
+                {
+                    data: analytics.trafficSources.data,
+                    backgroundColor: analytics.trafficSources.labels.map((_, i) =>
+                        trafficSourceColors[i % trafficSourceColors.length]
+                    ),
+                    borderWidth: 0,
+                },
+            ],
+        }
+        : null;
 
     const chartOptions = {
         responsive: true,
@@ -196,21 +208,25 @@ export default function CampaignAnalyticsPage() {
                     padding: 15,
                 },
             },
+            tooltip: {
+                callbacks: {
+                    label: function (context) {
+                        const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
+                        const value = context.parsed;
+                        const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                        return `${context.label}: ${value} visits (${percentage}%)`;
+                    }
+                }
+            }
         },
     };
 
     return (
-        <div className="min-h-screen bg-black py-8 px-4">
+        <div className="min-h-screen bg-black py-8 mt-10 px-4">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
-                    <button
-                        onClick={() => router.push('/dashboard/campaigns')}
-                        className="flex items-center gap-2 text-gray-400 hover:text-white transition-all mb-4"
-                    >
-                        <FaArrowLeft className="w-4 h-4" />
-                        <span>Back to Campaigns</span>
-                    </button>
+                    
                     <h1 className="text-3xl font-bold text-white mb-2">{campaign.title}</h1>
                     <p className="text-gray-400">Campaign Analytics & Performance</p>
                 </div>
@@ -295,8 +311,23 @@ export default function CampaignAnalyticsPage() {
                     <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
                         <h2 className="text-xl font-bold text-white mb-6">Traffic Sources</h2>
                         <div className="h-64">
-                            <Doughnut data={trafficSourcesData} options={doughnutOptions} />
+                            {trafficSourcesData ? (
+                                <Doughnut data={trafficSourcesData} options={doughnutOptions} />
+                            ) : (
+                                <div className="h-full flex flex-col items-center justify-center text-center">
+                                    <FaChartLine className="w-10 h-10 text-gray-600 mb-3" />
+                                    <p className="text-gray-400 text-sm font-medium">No traffic data yet</p>
+                                    <p className="text-gray-500 text-xs mt-1">
+                                        Visits to your campaign page will be tracked here
+                                    </p>
+                                </div>
+                            )}
                         </div>
+                        {hasTrafficData && analytics?.trafficSources?.total > 0 && (
+                            <p className="text-xs text-gray-500 text-center mt-3">
+                                Based on {analytics.trafficSources.total.toLocaleString('en-IN')} tracked visits
+                            </p>
+                        )}
                     </div>
 
                     {/* Campaign Progress */}

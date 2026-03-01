@@ -1,11 +1,11 @@
 // components/NotificationBell.js
 "use client"
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { useScrollIsolation } from '../hooks/useScrollIsolation';
-import { Wallet, Rocket, MessageCircle, Target, Bell, Megaphone } from 'lucide-react';
+import { Wallet, Rocket, MessageCircle, Target, Bell, Megaphone, X } from 'lucide-react';
 
 export default function NotificationBell() {
     const { data: session } = useSession();
@@ -13,8 +13,10 @@ export default function NotificationBell() {
     const [unreadCount, setUnreadCount] = useState(0);
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(false);
-    const dropdownRef = useRef(null);
+    const triggerRef = useRef(null);
+    const panelRef = useRef(null);
     const scrollRef = useScrollIsolation();
+    const [panelStyle, setPanelStyle] = useState({});
 
     useEffect(() => {
         if (session) {
@@ -26,17 +28,102 @@ export default function NotificationBell() {
         }
     }, [session]);
 
+    // Calculate dropdown position based on trigger button location
+    const updatePosition = useCallback(() => {
+        if (!triggerRef.current || !isOpen) return;
+
+        const rect = triggerRef.current.getBoundingClientRect();
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const panelWidth = Math.min(384, vw - 16); // 384px = w-96, 16px margin
+        const isMobileView = vw < 640;
+
+        if (isMobileView) {
+            // Mobile: near full-width, below navbar
+            setPanelStyle({
+                position: 'fixed',
+                left: '8px',
+                right: '8px',
+                top: `${Math.min(rect.bottom + 8, 72)}px`,
+                bottom: 'auto',
+                width: 'auto',
+                maxHeight: `${vh - Math.min(rect.bottom + 8, 72) - 16}px`,
+            });
+        } else {
+            // Desktop/tablet: position below trigger, clamped to viewport
+            const top = rect.bottom + 8;
+            let right = vw - rect.right;
+
+            // Ensure panel doesn't overflow left edge
+            const leftEdge = vw - right - panelWidth;
+            if (leftEdge < 8) {
+                right = vw - panelWidth - 8;
+            }
+            // Ensure panel doesn't overflow right edge
+            if (right < 8) {
+                right = 8;
+            }
+
+            const maxHeight = vh - top - 16;
+
+            setPanelStyle({
+                position: 'fixed',
+                top: `${top}px`,
+                right: `${right}px`,
+                width: `${panelWidth}px`,
+                maxHeight: `${Math.min(maxHeight, 500)}px`,
+            });
+        }
+    }, [isOpen]);
+
+    // Update position on open, resize, scroll
+    useEffect(() => {
+        if (!isOpen) return;
+
+        updatePosition();
+        window.addEventListener('resize', updatePosition);
+        window.addEventListener('scroll', updatePosition, true);
+
+        return () => {
+            window.removeEventListener('resize', updatePosition);
+            window.removeEventListener('scroll', updatePosition, true);
+        };
+    }, [isOpen, updatePosition]);
+
     // Close dropdown when clicking outside
     useEffect(() => {
+        if (!isOpen) return;
+
         const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+            if (
+                triggerRef.current && !triggerRef.current.contains(event.target) &&
+                panelRef.current && !panelRef.current.contains(event.target)
+            ) {
                 setIsOpen(false);
             }
         };
 
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+        const timer = setTimeout(() => {
+            document.addEventListener('mousedown', handleClickOutside);
+            document.addEventListener('touchstart', handleClickOutside);
+        }, 0);
+
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('touchstart', handleClickOutside);
+        };
+    }, [isOpen]);
+
+    // Close on Escape key
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') setIsOpen(false);
+        };
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen]);
 
     const fetchNotifications = async () => {
         try {
@@ -113,15 +200,17 @@ export default function NotificationBell() {
     if (!session) return null;
 
     return (
-        <div className="relative" ref={dropdownRef}>
+        <>
             {/* Bell Icon Button */}
             <button
+                ref={triggerRef}
                 onClick={() => setIsOpen(!isOpen)}
-                className="relative p-2 text-gray-300 hover:text-white transition-colors rounded-lg hover:bg-gray-800"
+                className="relative p-2 text-gray-300 hover:text-white transition-colors rounded-lg hover:bg-gray-800 z-[51]"
                 aria-label="Notifications"
+                type="button"
             >
                 <svg
-                    className="w-6 h-6"
+                    className="w-5 h-5 sm:w-6 sm:h-6"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -144,91 +233,116 @@ export default function NotificationBell() {
 
             {/* Dropdown */}
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-80 md:w-96 bg-gray-900 border border-gray-800 rounded-xl shadow-2xl z-50 max-h-[500px] flex flex-col">
-                    {/* Header */}
-                    <div className="p-4 border-b border-gray-800 flex items-center justify-between">
-                        <h3 className="text-lg font-bold text-white">Notifications</h3>
-                        {unreadCount > 0 && (
-                            <button
-                                onClick={markAllAsRead}
-                                disabled={loading}
-                                className="text-xs text-purple-400 hover:text-purple-300 transition-colors disabled:opacity-50"
-                            >
-                                Mark all as read
-                            </button>
-                        )}
-                    </div>
+                <>
+                    {/* Backdrop */}
+                    <div
+                        className="fixed inset-0 z-[60] bg-black/50 sm:bg-black/20"
+                        onClick={() => setIsOpen(false)}
+                    />
 
-                    {/* Notifications List */}
-                    <div ref={scrollRef} className="overflow-y-auto flex-1">
-                        {notifications.length === 0 ? (
-                            <div className="p-8 text-center">
-                                <div className="flex justify-center mb-2"><Bell className="w-8 h-8 text-gray-500" /></div>
-                                <p className="text-gray-400">No notifications yet</p>
-                                <p className="text-sm text-gray-500 mt-1">
-                                    We'll notify you when something happens
-                                </p>
-                            </div>
-                        ) : (
-                            notifications.slice(0, 5).map((notification) => (
-                                <div
-                                    key={notification._id}
-                                    className={`p-4 border-b border-gray-800 hover:bg-gray-800/50 transition-colors cursor-pointer ${!notification.read ? 'bg-purple-500/5' : ''
-                                        }`}
-                                    onClick={() => {
-                                        if (!notification.read) {
-                                            markAsRead(notification._id);
-                                        }
-                                        if (notification.link) {
-                                            window.location.href = notification.link;
-                                        }
-                                    }}
-                                >
-                                    <div className="flex items-start gap-3">
-                                        {/* Icon */}
-                                        <div className="text-2xl flex-shrink-0">
-                                            {getNotificationIcon(notification.type)}
-                                        </div>
-
-                                        {/* Content */}
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm text-white font-medium line-clamp-2">
-                                                {notification.title}
-                                            </p>
-                                            <p className="text-xs text-gray-400 mt-1 line-clamp-2">
-                                                {notification.message}
-                                            </p>
-                                            <p className="text-xs text-gray-500 mt-2">
-                                                {formatDistanceToNow(new Date(notification.createdAt), {
-                                                    addSuffix: true
-                                                })}
-                                            </p>
-                                        </div>
-
-                                        {/* Unread Indicator */}
-                                        {!notification.read && (
-                                            <div className="w-2 h-2 bg-purple-500 rounded-full flex-shrink-0 mt-2" />
-                                        )}
-                                    </div>
+                    {/* Notification panel - always fixed, position calculated dynamically */}
+                    <div
+                        ref={panelRef}
+                        className="z-[61] flex flex-col"
+                        style={panelStyle}
+                    >
+                        <div className="bg-gray-900 border border-gray-800 rounded-xl shadow-2xl flex flex-col overflow-hidden h-full">
+                            {/* Header */}
+                            <div className="p-4 border-b border-gray-800 flex items-center justify-between flex-shrink-0">
+                                <h3 className="text-lg font-bold text-white">Notifications</h3>
+                                <div className="flex items-center gap-3">
+                                    {unreadCount > 0 && (
+                                        <button
+                                            onClick={markAllAsRead}
+                                            disabled={loading}
+                                            className="text-xs text-purple-400 hover:text-purple-300 transition-colors disabled:opacity-50"
+                                        >
+                                            Mark all as read
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={() => setIsOpen(false)}
+                                        className="sm:hidden p-1 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+                                        aria-label="Close notifications"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
                                 </div>
-                            ))
-                        )}
-                    </div>
+                            </div>
 
-                    {/* Footer */}
-                    {notifications.length > 0 && (
-                        <div className="p-3 border-t border-gray-800">
-                            <Link
-                                href="/notifications"
-                                className="block text-center text-sm text-purple-400 hover:text-purple-300 transition-colors"
-                                onClick={() => setIsOpen(false)}
-                            >
-                                View All Notifications
-                            </Link>
+                            {/* Notifications List */}
+                            <div ref={scrollRef} className="overflow-y-auto flex-1">
+                                {notifications.length === 0 ? (
+                                    <div className="p-8 text-center">
+                                        <div className="flex justify-center mb-2"><Bell className="w-8 h-8 text-gray-500" /></div>
+                                        <p className="text-gray-400">No notifications yet</p>
+                                        <p className="text-sm text-gray-500 mt-1">
+                                            We&apos;ll notify you when something happens
+                                        </p>
+                                    </div>
+                                ) : (
+                                    notifications.slice(0, 5).map((notification) => (
+                                        <div
+                                            key={notification._id}
+                                            className={`p-4 border-b border-gray-800 hover:bg-gray-800/50 transition-colors cursor-pointer ${!notification.read ? 'bg-purple-500/5' : ''
+                                                }`}
+                                            onClick={() => {
+                                                if (!notification.read) {
+                                                    markAsRead(notification._id);
+                                                }
+                                                if (notification.link) {
+                                                    setIsOpen(false);
+                                                    window.location.href = notification.link;
+                                                }
+                                            }}
+                                        >
+                                            <div className="flex items-start gap-3">
+                                                {/* Icon */}
+                                                <div className="text-2xl flex-shrink-0">
+                                                    {getNotificationIcon(notification.type)}
+                                                </div>
+
+                                                {/* Content */}
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm text-white font-medium line-clamp-2">
+                                                        {notification.title}
+                                                    </p>
+                                                    <p className="text-xs text-gray-400 mt-1 line-clamp-2">
+                                                        {notification.message}
+                                                    </p>
+                                                    <p className="text-xs text-gray-500 mt-2">
+                                                        {formatDistanceToNow(new Date(notification.createdAt), {
+                                                            addSuffix: true
+                                                        })}
+                                                    </p>
+                                                </div>
+
+                                                {/* Unread Indicator */}
+                                                {!notification.read && (
+                                                    <div className="w-2 h-2 bg-purple-500 rounded-full flex-shrink-0 mt-2" />
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+
+                            {/* Footer */}
+                            {notifications.length > 0 && (
+                                <div className="p-3 border-t border-gray-800 flex-shrink-0">
+                                    <Link
+                                        href="/notifications"
+                                        className="block text-center text-sm text-purple-400 hover:text-purple-300 transition-colors"
+                                        onClick={() => setIsOpen(false)}
+                                    >
+                                        View All Notifications
+                                    </Link>
+                                </div>
+                            )}
                         </div>
-                    )}
-                </div>
+                    </div>
+                </>
             )}
-        </div>
+        </>
     );
 }

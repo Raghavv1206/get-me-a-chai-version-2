@@ -42,11 +42,26 @@
   a {
     @apply cursor-pointer;
   }
+}
 
-  /* Ensure all scrollable areas work with mouse wheel */
-  * {
-    overscroll-behavior: auto;
-  }
+/* Override Lenis "height: auto" so the sticky footer layout works */
+html.lenis,
+html.lenis body {
+  height: auto;
+  min-height: 100vh;
+}
+
+html.lenis body {
+  display: flex;
+  flex-direction: column;
+}
+
+html.lenis body>main {
+  flex: 1 0 auto;
+}
+
+html.lenis body>footer {
+  flex-shrink: 0;
 }
 
 .invertImg {

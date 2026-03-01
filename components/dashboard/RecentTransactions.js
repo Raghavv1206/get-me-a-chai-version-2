@@ -31,7 +31,7 @@ export default function RecentTransactions({ transactions: initialTransactions }
   const totalPages = Math.ceil(transactions.length / itemsPerPage);
 
   return (
-    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden flex flex-col h-full">
+    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden flex flex-col">
       <div className="p-6 flex items-center justify-between border-b border-white/10">
         <h3 className="text-xl font-bold text-white">Recent Transactions</h3>
         <Link

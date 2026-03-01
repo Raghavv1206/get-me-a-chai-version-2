@@ -1,0 +1,200 @@
+﻿   Γû▓ Next.js 15.5.9
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+node.exe : Failed to compile.
+At C:\Program 
+Files\nodejs\npx.ps1:29 
+char:3
++   & $NODE_EXE $NPX_CLI_JS 
+$args
++   
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: (Failed   
+  to compile.:String) [],    
+ RemoteException
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+
+./actions/adminActions.js
+Error:   [31mx[0m Only 
+async functions are allowed 
+to be exported in a "use 
+server" file.
+
+     ,-[[36;1;4mC:\Users\rag
+ha\project\get-me-a-chai\acti
+ons\adminActions.js[0m:733:1
+]
+ [2m730[0m |         }
+ [2m731[0m |     }
+ [2m732[0m |     
+ [2m733[0m | [35;1m,[0m[
+35;1m-[0m[35;1m>[0m 
+export default {
+ [2m734[0m | [35;1m|[0m  
+     getUsers,
+ [2m735[0m | [35;1m|[0m  
+     banUser,
+ [2m736[0m | [35;1m|[0m  
+     verifyUser,
+ [2m737[0m | [35;1m|[0m  
+     featureCampaign,
+ [2m738[0m | [35;1m|[0m  
+     moderateCampaign,
+ [2m739[0m | [35;1m`[0m[
+35;1m-[0m[35;1m>[0m };
+     `----
+
+Import trace for requested 
+module:
+./actions/adminActions.js
+./app/admin/page.js
+
+./actions/moderationActions.j
+s
+Error:   [31mx[0m Only 
+async functions are allowed 
+to be exported in a "use 
+server" file.
+
+     ,-[[36;1;4mC:\Users\rag
+ha\project\get-me-a-chai\acti
+ons\moderationActions.js[0m:
+644:1]
+ [2m641[0m |         }
+ [2m642[0m |     }
+ [2m643[0m |     
+ [2m644[0m | [35;1m,[0m[
+35;1m-[0m[35;1m>[0m 
+export default {
+ [2m645[0m | [35;1m|[0m  
+     moderateContent,
+ [2m646[0m | [35;1m|[0m  
+     flagContent,
+ [2m647[0m | [35;1m|[0m  
+     reviewFlaggedContent,
+ [2m648[0m | [35;1m`[0m[
+35;1m-[0m[35;1m>[0m };
+     `----
+
+Import trace for requested 
+module:
+./actions/moderationActions.j
+s
+./components/moderation/Moder
+ationQueue.js
+./app/admin/moderation/page.j
+s
+
+./actions/emailActions.js
+Error:   [31mx[0m Only 
+async functions are allowed 
+to be exported in a "use 
+server" file.
+
+     ,-[[36;1;4mC:\Users\rag
+ha\project\get-me-a-chai\acti
+ons\emailActions.js[0m:955:1
+]
+ [2m952[0m |         
+rateLimiters.weekly
+ [2m953[0m |     );
+ [2m954[0m |     
+ [2m955[0m | [35;1m,[0m[
+35;1m-[0m[35;1m>[0m 
+export default {
+ [2m956[0m | [35;1m|[0m  
+     sendWelcomeEmail,
+ [2m957[0m | [35;1m|[0m  
+     sendPaymentConfirmation,
+ [2m958[0m | [35;1m|[0m  
+     sendCreatorNotification,
+ [2m959[0m | [35;1m|[0m  
+     sendMilestoneEmail,
+ [2m960[0m | [35;1m|[0m  
+     sendUpdateNotifications,
+ [2m961[0m | [35;1m|[0m  
+     sendWeeklySummary,
+ [2m962[0m | [35;1m|[0m  
+     sendBulkWeeklySummaries,
+ [2m963[0m | [35;1m`[0m[
+35;1m-[0m[35;1m>[0m };
+     `----
+
+Import trace for requested 
+module:
+./actions/emailActions.js
+./app/api/cron/weekly-summary
+/route.js
+
+./actions/moderationActions.j
+s
+Error:   [31mx[0m Only 
+async functions are allowed 
+to be exported in a "use 
+server" file.
+
+     ,-[[36;1;4mC:\Users\rag
+ha\project\get-me-a-chai\acti
+ons\moderationActions.js[0m:
+644:1]
+ [2m641[0m |         }
+ [2m642[0m |     }
+ [2m643[0m |     
+ [2m644[0m | [35;1m,[0m[
+35;1m-[0m[35;1m>[0m 
+export default {
+ [2m645[0m | [35;1m|[0m  
+     moderateContent,
+ [2m646[0m | [35;1m|[0m  
+     flagContent,
+ [2m647[0m | [35;1m|[0m  
+     reviewFlaggedContent,
+ [2m648[0m | [35;1m`[0m[
+35;1m-[0m[35;1m>[0m };
+     `----
+
+Import trace for requested 
+module:
+./actions/moderationActions.j
+s
+./app/api/ai/moderate/route.j
+s
+
+./app/api/cron/publish-schedu
+led/route.js
+Error:   [31mx[0m 
+Expression expected
+    ,-[[36;1;4mC:\Users\ragh
+a\project\get-me-a-chai\app\a
+pi\cron\publish-scheduled\rou
+te.js[0m:10:1]
+ [2m 7[0m |  * {
+ [2m 8[0m |  *   "crons": 
+[{
+ [2m 9[0m |  *     "path": 
+"/api/cron/publish-scheduled"
+,
+ [2m10[0m |  *     
+"schedule": "*/5 * * * * "
+    : [35;1m                
+          ^[0m
+ [2m11[0m |     *   }]
+ [2m12[0m |  * }
+ [2m12[0m |  */
+    `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested 
+module:
+./app/api/cron/publish-schedu
+led/route.js
+
+
+> Build failed because of 
+webpack errors
