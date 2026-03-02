@@ -3,6 +3,8 @@ import Razorpay from 'razorpay';
 import connectDb from '@/db/connectDb';
 import Payment from '@/models/Payment';
 import Campaign from '@/models/Campaign';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 // Initialize Razorpay
 const razorpay = new Razorpay({
@@ -12,6 +14,9 @@ const razorpay = new Razorpay({
 
 export async function POST(request) {
     try {
+        // Get the authenticated user's session
+        const session = await getServerSession(authOptions);
+
         const body = await request.json();
         const {
             amount,
@@ -63,6 +68,7 @@ export async function POST(request) {
         const payment = await Payment.create({
             name,
             email,
+            userId: session?.user?.id || null,
             to_user: creatorUsername,
             campaign: campaignId,
             oid: order.id,

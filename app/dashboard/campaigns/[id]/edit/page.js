@@ -319,17 +319,31 @@ export default function EditCampaignPage() {
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                                    Cover Image URL
+                                    Cover Image URL <span className="text-gray-500">(Optional)</span>
                                 </label>
-                                <input
-                                    type="url"
-                                    name="coverImage"
-                                    value={formData.coverImage}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                                    placeholder="https://example.com/image.jpg"
-                                />
-                                {formData.coverImage && (
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        name="coverImage"
+                                        value={formData.coverImage}
+                                        onChange={handleChange}
+                                        className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                        placeholder="https://example.com/image.jpg"
+                                    />
+                                    {formData.coverImage && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setFormData(prev => ({ ...prev, coverImage: '' }))}
+                                            className="px-3 py-2 bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl hover:bg-red-500/20 transition-all text-sm whitespace-nowrap"
+                                        >
+                                            Clear
+                                        </button>
+                                    )}
+                                </div>
+                                <p className="mt-1 text-xs text-gray-500">
+                                    Leave empty to use the default category image. Paste a full URL (https://...) for a custom image.
+                                </p>
+                                {formData.coverImage && formData.coverImage.startsWith('http') && (
                                     <div className="mt-3 relative w-full h-48 rounded-xl overflow-hidden">
                                         <Image
                                             src={formData.coverImage}
@@ -343,16 +357,19 @@ export default function EditCampaignPage() {
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                                    Video URL (YouTube, Vimeo, etc.)
+                                    Video URL <span className="text-gray-500">(Optional — YouTube, Vimeo, etc.)</span>
                                 </label>
                                 <input
-                                    type="url"
+                                    type="text"
                                     name="videoUrl"
                                     value={formData.videoUrl}
                                     onChange={handleChange}
                                     className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                                     placeholder="https://youtube.com/watch?v=..."
                                 />
+                                <p className="mt-1 text-xs text-gray-500">
+                                    Leave empty if you don't have a video. This is completely optional.
+                                </p>
                             </div>
                         </div>
                     </div>

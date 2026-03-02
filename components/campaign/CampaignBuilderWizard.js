@@ -58,6 +58,10 @@ export default function CampaignBuilderWizard() {
         faqs: [],
     });
 
+    // Track whether the current step's internal data has been saved
+    // This is set to false when we navigate via bottom buttons without step's own Next
+    const [pendingStepData, setPendingStepData] = useState(null);
+
     // Load saved data from localStorage on mount
     useEffect(() => {
         const savedData = localStorage.getItem(STORAGE_KEY);
@@ -95,6 +99,11 @@ export default function CampaignBuilderWizard() {
     const CurrentStepComponent = STEPS[currentStep - 1].component;
 
     const handleNext = () => {
+        // If there's pending step data (from real-time sync), save it first
+        if (pendingStepData) {
+            setCampaignData(prev => ({ ...prev, ...pendingStepData }));
+            setPendingStepData(null);
+        }
         if (currentStep < STEPS.length) {
             setCurrentStep(currentStep + 1);
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -102,23 +111,44 @@ export default function CampaignBuilderWizard() {
     };
 
     const handleBack = () => {
+        // Save any pending data before going back too
+        if (pendingStepData) {
+            setCampaignData(prev => ({ ...prev, ...pendingStepData }));
+            setPendingStepData(null);
+        }
         if (currentStep > 1) {
             setCurrentStep(currentStep - 1);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     };
 
+    // Called when a step internally clicks its own Next button (with validation)
     const handleDataUpdate = (data) => {
+        setCampaignData(prev => ({ ...prev, ...data }));
+        setPendingStepData(null); // Clear pending since we just saved
+    };
+
+    // Called on every keystroke/change within a step for real-time sync
+    // This ensures data is NEVER lost even if the user uses bottom nav
+    const handleLiveSync = (data) => {
+        setPendingStepData(data);
+        // Also save to main state immediately (merge, don't overwrite)
         setCampaignData(prev => ({ ...prev, ...data }));
     };
 
     const handleSaveDraft = async () => {
         try {
+            const draftData = {
+                ...campaignData,
+                goal: Number(campaignData.goal) || 0,
+                status: 'draft',
+            };
+
             const response = await apiToast(
                 () => fetch('/api/campaigns/draft', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ...campaignData, status: 'draft' }),
+                    body: JSON.stringify(draftData),
                 }),
                 {
                     loading: 'Saving draft...',
@@ -137,12 +167,37 @@ export default function CampaignBuilderWizard() {
     };
 
     const handlePublish = async () => {
+        // Validate required fields before publishing
+        if (!campaignData.title || campaignData.title.trim().length < 5) {
+            toast.error('Campaign title is required (at least 5 characters)');
+            return;
+        }
+        if (!campaignData.story || campaignData.story.trim().length < 50) {
+            toast.error('Campaign story is required (at least 50 characters)');
+            return;
+        }
+        if (!campaignData.goal || Number(campaignData.goal) < 1000) {
+            toast.error('Funding goal must be at least ₹1,000');
+            return;
+        }
+        if (!campaignData.category) {
+            toast.error('Campaign category is required');
+            return;
+        }
+
         try {
+            // Ensure goal is a number, not a string
+            const publishData = {
+                ...campaignData,
+                goal: Number(campaignData.goal),
+                status: 'active',
+            };
+
             const response = await apiToast(
                 () => fetch('/api/campaigns/create', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ...campaignData, status: 'active' }),
+                    body: JSON.stringify(publishData),
                 }),
                 {
                     loading: 'Publishing campaign...',
@@ -277,6 +332,7 @@ export default function CampaignBuilderWizard() {
                 <CurrentStepComponent
                     data={campaignData}
                     onUpdate={handleDataUpdate}
+                    onLiveSync={handleLiveSync}
                     onNext={handleNext}
                     onBack={handleBack}
                 />

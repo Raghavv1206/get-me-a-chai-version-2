@@ -62,19 +62,37 @@ export default function MyContributionsPage() {
             setLoading(true);
             setError(null);
 
-            const [contributionsResult, badgesResult] = await Promise.all([
+            // Fetch contributions and badges independently so one failure doesn't block the other
+            const [contributionsResult, badgesResult] = await Promise.allSettled([
                 getContributions(session.user.id),
                 getBadges(session.user.id),
             ]);
 
-            if (contributionsResult.success) {
-                setContributionsData(contributionsResult);
+            // Handle contributions result
+            if (contributionsResult.status === 'fulfilled' && contributionsResult.value?.success) {
+                setContributionsData(contributionsResult.value);
+            } else if (contributionsResult.status === 'fulfilled' && !contributionsResult.value?.success) {
+                console.error('Contributions fetch failed:', contributionsResult.value?.error);
+                // Set empty data so the UI still renders with a "no data" state
+                setContributionsData({
+                    success: true,
+                    contributions: [],
+                    summary: { totalAmount: 0, campaignsSupported: 0, totalContributions: 0, averageContribution: 0 },
+                    groupedByMonth: {},
+                    impactMetrics: {},
+                    activeSubscriptions: [],
+                });
             } else {
-                throw new Error(contributionsResult.error);
+                console.error('Contributions fetch rejected:', contributionsResult.reason);
+                throw new Error(contributionsResult.reason?.message || 'Failed to load contributions');
             }
 
-            if (badgesResult.success) {
-                setBadgesData(badgesResult);
+            // Handle badges result (don't throw on failure, just show empty badges)
+            if (badgesResult.status === 'fulfilled' && badgesResult.value?.success) {
+                setBadgesData(badgesResult.value);
+            } else {
+                console.warn('Badges fetch issue:', badgesResult.status === 'fulfilled' ? badgesResult.value?.error : badgesResult.reason);
+                setBadgesData({ success: true, badges: [], impactScore: 0, totalBadges: 0 });
             }
 
         } catch (err) {

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Sparkles, Loader2, RefreshCw } from 'lucide-react';
 import { toast } from '@/lib/apiToast';
 
-export default function AIStoryStep({ data, onUpdate, onNext, onBack }) {
+export default function AIStoryStep({ data, onUpdate, onLiveSync, onNext, onBack }) {
     const [formData, setFormData] = useState({
         brief: data.brief || '',
         title: data.title || '',
@@ -18,7 +18,10 @@ export default function AIStoryStep({ data, onUpdate, onNext, onBack }) {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        const newData = { ...formData, [name]: value };
+        setFormData(newData);
+        // Sync to parent in real-time so title is always available
+        if (onLiveSync) onLiveSync(newData);
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: '' }));
         }
@@ -72,20 +75,27 @@ export default function AIStoryStep({ data, onUpdate, onNext, onBack }) {
                 const jsonMatch = fullText.match(/\{[\s\S]*\}/);
                 if (jsonMatch) {
                     const parsed = JSON.parse(jsonMatch[0]);
-                    setFormData(prev => ({
-                        ...prev,
-                        title: parsed.title || prev.title,
-                        hook: parsed.hook || prev.hook,
-                        story: parsed.story || prev.story,
-                    }));
+                    const newData = {
+                        ...formData,
+                        title: parsed.title || formData.title,
+                        hook: parsed.hook || formData.hook,
+                        story: parsed.story || formData.story,
+                    };
+                    setFormData(newData);
+                    // Sync generated content to parent immediately
+                    if (onLiveSync) onLiveSync(newData);
                 } else {
                     // If no JSON, use the full text as story
-                    setFormData(prev => ({ ...prev, story: fullText }));
+                    const newData = { ...formData, story: fullText };
+                    setFormData(newData);
+                    if (onLiveSync) onLiveSync(newData);
                 }
             } catch (parseError) {
                 console.warn('JSON parsing failed, using raw text:', parseError);
                 // If parsing fails, use the full text
-                setFormData(prev => ({ ...prev, story: fullText }));
+                const newData = { ...formData, story: fullText };
+                setFormData(newData);
+                if (onLiveSync) onLiveSync(newData);
             }
 
         } catch (error) {
@@ -184,74 +194,73 @@ export default function AIStoryStep({ data, onUpdate, onNext, onBack }) {
                 </div>
             )}
 
-            {/* Generated Content - Editable */}
-            {formData.title && (
-                <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                        <h3 className="text-lg font-semibold text-white">Generated Content (Editable)</h3>
-                        <button
-                            onClick={handleRegenerate}
-                            className="text-sm text-purple-400 hover:text-purple-300 flex items-center gap-1"
-                        >
-                            <RefreshCw className="w-4 h-4" /> Regenerate
-                        </button>
-                    </div>
+            {/* Campaign Title - ALWAYS visible so user can type manually */}
+            <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Campaign Title *
+                </label>
+                <input
+                    type="text"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleChange}
+                    className={`w-full p-3 rounded-lg bg-gray-800 text-white border ${errors.title ? 'border-red-500' : 'border-gray-700'
+                        } focus:outline-none focus:border-purple-500 transition-colors`}
+                    placeholder="Enter your campaign title or generate one with AI above"
+                />
+                {errors.title && <p className="mt-1 text-sm text-red-400">{errors.title}</p>}
+            </div>
 
-                    {/* Title */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                            Campaign Title *
-                        </label>
-                        <input
-                            type="text"
-                            name="title"
-                            value={formData.title}
-                            onChange={handleChange}
-                            className={`w-full p-3 rounded-lg bg-gray-800 text-white border ${errors.title ? 'border-red-500' : 'border-gray-700'
-                                } focus:outline-none focus:border-purple-500 transition-colors`}
-                            placeholder="Your campaign title"
-                        />
-                        {errors.title && <p className="mt-1 text-sm text-red-400">{errors.title}</p>}
-                    </div>
-
-                    {/* Hook */}
-                    {formData.hook && (
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                                Opening Hook
-                            </label>
-                            <textarea
-                                name="hook"
-                                value={formData.hook}
-                                onChange={handleChange}
-                                rows={3}
-                                className="w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-purple-500 transition-colors resize-none overflow-y-auto"
-                            />
-                        </div>
-                    )}
-
-                    {/* Story */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                            Campaign Story *
-                        </label>
-                        <textarea
-                            name="story"
-                            value={formData.story}
-                            onChange={handleChange}
-                            rows={15}
-                            className={`w-full p-3 rounded-lg bg-gray-800 text-white border ${errors.story ? 'border-red-500' : 'border-gray-700'
-                                } focus:outline-none focus:border-purple-500 transition-colors resize-none font-mono text-sm overflow-y-auto`}
-                        />
-                        <div className="flex justify-between mt-1">
-                            {errors.story && <p className="text-sm text-red-400">{errors.story}</p>}
-                            <p className="text-sm text-gray-500 ml-auto">
-                                {charCount} characters • {wordCount} words
-                            </p>
-                        </div>
-                    </div>
+            {/* AI Generated Content Section - Regenerate button only shows after generation */}
+            {(formData.title || formData.story) && (
+                <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-semibold text-white">Content (Editable)</h3>
+                    <button
+                        onClick={handleRegenerate}
+                        className="text-sm text-purple-400 hover:text-purple-300 flex items-center gap-1"
+                    >
+                        <RefreshCw className="w-4 h-4" /> Regenerate
+                    </button>
                 </div>
             )}
+
+            {/* Hook - only shown after AI generates one */}
+            {formData.hook && (
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Opening Hook
+                    </label>
+                    <textarea
+                        name="hook"
+                        value={formData.hook}
+                        onChange={handleChange}
+                        rows={3}
+                        className="w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-purple-500 transition-colors resize-none overflow-y-auto"
+                    />
+                </div>
+            )}
+
+            {/* Campaign Story - ALWAYS visible so user can type manually */}
+            <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Campaign Story *
+                </label>
+                <textarea
+                    name="story"
+                    value={formData.story}
+                    onChange={handleChange}
+                    rows={15}
+                    className={`w-full p-3 rounded-lg bg-gray-800 text-white border ${errors.story ? 'border-red-500' : 'border-gray-700'
+                        } focus:outline-none focus:border-purple-500 transition-colors resize-none font-mono text-sm overflow-y-auto`}
+                    placeholder="Write your campaign story or generate one with AI above"
+                />
+                <div className="flex justify-between mt-1">
+                    {errors.story && <p className="text-sm text-red-400">{errors.story}</p>}
+                    <p className="text-sm text-gray-500 ml-auto">
+                        {charCount} characters • {wordCount} words
+                    </p>
+                </div>
+            </div>
 
             {/* Navigation Buttons */}
             <div className="flex justify-between pt-4">

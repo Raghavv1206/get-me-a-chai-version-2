@@ -5,7 +5,7 @@
  * Production-Ready Contributions Actions
  * 
  * Features:
- * - Fetch user contributions
+ * - Fetch user contributions (by userId + email + name fallback)
  * - Generate PDF receipts
  * - Calculate badges
  * - Impact metrics
@@ -21,8 +21,7 @@ import connectDb from '@/db/connectDb';
 import Payment from '@/models/Payment';
 import Campaign from '@/models/Campaign';
 import User from '@/models/User';
-import PDFDocument from 'pdfkit';
-import { Readable } from 'stream';
+import mongoose from 'mongoose';
 
 // ============================================================================
 // LOGGING
@@ -163,6 +162,75 @@ function validatePaymentId(paymentId) {
 }
 
 // ============================================================================
+// HELPER: Build user payment query
+// ============================================================================
+
+/**
+ * Build a MongoDB query to find all payments made BY a given user.
+ * Handles multiple identification strategies:
+ * 1. userId field (ObjectId) — for payments that stored the supporter's userId
+ * 2. email field — for payments matched by user email
+ * 3. name field + NOT to_user — for payments where the name matches and user isn't the recipient
+ * 
+ * Uses $or to combine these strategies so we catch all payment records
+ * regardless of which creation path was used.
+ */
+async function buildUserPaymentQuery(userId) {
+    // Look up the user to get email, name, username
+    const user = await User.findById(userId).lean();
+
+    if (!user) {
+        logger.warn('User not found when building payment query', { userId });
+        return null;
+    }
+
+    const orConditions = [];
+
+    // Strategy 1: Match by userId field (ObjectId ref)
+    if (mongoose.Types.ObjectId.isValid(userId)) {
+        orConditions.push({ userId: new mongoose.Types.ObjectId(userId) });
+    }
+
+    // Strategy 2: Match by email field on Payment
+    if (user.email) {
+        orConditions.push({ email: user.email });
+    }
+
+    // Strategy 3: Match by name (but exclude payments TO this user — those are received, not made)
+    // Only use this if name is reasonably unique (not too short)
+    if (user.name && user.name.length >= 2) {
+        orConditions.push({
+            name: user.name,
+            to_user: { $ne: user.username }
+        });
+    }
+    // Also match by username as name
+    if (user.username) {
+        orConditions.push({
+            name: user.username,
+            to_user: { $ne: user.username }
+        });
+    }
+
+    if (orConditions.length === 0) {
+        return null;
+    }
+
+    // Combine: (user match conditions) AND (payment is completed)
+    return {
+        $and: [
+            { $or: orConditions },
+            {
+                $or: [
+                    { status: 'success' },
+                    { done: true }
+                ]
+            }
+        ]
+    };
+}
+
+// ============================================================================
 // GET CONTRIBUTIONS
 // ============================================================================
 
@@ -208,22 +276,66 @@ export async function getContributions(userId) {
 
         await connectDb();
 
-        // Fetch all payments by user (using correct field name: userId, not from_user)
-        const payments = await Payment.find({
-            userId: userId,
-            status: 'success'  // Payment model uses 'success' not 'completed'
-        })
-            .populate('campaign', 'title coverImage creator status')
+        // Build a comprehensive query to find user's payments
+        const query = await buildUserPaymentQuery(userId);
+
+        if (!query) {
+            logger.warn('Could not build payment query — user not found', { requestId, userId });
+            return {
+                success: true,
+                contributions: [],
+                summary: {
+                    totalAmount: 0,
+                    campaignsSupported: 0,
+                    totalContributions: 0,
+                    averageContribution: 0,
+                },
+                groupedByMonth: {},
+                impactMetrics: {
+                    totalContributions: 0,
+                    totalAmount: 0,
+                    campaignsSupported: 0,
+                    averageContribution: 0,
+                    firstContribution: null,
+                    latestContribution: null,
+                    monthlyAverage: 0,
+                },
+                activeSubscriptions: [],
+                duration: Date.now() - startTime,
+            };
+        }
+
+        logger.info('Querying payments with composite query', {
+            requestId,
+            userId,
+            queryKeys: JSON.stringify(Object.keys(query)),
+        });
+
+        // Fetch all payments by user
+        const payments = await Payment.find(query)
+            .populate('campaign', 'title coverImage creator status createdAt')
             .populate('userId', 'name email profilepic')
             .sort({ createdAt: -1 })
             .lean();
 
+        // Deduplicate payments (in case multiple $or conditions match the same doc)
+        const seenIds = new Set();
+        const uniquePayments = payments.filter(p => {
+            const id = p._id.toString();
+            if (seenIds.has(id)) return false;
+            seenIds.add(id);
+            return true;
+        });
+
         // Calculate summary statistics
-        const totalAmount = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
-        const campaignsSupported = [...new Set(payments.map(p => p.campaign?._id?.toString()))].length;
+        const totalAmount = uniquePayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+        const campaignIds = uniquePayments
+            .map(p => p.campaign?._id?.toString())
+            .filter(Boolean);
+        const campaignsSupported = [...new Set(campaignIds)].length;
 
         // Group by month
-        const groupedByMonth = payments.reduce((acc, payment) => {
+        const groupedByMonth = uniquePayments.reduce((acc, payment) => {
             const date = new Date(payment.createdAt);
             const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 
@@ -237,17 +349,17 @@ export async function getContributions(userId) {
 
         // Calculate impact metrics
         const impactMetrics = {
-            totalContributions: payments.length,
+            totalContributions: uniquePayments.length,
             totalAmount,
             campaignsSupported,
-            averageContribution: payments.length > 0 ? totalAmount / payments.length : 0,
-            firstContribution: payments.length > 0 ? payments[payments.length - 1].createdAt : null,
-            latestContribution: payments.length > 0 ? payments[0].createdAt : null,
-            monthlyAverage: calculateMonthlyAverage(payments),
+            averageContribution: uniquePayments.length > 0 ? totalAmount / uniquePayments.length : 0,
+            firstContribution: uniquePayments.length > 0 ? uniquePayments[uniquePayments.length - 1].createdAt : null,
+            latestContribution: uniquePayments.length > 0 ? uniquePayments[0].createdAt : null,
+            monthlyAverage: calculateMonthlyAverage(uniquePayments),
         };
 
         // Get active subscriptions
-        const activeSubscriptions = payments.filter(p =>
+        const activeSubscriptions = uniquePayments.filter(p =>
             p.subscription && p.subscription.status === 'active'
         );
 
@@ -256,18 +368,18 @@ export async function getContributions(userId) {
         logger.info('Get contributions completed', {
             requestId,
             userId,
-            totalPayments: payments.length,
+            totalPayments: uniquePayments.length,
             totalAmount,
             duration: `${duration}ms`,
         });
 
         return {
             success: true,
-            contributions: JSON.parse(JSON.stringify(payments)),
+            contributions: JSON.parse(JSON.stringify(uniquePayments)),
             summary: {
                 totalAmount,
                 campaignsSupported,
-                totalContributions: payments.length,
+                totalContributions: uniquePayments.length,
                 averageContribution: impactMetrics.averageContribution,
             },
             groupedByMonth: JSON.parse(JSON.stringify(groupedByMonth)),
@@ -298,7 +410,7 @@ export async function getContributions(userId) {
 // ============================================================================
 
 /**
- * Generate PDF receipt for a payment
+ * Generate receipt data for a payment
  * 
  * @param {string} paymentId - Payment ID
  * @param {string} userId - User ID (for authorization)
@@ -348,9 +460,17 @@ export async function generateReceipt(paymentId, userId) {
 
         await connectDb();
 
+        // Validate paymentId format for MongoDB ObjectId
+        if (!mongoose.Types.ObjectId.isValid(paymentId)) {
+            return {
+                success: false,
+                error: 'Invalid payment ID format',
+            };
+        }
+
         const payment = await Payment.findById(paymentId)
             .populate('campaign', 'title creator')
-            .populate('from_user', 'name email')
+            .populate('userId', 'name email')
             .lean();
 
         if (!payment) {
@@ -360,8 +480,23 @@ export async function generateReceipt(paymentId, userId) {
             };
         }
 
-        // Authorization check (using correct field name)
-        if (payment.userId._id.toString() !== userId) {
+        // Authorization check — verify the logged-in user owns this payment
+        // Check by userId field, email, or name match
+        const user = await User.findById(userId).lean();
+        if (!user) {
+            return {
+                success: false,
+                error: 'User not found',
+            };
+        }
+
+        const isOwner =
+            (payment.userId && payment.userId._id && payment.userId._id.toString() === userId) ||
+            (payment.userId && payment.userId.toString() === userId) ||
+            (payment.email && payment.email === user.email) ||
+            (payment.name && (payment.name === user.name || payment.name === user.username));
+
+        if (!isOwner) {
             logger.warn('Unauthorized receipt access attempt', { requestId, paymentId, userId });
             return {
                 success: false,
@@ -370,8 +505,11 @@ export async function generateReceipt(paymentId, userId) {
         }
 
         // ========================================================================
-        // GENERATE PDF
+        // BUILD RECEIPT DATA
         // ========================================================================
+
+        const donorName = payment.userId?.name || payment.name || user.name || 'Anonymous';
+        const donorEmail = payment.userId?.email || payment.email || user.email || '';
 
         const receiptData = {
             receiptNumber: `RCP-${payment._id.toString().slice(-8).toUpperCase()}`,
@@ -380,8 +518,8 @@ export async function generateReceipt(paymentId, userId) {
             amount: payment.amount,
             currency: payment.currency || 'INR',
             campaignTitle: payment.campaign?.title || 'Unknown Campaign',
-            donorName: payment.userId?.name || payment.name || 'Anonymous',
-            donorEmail: payment.userId?.email || payment.email || '',
+            donorName,
+            donorEmail,
             message: payment.message || '',
             taxDeductible: payment.taxDeductible || false,
         };
@@ -464,13 +602,33 @@ export async function getBadges(userId) {
 
         await connectDb();
 
-        const payments = await Payment.find({
-            userId: userId,
-            status: 'success'  // Payment model uses 'success' not 'completed'
-        })
+        // Build comprehensive query
+        const query = await buildUserPaymentQuery(userId);
+
+        if (!query) {
+            // User not found — return empty badges
+            return {
+                success: true,
+                badges: [],
+                impactScore: 0,
+                totalBadges: 0,
+                duration: Date.now() - startTime,
+            };
+        }
+
+        const payments = await Payment.find(query)
             .populate('campaign')
             .sort({ createdAt: 1 })
             .lean();
+
+        // Deduplicate
+        const seenIds = new Set();
+        const uniquePayments = payments.filter(p => {
+            const id = p._id.toString();
+            if (seenIds.has(id)) return false;
+            seenIds.add(id);
+            return true;
+        });
 
         // ========================================================================
         // CALCULATE BADGES
@@ -479,7 +637,7 @@ export async function getBadges(userId) {
         const badges = [];
 
         // First Supporter Badge
-        const firstSupporterCampaigns = await checkFirstSupporter(userId, payments);
+        const firstSupporterCampaigns = await checkFirstSupporter(userId, uniquePayments);
         if (firstSupporterCampaigns.length > 0) {
             badges.push({
                 id: 'first-supporter',
@@ -493,7 +651,7 @@ export async function getBadges(userId) {
         }
 
         // Top Contributor Badge
-        const topContribution = payments.reduce((max, p) =>
+        const topContribution = uniquePayments.reduce((max, p) =>
             p.amount > max ? p.amount : max, 0
         );
         if (topContribution >= 10000) {
@@ -502,14 +660,14 @@ export async function getBadges(userId) {
                 name: 'Top Contributor',
                 description: 'Contributed ₹10,000 or more in a single donation',
                 icon: 'gem',
-                earnedAt: payments.find(p => p.amount === topContribution)?.createdAt,
+                earnedAt: uniquePayments.find(p => p.amount === topContribution)?.createdAt,
                 amount: topContribution,
             });
         }
 
         // Loyal Supporter Badge (Monthly Subscriber)
-        const activeSubscriptions = payments.filter(p =>
-            p.subscription && p.subscription.status === 'active'
+        const activeSubscriptions = uniquePayments.filter(p =>
+            p.type === 'subscription' || (p.subscription && p.subscription.status === 'active')
         );
         if (activeSubscriptions.length > 0) {
             badges.push({
@@ -523,20 +681,24 @@ export async function getBadges(userId) {
         }
 
         // Community Champion Badge (5+ campaigns)
-        const uniqueCampaigns = [...new Set(payments.map(p => p.campaign?._id?.toString()))];
+        const uniqueCampaigns = [...new Set(
+            uniquePayments
+                .map(p => p.campaign?._id?.toString())
+                .filter(Boolean)
+        )];
         if (uniqueCampaigns.length >= 5) {
             badges.push({
                 id: 'community-champion',
                 name: 'Community Champion',
                 description: 'Supported 5 or more campaigns',
                 icon: 'trophy',
-                earnedAt: payments[4]?.createdAt,
+                earnedAt: uniquePayments[4]?.createdAt,
                 count: uniqueCampaigns.length,
             });
         }
 
         // Early Bird Badge (supported in first 24 hours)
-        const earlyBirdSupports = payments.filter(p => {
+        const earlyBirdSupports = uniquePayments.filter(p => {
             if (!p.campaign?.createdAt) return false;
             const campaignStart = new Date(p.campaign.createdAt);
             const paymentDate = new Date(p.createdAt);
@@ -555,20 +717,57 @@ export async function getBadges(userId) {
         }
 
         // Generous Giver Badge (total > 50000)
-        const totalAmount = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+        const totalAmount = uniquePayments.reduce((sum, p) => sum + (p.amount || 0), 0);
         if (totalAmount >= 50000) {
             badges.push({
                 id: 'generous-giver',
                 name: 'Generous Giver',
                 description: 'Contributed over ₹50,000 in total',
                 icon: 'star',
-                earnedAt: payments[payments.length - 1]?.createdAt,
+                earnedAt: uniquePayments[uniquePayments.length - 1]?.createdAt,
+                totalAmount,
+            });
+        }
+
+        // --- Additional accessible badges ---
+
+        // First Contribution Badge (1+ payments)
+        if (uniquePayments.length >= 1) {
+            badges.push({
+                id: 'first-contribution',
+                name: 'First Step',
+                description: 'Made your first contribution',
+                icon: 'sparkles',
+                earnedAt: uniquePayments[0]?.createdAt,
+            });
+        }
+
+        // Regular Supporter Badge (3+ campaigns)
+        if (uniqueCampaigns.length >= 3) {
+            badges.push({
+                id: 'regular-supporter',
+                name: 'Regular Supporter',
+                description: 'Supported 3 or more campaigns',
+                icon: 'users',
+                earnedAt: uniquePayments[2]?.createdAt,
+                count: uniqueCampaigns.length,
+            });
+        }
+
+        // Big Hearted Badge (total >= 5000)
+        if (totalAmount >= 5000) {
+            badges.push({
+                id: 'big-hearted',
+                name: 'Big Hearted',
+                description: 'Contributed over ₹5,000 in total',
+                icon: 'heart-handshake',
+                earnedAt: uniquePayments[uniquePayments.length - 1]?.createdAt,
                 totalAmount,
             });
         }
 
         // Calculate impact score
-        const impactScore = calculateImpactScore(payments, badges);
+        const impactScore = calculateImpactScore(uniquePayments, badges);
 
         const duration = Date.now() - startTime;
 
@@ -615,19 +814,40 @@ export async function getBadges(userId) {
 async function checkFirstSupporter(userId, userPayments) {
     const firstSupporterCampaigns = [];
 
-    for (const payment of userPayments) {
+    // Check up to 20 campaigns to avoid excessive queries
+    const campaignsChecked = new Set();
+    const paymentsToCheck = userPayments.slice(0, 50);
+
+    for (const payment of paymentsToCheck) {
         if (!payment.campaign?._id) continue;
+        const campaignId = payment.campaign._id.toString();
+        if (campaignsChecked.has(campaignId)) continue;
+        campaignsChecked.add(campaignId);
 
-        const allPayments = await Payment.find({
-            campaign: payment.campaign._id,
-            status: 'success'  // Use correct status
-        }).sort({ createdAt: 1 }).limit(1).lean();
+        try {
+            const firstPayment = await Payment.findOne({
+                campaign: payment.campaign._id,
+                $or: [{ status: 'success' }, { done: true }]
+            }).sort({ createdAt: 1 }).lean();
 
-        if (allPayments.length > 0 && allPayments[0].userId.toString() === userId) {
-            firstSupporterCampaigns.push({
-                campaignId: payment.campaign._id,
-                campaignTitle: payment.campaign.title,
-                date: payment.createdAt,
+            if (!firstPayment) continue;
+
+            // Check if this first payment belongs to our user
+            const isMatch =
+                (firstPayment.userId && firstPayment.userId.toString() === userId) ||
+                (firstPayment.email && userPayments[0] && firstPayment.email === payment.email);
+
+            if (isMatch) {
+                firstSupporterCampaigns.push({
+                    campaignId: payment.campaign._id,
+                    campaignTitle: payment.campaign.title,
+                    date: payment.createdAt,
+                });
+            }
+        } catch (err) {
+            logger.warn('Error checking first supporter for campaign', {
+                campaignId,
+                error: err.message
             });
         }
     }
@@ -671,7 +891,7 @@ function calculateImpactScore(payments, badges) {
     score += badges.length * 50;
 
     // Bonus for unique campaigns
-    const uniqueCampaigns = [...new Set(payments.map(p => p.campaign?._id?.toString()))];
+    const uniqueCampaigns = [...new Set(payments.map(p => p.campaign?._id?.toString()).filter(Boolean))];
     score += uniqueCampaigns.length * 25;
 
     return score;

@@ -62,7 +62,21 @@ export async function PATCH(request, { params }) {
 
         allowedUpdates.forEach(field => {
             if (body[field] !== undefined) {
-                campaign[field] = body[field];
+                // For optional URL fields: empty string means "keep existing" or "clear"
+                // Only update if the value is provided and non-empty, or if explicitly clearing
+                if (field === 'coverImage') {
+                    // Keep existing cover image if empty string is sent
+                    if (body[field] === '') {
+                        // User cleared it — use default category image or keep existing
+                        return;
+                    }
+                    campaign[field] = body[field];
+                } else if (field === 'videoUrl') {
+                    // Allow clearing video URL (it's truly optional)
+                    campaign[field] = body[field];
+                } else {
+                    campaign[field] = body[field];
+                }
             }
         });
 

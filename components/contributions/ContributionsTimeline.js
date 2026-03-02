@@ -11,6 +11,7 @@
  * - Download receipt button
  * - Responsive design
  * - Loading states
+ * - Dark theme
  * 
  * @component
  */
@@ -40,12 +41,12 @@ export default function ContributionsTimeline({ groupedByMonth, loading = false,
 
     if (!groupedByMonth || Object.keys(groupedByMonth).length === 0) {
         return (
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 border border-gray-200 dark:border-gray-700 text-center">
-                <Calendar className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            <div className="bg-white/5 rounded-2xl p-12 border border-white/10 text-center backdrop-blur-xl">
+                <Calendar className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-white mb-2">
                     No Contributions Yet
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                <p className="text-gray-400 mb-6">
                     Start supporting campaigns to see your contribution history here
                 </p>
                 <Link
@@ -79,19 +80,19 @@ export default function ContributionsTimeline({ groupedByMonth, loading = false,
                                     <Calendar className="w-5 h-5 text-white" />
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                    <h3 className="text-lg font-semibold text-white">
                                         {monthName}
                                     </h3>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    <p className="text-sm text-gray-400">
                                         {payments.length} contribution{payments.length !== 1 ? 's' : ''}
                                     </p>
                                 </div>
                             </div>
                             <div className="text-right">
-                                <div className="text-lg font-bold text-gray-900 dark:text-white">
+                                <div className="text-lg font-bold text-white">
                                     ₹{monthTotal.toLocaleString()}
                                 </div>
-                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                <div className="text-xs text-gray-500">
                                     Total
                                 </div>
                             </div>
@@ -130,18 +131,23 @@ function PaymentCard({ payment, onDownloadReceipt, isDownloading }) {
         minute: '2-digit',
     });
 
+    // Get campaign link — handle both populated object and string ID
+    const campaignId = payment.campaign?._id || payment.campaign;
+    const campaignTitle = payment.campaign?.title || 'Unknown Campaign';
+    const campaignLink = campaignId ? `/campaign/${campaignId}` : '#';
+
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 hover:shadow-md hover:border-purple-300 dark:hover:border-purple-600 transition-all group">
+        <div className="bg-white/5 rounded-xl p-4 border border-white/10 hover:border-purple-500/30 hover:bg-white/[0.07] transition-all group backdrop-blur-xl">
             <div className="flex flex-col sm:flex-row gap-4">
                 {/* Campaign Image */}
                 <Link
-                    href={`/campaign/${payment.campaign?._id || ''}`}
-                    className="relative w-full sm:w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20"
+                    href={campaignLink}
+                    className="relative w-full sm:w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 bg-gradient-to-br from-purple-900/30 to-pink-900/30"
                 >
                     {payment.campaign?.coverImage ? (
                         <Image
                             src={payment.campaign.coverImage}
-                            alt={payment.campaign.title || 'Campaign'}
+                            alt={campaignTitle}
                             fill
                             className="object-cover group-hover:scale-110 transition-transform duration-300"
                         />
@@ -156,33 +162,39 @@ function PaymentCard({ payment, onDownloadReceipt, isDownloading }) {
                 <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-2">
                         <Link
-                            href={`/campaign/${payment.campaign?._id || ''}`}
-                            className="font-semibold text-gray-900 dark:text-white hover:text-purple-600 dark:hover:text-purple-400 transition-colors line-clamp-1"
+                            href={campaignLink}
+                            className="font-semibold text-white hover:text-purple-400 transition-colors line-clamp-1"
                         >
-                            {payment.campaign?.title || 'Unknown Campaign'}
+                            {campaignTitle}
                         </Link>
                         <div className="text-right flex-shrink-0">
-                            <div className="text-lg font-bold text-gray-900 dark:text-white">
-                                ₹{payment.amount?.toLocaleString() || 0}
+                            <div className="text-lg font-bold text-white">
+                                ₹{(payment.amount || 0).toLocaleString()}
                             </div>
-                            {payment.subscription && (
-                                <span className="inline-block px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-medium rounded-full">
+                            {payment.type === 'subscription' && (
+                                <span className="inline-block px-2 py-0.5 bg-purple-900/30 text-purple-300 text-xs font-medium rounded-full">
                                     Monthly
                                 </span>
                             )}
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
                         <Calendar className="w-4 h-4" />
                         <span>{formattedDate}</span>
                         <span>•</span>
                         <span>{formattedTime}</span>
+                        {payment.to_user && (
+                            <>
+                                <span>•</span>
+                                <span className="text-purple-400">to @{payment.to_user}</span>
+                            </>
+                        )}
                     </div>
 
                     {payment.message && (
-                        <div className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900/50 rounded-lg p-2 mb-2">
-                            <MessageSquare className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                        <div className="flex items-start gap-2 text-sm text-gray-300 bg-white/5 rounded-lg p-2 mb-2">
+                            <MessageSquare className="w-4 h-4 mt-0.5 flex-shrink-0 text-gray-500" />
                             <p className="line-clamp-2">{payment.message}</p>
                         </div>
                     )}
@@ -192,15 +204,15 @@ function PaymentCard({ payment, onDownloadReceipt, isDownloading }) {
                         <button
                             onClick={() => onDownloadReceipt(payment._id)}
                             disabled={isDownloading}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/10 text-gray-300 text-sm font-medium rounded-lg hover:bg-white/20 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <Download className="w-4 h-4" />
                             {isDownloading ? 'Downloading...' : 'Receipt'}
                         </button>
 
-                        {payment.razorpay_payment_id && (
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                                ID: {payment.razorpay_payment_id.slice(-8)}
+                        {payment.paymentId && (
+                            <span className="text-xs text-gray-500">
+                                ID: {payment.paymentId.slice(-8)}
                             </span>
                         )}
                     </div>
@@ -221,15 +233,15 @@ function TimelineSkeleton() {
                     {/* Month Header Skeleton */}
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
+                            <div className="w-10 h-10 bg-white/10 rounded-lg animate-pulse" />
                             <div>
-                                <div className="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-2" />
-                                <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                                <div className="h-5 w-32 bg-white/10 rounded animate-pulse mb-2" />
+                                <div className="h-4 w-24 bg-white/10 rounded animate-pulse" />
                             </div>
                         </div>
                         <div className="text-right">
-                            <div className="h-6 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-1" />
-                            <div className="h-3 w-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                            <div className="h-6 w-20 bg-white/10 rounded animate-pulse mb-1" />
+                            <div className="h-3 w-12 bg-white/10 rounded animate-pulse" />
                         </div>
                     </div>
 
@@ -238,14 +250,14 @@ function TimelineSkeleton() {
                         {[...Array(2)].map((_, cardIndex) => (
                             <div
                                 key={cardIndex}
-                                className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 animate-pulse"
+                                className="bg-white/5 rounded-xl p-4 border border-white/10 animate-pulse"
                             >
                                 <div className="flex gap-4">
-                                    <div className="w-24 h-24 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+                                    <div className="w-24 h-24 bg-white/10 rounded-lg" />
                                     <div className="flex-1">
-                                        <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded mb-2 w-3/4" />
-                                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2 w-1/2" />
-                                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3" />
+                                        <div className="h-5 bg-white/10 rounded mb-2 w-3/4" />
+                                        <div className="h-4 bg-white/10 rounded mb-2 w-1/2" />
+                                        <div className="h-4 bg-white/10 rounded w-1/3" />
                                     </div>
                                 </div>
                             </div>

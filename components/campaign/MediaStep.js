@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Lightbulb } from 'lucide-react';
 
-export default function MediaStep({ data, onUpdate, onNext, onBack }) {
+export default function MediaStep({ data, onUpdate, onLiveSync, onNext, onBack }) {
     const [formData, setFormData] = useState({
         coverImage: data.coverImage || '',
         gallery: data.gallery || [],
@@ -11,7 +11,9 @@ export default function MediaStep({ data, onUpdate, onNext, onBack }) {
     });
 
     const handleChange = (field, value) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
+        const newData = { ...formData, [field]: value };
+        setFormData(newData);
+        if (onLiveSync) onLiveSync(newData);
     };
 
     const handleAddGalleryImage = () => {

@@ -327,6 +327,7 @@ async function handleSubscriptionCharged(payment) {
         await Payment.create({
             name: 'Subscription Payment',
             to_user: (await User.findById(subscription.creator)).username,
+            userId: subscription.subscriber || null,
             campaign: subscription.campaign,
             oid: payment.id,
             paymentId: payment.id,

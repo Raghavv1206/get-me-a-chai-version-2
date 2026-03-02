@@ -100,12 +100,14 @@ export const initiate = async (amount, to_username, paymentform) => {
             to_username: validatedUsername
         });
 
-        // Create a payment object
+        // Create a payment object (include userId for the supporter/payer)
         await Payment.create({
             oid: order.id,
             amount: validatedAmount / 100,
             to_user: validatedUsername,
             name: paymentform.name,
+            email: session.user?.email || paymentform.email,
+            userId: session.user?.id || null,
             message: paymentform.message,
             campaign: paymentform.campaign || null // Include campaign ID if provided
         });

@@ -16,7 +16,7 @@ const CATEGORIES = [
     { value: 'other', label: 'Other', icon: Star },
 ];
 
-export default function BasicInfoStep({ data, onUpdate, onNext }) {
+export default function BasicInfoStep({ data, onUpdate, onLiveSync, onNext }) {
     const [formData, setFormData] = useState({
         category: data.category || '',
         projectType: data.projectType || '',
@@ -31,7 +31,10 @@ export default function BasicInfoStep({ data, onUpdate, onNext }) {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        const newData = { ...formData, [name]: value };
+        setFormData(newData);
+        // Sync to parent in real-time so data is never lost
+        if (onLiveSync) onLiveSync(newData);
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: '' }));
         }
@@ -92,7 +95,9 @@ export default function BasicInfoStep({ data, onUpdate, onNext }) {
 
     const handleNext = () => {
         if (validate()) {
-            onUpdate(formData);
+            // Convert goal to number before saving
+            const dataToSave = { ...formData, goal: Number(formData.goal) };
+            onUpdate(dataToSave);
             onNext();
         }
     };
@@ -114,7 +119,11 @@ export default function BasicInfoStep({ data, onUpdate, onNext }) {
                         <button
                             key={cat.value}
                             type="button"
-                            onClick={() => setFormData(prev => ({ ...prev, category: cat.value }))}
+                            onClick={() => {
+                                const newData = { ...formData, category: cat.value };
+                                setFormData(newData);
+                                if (onLiveSync) onLiveSync(newData);
+                            }}
                             className={`p-4 rounded-xl border-2 transition-all text-left ${formData.category === cat.value
                                 ? 'border-purple-500 bg-purple-500/10'
                                 : 'border-gray-700 hover:border-gray-600 bg-gray-800'

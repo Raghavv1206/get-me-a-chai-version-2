@@ -1,6 +1,6 @@
 // components/UserProfileDropdown.js - Modern Premium User Dropdown
 "use client"
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -18,81 +18,14 @@ import {
 
 export default function UserProfileDropdown({ user }) {
   const [isOpen, setIsOpen] = useState(false);
-  const triggerRef = useRef(null);
-  const panelRef = useRef(null);
-  const [panelStyle, setPanelStyle] = useState({});
-
-  // Calculate dropdown position based on trigger button location
-  const updatePosition = useCallback(() => {
-    if (!triggerRef.current || !isOpen) return;
-
-    const rect = triggerRef.current.getBoundingClientRect();
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const panelWidth = Math.min(288, vw - 16); // 288px = w-72, 16px = 8px margin each side
-    const isMobileView = vw < 640;
-
-    if (isMobileView) {
-      // Mobile: full-width bottom sheet
-      setPanelStyle({
-        position: 'fixed',
-        left: '8px',
-        right: '8px',
-        bottom: '8px',
-        top: 'auto',
-        width: 'auto',
-        maxHeight: `${Math.min(vh * 0.85, vh - 16)}px`,
-      });
-    } else {
-      // Desktop/tablet: position below trigger, clamped to viewport
-      const top = rect.bottom + 12;
-      let right = vw - rect.right;
-
-      // Ensure panel doesn't overflow left edge
-      const leftEdge = vw - right - panelWidth;
-      if (leftEdge < 8) {
-        right = vw - panelWidth - 8;
-      }
-      // Ensure panel doesn't overflow right edge
-      if (right < 8) {
-        right = 8;
-      }
-
-      const maxHeight = vh - top - 16;
-
-      setPanelStyle({
-        position: 'fixed',
-        top: `${top}px`,
-        right: `${right}px`,
-        width: `${panelWidth}px`,
-        maxHeight: `${Math.min(maxHeight, 500)}px`,
-      });
-    }
-  }, [isOpen]);
-
-  // Update position on open, resize, scroll
-  useEffect(() => {
-    if (!isOpen) return;
-
-    updatePosition();
-    window.addEventListener('resize', updatePosition);
-    window.addEventListener('scroll', updatePosition, true);
-
-    return () => {
-      window.removeEventListener('resize', updatePosition);
-      window.removeEventListener('scroll', updatePosition, true);
-    };
-  }, [isOpen, updatePosition]);
+  const containerRef = useRef(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
     if (!isOpen) return;
 
     function handleClickOutside(event) {
-      if (
-        triggerRef.current && !triggerRef.current.contains(event.target) &&
-        panelRef.current && !panelRef.current.contains(event.target)
-      ) {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
         setIsOpen(false);
       }
     }
@@ -118,24 +51,6 @@ export default function UserProfileDropdown({ user }) {
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen]);
-
-  // Prevent body scroll when open on mobile
-  useEffect(() => {
-    if (isOpen && window.innerWidth < 640) {
-      const scrollY = window.scrollY;
-      document.body.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.width = '100%';
-      return () => {
-        document.body.style.overflow = '';
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.width = '';
-        window.scrollTo(0, scrollY);
-      };
-    }
   }, [isOpen]);
 
   const menuItems = [
@@ -188,12 +103,11 @@ export default function UserProfileDropdown({ user }) {
   }
 
   return (
-    <>
+    <div ref={containerRef} className="relative">
       {/* Trigger Button */}
       <button
-        ref={triggerRef}
         onClick={() => setIsOpen(!isOpen)}
-        className="group flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-500/50 transition-all duration-200 relative z-[51]"
+        className="group flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-500/50 transition-all duration-200"
         aria-expanded={isOpen}
         aria-haspopup="true"
         type="button"
@@ -226,23 +140,20 @@ export default function UserProfileDropdown({ user }) {
         />
       </button>
 
-      {/* Dropdown Menu - rendered via portal-like fixed positioning */}
+      {/* Dropdown Menu - CSS positioned, no JS calculation needed */}
       {isOpen && (
         <>
-          {/* Backdrop */}
+          {/* Backdrop - mobile only */}
           <div
-            className="fixed inset-0 z-[60] bg-black/50 sm:bg-black/20"
+            className="fixed inset-0 z-40 bg-black/20 sm:bg-transparent"
             onClick={() => setIsOpen(false)}
           />
 
-          {/* Dropdown panel - always fixed, position calculated dynamically */}
-          <div
-            ref={panelRef}
-            className="z-[61] overflow-hidden"
-            style={panelStyle}
-          >
-            <div className="bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-y-auto h-full flex flex-col">
-              {/* Header with close button on mobile */}
+          {/* Dropdown panel - positioned relative to trigger via CSS */}
+          <div className="absolute z-50 right-0 top-full mt-3 w-72 max-h-[min(500px,80vh)] animate-dropdown-in">
+
+            <div className="bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-y-auto flex flex-col">
+              {/* Header */}
               <div className="p-4 bg-gradient-to-br from-purple-500/10 to-blue-500/10 border-b border-white/10 flex-shrink-0">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -266,7 +177,7 @@ export default function UserProfileDropdown({ user }) {
                       <p className="text-gray-400 text-xs truncate">{user?.email}</p>
                     </div>
                   </div>
-                  {/* Close button - visible on all screens for accessibility */}
+                  {/* Close button - mobile only */}
                   <button
                     onClick={() => setIsOpen(false)}
                     className="sm:hidden ml-2 p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors flex-shrink-0"
@@ -337,6 +248,23 @@ export default function UserProfileDropdown({ user }) {
           </div>
         </>
       )}
-    </>
+
+      <style jsx>{`
+        @keyframes dropdownIn {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        .animate-dropdown-in {
+          animation: dropdownIn 0.15s ease-out forwards;
+          transform-origin: top right;
+        }
+      `}</style>
+    </div>
   );
 }

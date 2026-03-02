@@ -158,6 +158,22 @@ export default function PreviewStep({ data, onUpdate, onBack }) {
             <div className="p-6 bg-gray-800 rounded-xl border border-gray-700">
                 <h3 className="text-xl font-bold text-white mb-4">Campaign Summary</h3>
 
+                {/* Missing fields warning */}
+                {(!data.title || !data.goal || !data.story || !data.category) && (
+                    <div className="mb-4 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                            <AlertTriangle className="w-5 h-5 text-yellow-400" />
+                            <h4 className="text-yellow-400 font-semibold">Missing Required Fields</h4>
+                        </div>
+                        <ul className="text-sm text-yellow-300/80 space-y-1">
+                            {!data.title && <li>• Campaign title is missing — go back to AI Story step</li>}
+                            {!data.goal && <li>• Funding goal is missing — go back to Basic Info step</li>}
+                            {!data.story && <li>• Campaign story is missing — go back to AI Story step</li>}
+                            {!data.category && <li>• Category is missing — go back to Basic Info step</li>}
+                        </ul>
+                    </div>
+                )}
+
                 <div className="space-y-4">
                     {/* Cover Image */}
                     {data.coverImage ? (
@@ -177,19 +193,23 @@ export default function PreviewStep({ data, onUpdate, onBack }) {
 
                     {/* Title & Category */}
                     <div>
-                        <h2 className="text-2xl font-bold text-white">{data.title}</h2>
-                        <p className="text-purple-400">{data.category}</p>
+                        <h2 className="text-2xl font-bold text-white">
+                            {data.title || <span className="text-red-400 italic">No title set</span>}
+                        </h2>
+                        <p className="text-purple-400">{data.category || 'No category'}</p>
                     </div>
 
                     {/* Goal */}
                     <div className="flex justify-between items-center p-4 bg-gray-900 rounded-lg">
                         <div>
                             <p className="text-sm text-gray-400">Funding Goal</p>
-                            <p className="text-2xl font-bold text-white">₹{data.goal?.toLocaleString()}</p>
+                            <p className="text-2xl font-bold text-white">
+                                {data.goal ? `₹${Number(data.goal).toLocaleString()}` : <span className="text-red-400 italic">Not set</span>}
+                            </p>
                         </div>
                         <div>
                             <p className="text-sm text-gray-400">Duration</p>
-                            <p className="text-xl font-bold text-white">{data.duration} days</p>
+                            <p className="text-xl font-bold text-white">{data.duration || 30} days</p>
                         </div>
                     </div>
 
