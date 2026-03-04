@@ -1,7 +1,6 @@
 'use client';
 
 import { FaFilter } from 'react-icons/fa';
-import PropTypes from 'prop-types';
 import { useCallback, useMemo } from 'react';
 
 /**
@@ -17,25 +16,18 @@ import { useCallback, useMemo } from 'react';
  * @param {Function} props.setFilter - Function to update filter state
  */
 export default function NotificationFilters({ filter, setFilter }) {
-  // Input validation
-  if (!filter || typeof filter !== 'object') {
-    console.error('[NotificationFilters] Invalid filter prop:', filter);
-    return null;
-  }
-
-  if (typeof setFilter !== 'function') {
-    console.error('[NotificationFilters] setFilter must be a function');
-    return null;
-  }
-
-  // Memoized filter options
+  // Memoized filter options (hooks MUST be called before any early returns)
   const types = useMemo(() => [
     { value: 'all', label: 'All Notifications' },
     { value: 'payment', label: 'Payments' },
     { value: 'milestone', label: 'Milestones' },
     { value: 'comment', label: 'Comments' },
     { value: 'update', label: 'Updates' },
-    { value: 'system', label: 'System' }
+    { value: 'system', label: 'System' },
+    { value: 'subscription', label: 'Subscriptions' },
+    { value: 'follow', label: 'Followers' },
+    { value: 'reply', label: 'Replies' },
+    { value: 'campaign', label: 'Campaign Status' },
   ], []);
 
   const statuses = useMemo(() => [
@@ -46,17 +38,28 @@ export default function NotificationFilters({ filter, setFilter }) {
   // Event handlers with useCallback to prevent unnecessary re-renders
   const handleTypeChange = useCallback((e) => {
     const newType = e.target.value;
-    if (newType !== filter.type) {
+    if (filter && typeof setFilter === 'function' && newType !== filter.type) {
       setFilter({ ...filter, type: newType });
     }
   }, [filter, setFilter]);
 
   const handleStatusChange = useCallback((e) => {
     const newStatus = e.target.value;
-    if (newStatus !== filter.status) {
+    if (filter && typeof setFilter === 'function' && newStatus !== filter.status) {
       setFilter({ ...filter, status: newStatus });
     }
   }, [filter, setFilter]);
+
+  // Input validation AFTER hooks
+  if (!filter || typeof filter !== 'object') {
+    console.error('[NotificationFilters] Invalid filter prop:', filter);
+    return null;
+  }
+
+  if (typeof setFilter !== 'function') {
+    console.error('[NotificationFilters] setFilter must be a function');
+    return null;
+  }
 
   return (
     <div className="notification-filters" role="region" aria-label="Notification filters">
@@ -188,13 +191,3 @@ export default function NotificationFilters({ filter, setFilter }) {
     </div>
   );
 }
-
-// PropTypes for development-time validation
-NotificationFilters.propTypes = {
-  filter: PropTypes.shape({
-    type: PropTypes.string,
-    status: PropTypes.string,
-  }).isRequired,
-  setFilter: PropTypes.func.isRequired,
-};
-

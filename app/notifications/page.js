@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
-import { DollarSign, Rocket, MessageCircle, Target, Bell, Megaphone } from 'lucide-react';
+import { DollarSign, Rocket, MessageCircle, Target, Bell, Megaphone, CreditCard, UserPlus, Reply, FileEdit } from 'lucide-react';
 
 export default function NotificationsPage() {
     const { data: session, status } = useSession();
@@ -97,6 +97,10 @@ export default function NotificationsPage() {
             case 'comment': return <MessageCircle className={`${iconClass} text-blue-400`} />;
             case 'milestone': return <Target className={`${iconClass} text-yellow-400`} />;
             case 'system': return <Bell className={`${iconClass} text-gray-400`} />;
+            case 'subscription': return <CreditCard className={`${iconClass} text-pink-400`} />;
+            case 'follow': return <UserPlus className={`${iconClass} text-emerald-400`} />;
+            case 'reply': return <Reply className={`${iconClass} text-cyan-400`} />;
+            case 'update': return <FileEdit className={`${iconClass} text-indigo-400`} />;
             default: return <Megaphone className={`${iconClass} text-gray-400`} />;
         }
     };
@@ -235,9 +239,9 @@ export default function NotificationsPage() {
                                                 </p>
                                                 <div className="flex items-center gap-4 text-sm text-gray-500">
                                                     <span>
-                                                        {formatDistanceToNow(new Date(notification.createdAt), {
-                                                            addSuffix: true
-                                                        })}
+                                                        {notification.createdAt
+                                                            ? formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })
+                                                            : 'Just now'}
                                                     </span>
                                                     <span className="px-2 py-0.5 bg-white/10 rounded-full text-xs font-medium text-gray-300 border border-white/5">
                                                         {notification.type}

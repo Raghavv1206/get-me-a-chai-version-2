@@ -9,7 +9,7 @@ const UserSchema = new Schema({
     username: { type: String, required: true },
     password: { type: String }, // ADD THIS - optional for OAuth users
     profilepic: { type: String, default: "/images/default-profilepic.svg" },
-    coverpic: { type: String, default: "/images/default-coverpic.jpg" },
+    coverpic: { type: String, default: "/images/default-coverpic.svg" },
     bio: { type: String, maxLength: 500 },
     location: { type: String },
 
@@ -41,10 +41,32 @@ const UserSchema = new Schema({
         successRate: { type: Number, default: 0 }
     },
 
-    // Settings
-    settings: {
-        emailNotifications: { type: Boolean, default: true },
-        newsletter: { type: Boolean, default: true }
+    // Notification Preferences
+    notificationPreferences: {
+        email: {
+            payment: { type: Boolean, default: true },
+            milestone: { type: Boolean, default: true },
+            comment: { type: Boolean, default: true },
+            update: { type: Boolean, default: true },
+            system: { type: Boolean, default: true },
+            campaign: { type: Boolean, default: true },
+            subscription: { type: Boolean, default: true },
+            follow: { type: Boolean, default: true },
+            reply: { type: Boolean, default: true },
+        },
+        inApp: {
+            payment: { type: Boolean, default: true },
+            milestone: { type: Boolean, default: true },
+            comment: { type: Boolean, default: true },
+            update: { type: Boolean, default: true },
+            system: { type: Boolean, default: true },
+            campaign: { type: Boolean, default: true },
+            subscription: { type: Boolean, default: true },
+            follow: { type: Boolean, default: true },
+            reply: { type: Boolean, default: true },
+        },
+        frequency: { type: String, enum: ['realtime', 'daily', 'weekly'], default: 'realtime' },
+        newsletter: { type: Boolean, default: true },
     },
 
     createdAt: { type: Date, default: Date.now },

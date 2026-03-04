@@ -36,7 +36,9 @@ export default function NotificationItem({ notification, onMarkAsRead }) {
         <h4 className="notif-title">{notification.title}</h4>
         <p className="notif-message">{notification.message}</p>
         <span className="notif-time">
-          {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+          {notification.createdAt
+            ? formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })
+            : 'Just now'}
         </span>
       </div>
 

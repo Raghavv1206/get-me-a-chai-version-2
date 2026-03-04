@@ -1,11 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import NotificationItem from './NotificationItem';
 import { Bell } from 'lucide-react';
 
 export default function NotificationsList({ notifications: initialNotifications, onMarkAsRead }) {
   const [notifications, setNotifications] = useState(initialNotifications || []);
+
+  // Sync local state when parent passes new notifications
+  useEffect(() => {
+    if (initialNotifications) {
+      setNotifications(initialNotifications);
+    }
+  }, [initialNotifications]);
 
   const groupNotifications = () => {
     const grouped = {

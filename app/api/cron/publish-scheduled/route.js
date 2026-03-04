@@ -7,10 +7,9 @@ import { NextResponse } from 'next/server';
 import connectDb from '@/db/connectDb';
 import CampaignUpdate from '@/models/CampaignUpdate';
 import Campaign from '@/models/Campaign';
-import Payment from '@/models/Payment';
 import User from '@/models/User';
 import { sendUpdateNotifications } from '@/actions/emailActions';
-import { notifyCampaignUpdate } from '@/actions/notificationActions';
+import { notifyCampaignUpdate, getSupporterIdsForCampaign } from '@/lib/notifications';
 
 export async function GET(request) {
     try {
@@ -58,14 +57,16 @@ export async function GET(request) {
                     throw new Error('Creator not found');
                 }
 
-                // Get all supporters of this campaign
-                const payments = await Payment.find({
-                    campaign: campaign._id
-                }).distinct('from_user');
+                // Get all supporters of this campaign (using shared utility)
+                const supporterIds = await getSupporterIdsForCampaign(
+                    campaign._id,
+                    campaign.creator?.toString()
+                );
 
-                const supporters = await User.find({
-                    _id: { $in: payments }
-                }).lean();
+                // Get supporter user records for email notifications
+                const supporters = supporterIds.length > 0
+                    ? await User.find({ _id: { $in: supporterIds } }).select('email name').lean()
+                    : [];
 
                 // Prepare supporter data for emails
                 const supporterData = supporters.map(s => ({
@@ -87,14 +88,14 @@ export async function GET(request) {
                 }
 
                 // Send in-app notifications
-                const supporterIds = supporters.map(s => s._id.toString());
                 if (supporterIds.length > 0) {
-                    await notifyCampaignUpdate(supporterIds, {
+                    await notifyCampaignUpdate({
+                        supporterIds,
                         creatorName: creator.name,
-                        campaignSlug: campaign.slug,
-                        updateTitle: update.title,
+                        campaignTitle: campaign.title,
+                        campaignSlug: campaign.username ? `${campaign.username}/${campaign.slug}` : campaign.slug,
                         campaignId: campaign._id.toString(),
-                        updateId: update._id.toString()
+                        updateTitle: update.title,
                     });
                 }
 

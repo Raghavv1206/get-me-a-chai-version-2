@@ -4,6 +4,8 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import connectDb from '@/db/connectDb';
 import Comment from '@/models/Comment';
 import Campaign from '@/models/Campaign';
+import User from '@/models/User';
+import { notifyNewComment, notifyCommentReply } from '@/lib/notifications';
 
 export async function GET(request, { params }) {
     try {
@@ -125,6 +127,39 @@ export async function POST(request, { params }) {
 
         // Populate user data
         await comment.populate('user', 'name profilepic');
+
+        // --- Send notifications ---
+        const commenterUser = await User.findById(session.user.id).select('name username').lean();
+        const commenterName = commenterUser?.name || session.user?.name || 'Someone';
+
+        if (parentComment) {
+            // This is a reply — notify the original comment author
+            const parentCommentDoc = await Comment.findById(parentComment).select('user').lean();
+            if (parentCommentDoc?.user) {
+                await notifyCommentReply({
+                    commentOwnerId: parentCommentDoc.user,
+                    replierId: session.user.id,
+                    replierName: commenterName,
+                    campaignTitle: campaign.title,
+                    campaignSlug: campaign.username ? `${campaign.username}/${campaign.slug}` : null,
+                    campaignId: campaignId,
+                    replyPreview: content.trim(),
+                });
+            }
+        }
+
+        // Always notify the campaign creator (unless commenter IS the creator)
+        if (campaign.creator) {
+            await notifyNewComment({
+                creatorId: campaign.creator,
+                commenterId: session.user.id,
+                commenterName: commenterName,
+                campaignTitle: campaign.title,
+                campaignSlug: campaign.username ? `${campaign.username}/${campaign.slug}` : null,
+                campaignId: campaignId,
+                commentPreview: content.trim(),
+            });
+        }
 
         return NextResponse.json({
             success: true,

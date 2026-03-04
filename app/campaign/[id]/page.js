@@ -4,7 +4,10 @@ import mongoose from 'mongoose';
 import connectDb from '@/db/connectDb';
 import Campaign from '@/models/Campaign';
 import User from '@/models/User';
+import Payment from '@/models/Payment';
 import CampaignProfile from '@/components/campaign/profile/CampaignProfile';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 /**
  * Campaign Detail Page
@@ -23,9 +26,12 @@ export default async function CampaignPage({ params }) {
     try {
         await connectDb();
 
-        // Fetch campaign with creator details
-        const campaign = await Campaign.findById(id)
-            .populate('creator', 'name email profileImage verified username bio location socialLinks stats coverpic profilepic razorpayid razorpaysecret');
+        // Fetch session and campaign in parallel for performance
+        const [session, campaign] = await Promise.all([
+            getServerSession(authOptions).catch(() => null),
+            Campaign.findById(id)
+                .populate('creator', 'name email verified username bio location socialLinks stats coverpic profilepic razorpayid razorpaysecret')
+        ]);
 
         if (!campaign) {
             notFound();
@@ -51,7 +57,6 @@ export default async function CampaignPage({ params }) {
 
         // Add computed fields to campaign
         campaignData.daysRemaining = daysRemaining;
-        // Use the actual field names from the Campaign model
         campaignData.currentAmount = campaign.currentAmount || 0;
         campaignData.goalAmount = campaign.goalAmount || 0;
 
@@ -71,21 +76,98 @@ export default async function CampaignPage({ params }) {
         const successRate = campaignsCount > 0 ? Math.round((successfulCampaigns.length / campaignsCount) * 100) : 0;
 
         // Get unique supporters count from payments
-        const Payment = (await import('@/models/Payment')).default;
         const uniqueSupporters = await Payment.distinct('userId', {
             to_user: creator.username,
             done: true
         });
         const totalSupporters = uniqueSupporters.length;
 
+        // ─── Determine if the current user is a supporter ───
+        let isSupporter = false;
+
+        if (session?.user) {
+            // Look up the current user's DB record
+            const currentUser = await User.findOne({ email: session.user.email })
+                .select('_id email')
+                .lean();
+
+            if (currentUser) {
+                const currentUserId = currentUser._id.toString();
+                const campaignCreatorId = creatorId.toString();
+
+                // The campaign creator can always see supporters-only content
+                if (currentUserId === campaignCreatorId) {
+                    isSupporter = true;
+                } else {
+                    // Check if the user has at least one successful payment for this campaign
+                    // Use multiple matching strategies for robustness:
+                    //   1. Match by campaign ObjectId (for campaign-specific payments)
+                    //   2. Match by to_user (for general creator payments)
+                    // A user who paid for ANY of this creator's campaigns OR specifically
+                    // this campaign counts as a supporter.
+                    const supporterPayment = await Payment.findOne({
+                        $or: [
+                            // Direct campaign supporter (paid for this specific campaign)
+                            {
+                                campaign: new mongoose.Types.ObjectId(id),
+                                userId: currentUser._id,
+                                done: true,
+                            },
+                            // Also check by email in case userId wasn't set on older payments
+                            {
+                                campaign: new mongoose.Types.ObjectId(id),
+                                email: session.user.email,
+                                done: true,
+                            },
+                            // General creator supporter (paid to this creator via to_user)
+                            {
+                                to_user: creator.username,
+                                userId: currentUser._id,
+                                done: true,
+                            },
+                            {
+                                to_user: creator.username,
+                                email: session.user.email,
+                                done: true,
+                            }
+                        ]
+                    })
+                        .select('_id')
+                        .lean();
+
+                    isSupporter = !!supporterPayment;
+                }
+            }
+        }
+
         // Ensure creator has required fields with real data
+        // Use the correct default image paths that match the files in /public/images/
+        const DEFAULT_PROFILE_PIC = '/images/default-profilepic.svg';
+        const DEFAULT_COVER_PIC = '/images/default-coverpic.svg';
+
+        // Sanitize image URLs — some users have stale DB values with wrong extensions
+        // (e.g. /images/default-profilepic.jpg instead of .svg)
+        const sanitizeImageUrl = (url, defaultUrl) => {
+            if (!url || typeof url !== 'string' || url.trim() === '') {
+                return defaultUrl;
+            }
+            // Fix known stale default image paths with wrong extensions
+            if (url.includes('default-profilepic') && !url.endsWith('.svg')) {
+                return DEFAULT_PROFILE_PIC;
+            }
+            if (url.includes('default-coverpic') && !url.endsWith('.svg')) {
+                return DEFAULT_COVER_PIC;
+            }
+            return url;
+        };
+
         const creatorData = {
             _id: creator._id,
             name: creator.name || 'Anonymous',
             username: creator.username || creator.email?.split('@')[0] || 'user',
             email: creator.email,
-            profilepic: creator.profileImage || creator.profilepic || '/default-avatar.png',
-            coverpic: creator.coverpic || '/default-cover.jpg',
+            profilepic: sanitizeImageUrl(creator.profilepic, DEFAULT_PROFILE_PIC),
+            coverpic: sanitizeImageUrl(creator.coverpic, DEFAULT_COVER_PIC),
             bio: creator.bio || '',
             location: creator.location || '',
             verified: creator.verified || false,
@@ -100,7 +182,7 @@ export default async function CampaignPage({ params }) {
             }
         };
 
-        return <CampaignProfile campaign={campaignData} creator={creatorData} />;
+        return <CampaignProfile campaign={campaignData} creator={creatorData} isSupporter={isSupporter} />;
     } catch (error) {
         console.error('Error loading campaign:', error);
         notFound();

@@ -26,7 +26,7 @@ export default function UpdateCard({ update, onEdit, onDelete }) {
             <StatusIcon /> {badge.label}
           </span>
         </div>
-        {update.visibility === 'supporters' && (
+        {update.visibility === 'supporters-only' && (
           <span className="visibility-badge">
             <FaLock /> Supporters Only
           </span>

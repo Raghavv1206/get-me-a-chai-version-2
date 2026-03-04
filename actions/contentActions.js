@@ -12,6 +12,61 @@ import Campaign from '@/models/Campaign';
 import User from '@/models/User';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { notifyContentPublished, getSupporterIdsForCampaign } from '@/lib/notifications';
+
+/**
+ * Valid visibility enum values matching the CampaignUpdate model
+ */
+const VALID_VISIBILITY = ['public', 'supporters-only'];
+
+/**
+ * Normalize visibility value to match the Mongoose enum.
+ * Handles common variants like 'supporters', 'supporter-only', 'Supporters Only', etc.
+ * @param {string} value - Raw visibility value from form/API
+ * @returns {string} Normalized visibility value
+ */
+function normalizeVisibility(value) {
+    if (!value || typeof value !== 'string') return 'public';
+
+    const normalized = value.trim().toLowerCase();
+
+    // Direct match
+    if (VALID_VISIBILITY.includes(normalized)) return normalized;
+
+    // Map common variants to the canonical value
+    const supporterVariants = [
+        'supporters',
+        'supporter',
+        'supporter-only',
+        'supporters_only',
+        'supporter_only',
+        'supportersonly',
+        'supporteronly',
+    ];
+
+    if (supporterVariants.includes(normalized) || normalized.includes('supporter')) {
+        return 'supporters-only';
+    }
+
+    // Default to public for any unrecognized value
+    return 'public';
+}
+
+/**
+ * Valid status enum values matching the CampaignUpdate model
+ */
+const VALID_STATUS = ['draft', 'published', 'scheduled'];
+
+/**
+ * Normalize status value to match the Mongoose enum.
+ * @param {string} value - Raw status value
+ * @returns {string} Normalized status value
+ */
+function normalizeStatus(value) {
+    if (!value || typeof value !== 'string') return 'draft';
+    const normalized = value.trim().toLowerCase();
+    return VALID_STATUS.includes(normalized) ? normalized : 'draft';
+}
 
 /**
  * Create a campaign update
@@ -37,6 +92,10 @@ export async function createUpdate(data) {
             return { error: 'Campaign, title, and content are required' };
         }
 
+        // Sanitize and normalize enum values
+        const visibility = normalizeVisibility(data.visibility);
+        const status = normalizeStatus(data.status);
+
         // Verify campaign exists and user is the creator
         const campaign = await Campaign.findById(data.campaign);
         if (!campaign) {
@@ -47,18 +106,39 @@ export async function createUpdate(data) {
             return { error: 'You do not have permission to post updates for this campaign' };
         }
 
-        // Create update
+        // Create update with normalized values
         const update = await CampaignUpdate.create({
             campaign: data.campaign,
             creator: user._id,
-            title: data.title,
+            title: data.title.trim(),
             content: data.content,
-            visibility: data.visibility || 'public',
-            status: data.status || 'draft',
-            images: data.images || [],
+            visibility,
+            status,
+            images: Array.isArray(data.images) ? data.images : [],
+            scheduledFor: data.scheduledFor ? new Date(data.scheduledFor) : undefined,
             createdAt: new Date(),
             updatedAt: new Date()
         });
+
+        // Send notifications to supporters if published immediately
+        if (status === 'published') {
+            try {
+                const supporterIds = await getSupporterIdsForCampaign(data.campaign, user._id.toString());
+                if (supporterIds.length > 0) {
+                    await notifyContentPublished({
+                        supporterIds,
+                        creatorName: user.name || user.username || 'The creator',
+                        campaignTitle: campaign.title,
+                        campaignSlug: campaign.username ? `${campaign.username}/${campaign.slug}` : null,
+                        campaignId: data.campaign,
+                        contentTitle: data.title.trim(),
+                        visibility,
+                    });
+                }
+            } catch (notifyError) {
+                console.error('Failed to notify supporters about new content:', notifyError);
+            }
+        }
 
         return {
             success: true,
@@ -105,11 +185,13 @@ export async function updateUpdate(updateId, data) {
             return { error: 'You do not have permission to edit this update' };
         }
 
-        // Update fields
-        if (data.title) update.title = data.title;
+        // Update fields with normalization
+        if (data.title) update.title = data.title.trim();
         if (data.content) update.content = data.content;
-        if (data.visibility) update.visibility = data.visibility;
-        if (data.images) update.images = data.images;
+        if (data.visibility) update.visibility = normalizeVisibility(data.visibility);
+        if (data.status) update.status = normalizeStatus(data.status);
+        if (data.images) update.images = Array.isArray(data.images) ? data.images : [];
+        if (data.scheduledFor) update.scheduledFor = new Date(data.scheduledFor);
 
         update.updatedAt = new Date();
         await update.save();
@@ -202,7 +284,30 @@ export async function publishUpdate(updateId) {
         update.updatedAt = new Date();
         await update.save();
 
-        // TODO: Send notifications to campaign supporters
+        // Send notifications to campaign supporters
+        try {
+            const campaign = await Campaign.findById(update.campaign).select('title slug username creator').lean();
+            if (campaign) {
+                const supporterIds = await getSupporterIdsForCampaign(
+                    update.campaign,
+                    user._id.toString()
+                );
+                if (supporterIds.length > 0) {
+                    await notifyContentPublished({
+                        supporterIds,
+                        creatorName: user.name || user.username || 'The creator',
+                        campaignTitle: campaign.title,
+                        campaignSlug: campaign.username ? `${campaign.username}/${campaign.slug}` : null,
+                        campaignId: update.campaign,
+                        contentTitle: update.title,
+                        visibility: update.visibility,
+                    });
+                }
+            }
+        } catch (notifyError) {
+            // Non-fatal: don't fail the publish if notification fails
+            console.error('Failed to notify supporters about published update:', notifyError);
+        }
 
         return {
             success: true,

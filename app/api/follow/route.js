@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import connectDb from '@/db/connectDb';
 import User from '@/models/User';
+import { notifyNewFollower } from '@/lib/notifications';
 
 // This is a simplified follow system
 // In production, you'd want a separate Follow/Follower model
@@ -44,9 +45,15 @@ export async function POST(request) {
             );
         }
 
-        // TODO: Implement proper follow/follower system with a Follow model
-        // For now, just return success
-        console.log(`User ${session.user.id} ${action}ed ${username}`);
+        // Notify the creator on follow
+        if (action === 'follow') {
+            const follower = await User.findById(session.user.id).select('name username').lean();
+            await notifyNewFollower({
+                userId: targetUser._id,
+                followerId: session.user.id,
+                followerName: follower?.name || session.user?.name || 'Someone',
+            });
+        }
 
         return NextResponse.json({
             success: true,

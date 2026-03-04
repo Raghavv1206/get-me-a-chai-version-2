@@ -43,6 +43,9 @@ const PaymentSchema = new Schema({
         default: 'pending'
     },
 
+    // Notification tracking (prevents duplicate notifications)
+    notifiedAt: { type: Date, default: null },
+
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
 });

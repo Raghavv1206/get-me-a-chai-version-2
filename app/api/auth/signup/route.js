@@ -19,6 +19,7 @@ import { NextResponse } from "next/server";
 import connectDb from '@/db/connectDb';
 import User from '@/models/User';
 import bcrypt from 'bcryptjs';
+import { sendWelcomeEmailNotification } from '@/lib/notifications';
 
 // Constants
 const PASSWORD_MIN_LENGTH = 8;
@@ -248,6 +249,13 @@ export async function POST(req) {
 
     // Log successful registration (without sensitive data)
     console.log(`[Signup] New user registered: ${user.email} (ID: ${user._id})`);
+
+    // Send welcome email (fire-and-forget — don't block signup response)
+    sendWelcomeEmailNotification({
+      userId: user._id.toString(),
+      name: user.name,
+      email: user.email,
+    }).catch(err => console.error('[Signup] Welcome email failed (non-fatal):', err.message));
 
     // Return success response (exclude password)
     return NextResponse.json(

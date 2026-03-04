@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { useScrollIsolation } from '../hooks/useScrollIsolation';
-import { Wallet, Rocket, MessageCircle, Target, Bell, Megaphone, X } from 'lucide-react';
+import { Wallet, Rocket, MessageCircle, Target, Bell, Megaphone, X, CreditCard, UserPlus, Reply, FileEdit } from 'lucide-react';
 
 export default function NotificationBell() {
     const { data: session } = useSession();
@@ -13,96 +13,30 @@ export default function NotificationBell() {
     const [unreadCount, setUnreadCount] = useState(0);
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(false);
-    const triggerRef = useRef(null);
-    const panelRef = useRef(null);
+    const wrapperRef = useRef(null);
     const scrollRef = useScrollIsolation();
-    const [panelStyle, setPanelStyle] = useState({});
 
     useEffect(() => {
         if (session) {
-            fetchNotifications();
+            fetchUnreadCount();
 
-            // Poll for new notifications every 30 seconds
-            const interval = setInterval(fetchNotifications, 30000);
+            // Poll for unread count every 30 seconds (lightweight)
+            const interval = setInterval(fetchUnreadCount, 30000);
             return () => clearInterval(interval);
         }
     }, [session]);
-
-    // Calculate dropdown position based on trigger button location
-    const updatePosition = useCallback(() => {
-        if (!triggerRef.current || !isOpen) return;
-
-        const rect = triggerRef.current.getBoundingClientRect();
-        const vw = window.innerWidth;
-        const vh = window.innerHeight;
-        const panelWidth = Math.min(384, vw - 16); // 384px = w-96, 16px margin
-        const isMobileView = vw < 640;
-
-        if (isMobileView) {
-            // Mobile: near full-width, below navbar
-            setPanelStyle({
-                position: 'fixed',
-                left: '8px',
-                right: '8px',
-                top: `${Math.min(rect.bottom + 8, 72)}px`,
-                bottom: 'auto',
-                width: 'auto',
-                maxHeight: `${vh - Math.min(rect.bottom + 8, 72) - 16}px`,
-            });
-        } else {
-            // Desktop/tablet: position below trigger, clamped to viewport
-            const top = rect.bottom + 8;
-            let right = vw - rect.right;
-
-            // Ensure panel doesn't overflow left edge
-            const leftEdge = vw - right - panelWidth;
-            if (leftEdge < 8) {
-                right = vw - panelWidth - 8;
-            }
-            // Ensure panel doesn't overflow right edge
-            if (right < 8) {
-                right = 8;
-            }
-
-            const maxHeight = vh - top - 16;
-
-            setPanelStyle({
-                position: 'fixed',
-                top: `${top}px`,
-                right: `${right}px`,
-                width: `${panelWidth}px`,
-                maxHeight: `${Math.min(maxHeight, 500)}px`,
-            });
-        }
-    }, [isOpen]);
-
-    // Update position on open, resize, scroll
-    useEffect(() => {
-        if (!isOpen) return;
-
-        updatePosition();
-        window.addEventListener('resize', updatePosition);
-        window.addEventListener('scroll', updatePosition, true);
-
-        return () => {
-            window.removeEventListener('resize', updatePosition);
-            window.removeEventListener('scroll', updatePosition, true);
-        };
-    }, [isOpen, updatePosition]);
 
     // Close dropdown when clicking outside
     useEffect(() => {
         if (!isOpen) return;
 
         const handleClickOutside = (event) => {
-            if (
-                triggerRef.current && !triggerRef.current.contains(event.target) &&
-                panelRef.current && !panelRef.current.contains(event.target)
-            ) {
+            if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
                 setIsOpen(false);
             }
         };
 
+        // Use setTimeout to avoid closing immediately on the same click that opens
         const timer = setTimeout(() => {
             document.addEventListener('mousedown', handleClickOutside);
             document.addEventListener('touchstart', handleClickOutside);
@@ -125,9 +59,23 @@ export default function NotificationBell() {
         return () => document.removeEventListener('keydown', handleKeyDown);
     }, [isOpen]);
 
+    const fetchUnreadCount = async () => {
+        try {
+            const response = await fetch('/api/notifications/count');
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    setUnreadCount(data.count || 0);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching unread count:', error);
+        }
+    };
+
     const fetchNotifications = async () => {
         try {
-            const response = await fetch('/api/notifications');
+            const response = await fetch('/api/notifications?limit=10');
             if (response.ok) {
                 const data = await response.json();
                 setNotifications(data.notifications || []);
@@ -136,6 +84,13 @@ export default function NotificationBell() {
         } catch (error) {
             console.error('Error fetching notifications:', error);
         }
+    };
+
+    const handleToggleDropdown = () => {
+        if (!isOpen) {
+            fetchNotifications();
+        }
+        setIsOpen(!isOpen);
     };
 
     const markAsRead = async (notificationId) => {
@@ -192,6 +147,14 @@ export default function NotificationBell() {
                 return <Target className="w-5 h-5 text-yellow-400" />;
             case 'system':
                 return <Bell className="w-5 h-5 text-gray-400" />;
+            case 'subscription':
+                return <CreditCard className="w-5 h-5 text-pink-400" />;
+            case 'follow':
+                return <UserPlus className="w-5 h-5 text-emerald-400" />;
+            case 'reply':
+                return <Reply className="w-5 h-5 text-cyan-400" />;
+            case 'update':
+                return <FileEdit className="w-5 h-5 text-indigo-400" />;
             default:
                 return <Megaphone className="w-5 h-5 text-gray-400" />;
         }
@@ -200,13 +163,14 @@ export default function NotificationBell() {
     if (!session) return null;
 
     return (
-        <>
+        <div ref={wrapperRef} className="relative">
             {/* Bell Icon Button */}
             <button
-                ref={triggerRef}
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={handleToggleDropdown}
                 className="relative p-2 text-gray-300 hover:text-white transition-colors rounded-lg hover:bg-gray-800 z-[51]"
                 aria-label="Notifications"
+                aria-expanded={isOpen}
+                aria-haspopup="true"
                 type="button"
             >
                 <svg
@@ -231,20 +195,25 @@ export default function NotificationBell() {
                 )}
             </button>
 
-            {/* Dropdown */}
+            {/* Dropdown Panel */}
             {isOpen && (
                 <>
-                    {/* Backdrop */}
+                    {/* Backdrop - visible on mobile, subtle on desktop */}
                     <div
-                        className="fixed inset-0 z-[60] bg-black/50 sm:bg-black/20"
+                        className="fixed inset-0 z-[60] bg-black/50 sm:bg-transparent"
                         onClick={() => setIsOpen(false)}
                     />
 
-                    {/* Notification panel - always fixed, position calculated dynamically */}
+                    {/* Panel: right-aligned via CSS, no JS positioning needed */}
                     <div
-                        ref={panelRef}
-                        className="z-[61] flex flex-col"
-                        style={panelStyle}
+                        className="
+                            z-[61]
+                            fixed sm:absolute
+                            inset-x-2 top-16 sm:inset-x-auto sm:top-full
+                            sm:right-0 sm:mt-2
+                            w-auto sm:w-96
+                            max-h-[calc(100vh-5rem)] sm:max-h-[500px]
+                        "
                     >
                         <div className="bg-gray-900 border border-gray-800 rounded-xl shadow-2xl flex flex-col overflow-hidden h-full">
                             {/* Header */}
@@ -311,9 +280,9 @@ export default function NotificationBell() {
                                                         {notification.message}
                                                     </p>
                                                     <p className="text-xs text-gray-500 mt-2">
-                                                        {formatDistanceToNow(new Date(notification.createdAt), {
-                                                            addSuffix: true
-                                                        })}
+                                                        {notification.createdAt
+                                                            ? formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })
+                                                            : 'Just now'}
                                                     </p>
                                                 </div>
 
@@ -343,6 +312,6 @@ export default function NotificationBell() {
                     </div>
                 </>
             )}
-        </>
+        </div>
     );
 }

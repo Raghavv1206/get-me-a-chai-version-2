@@ -165,7 +165,7 @@ export default function CreateUpdateForm({ campaigns, initialData, onSave }) {
                 className="form-select"
               >
                 <option value="public">Public</option>
-                <option value="supporters">Supporters Only</option>
+                <option value="supporters-only">Supporters Only</option>
               </select>
             </div>
           </div>

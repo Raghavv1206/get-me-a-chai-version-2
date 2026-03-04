@@ -1,8 +1,9 @@
 // app/api/cron/close-expired-campaigns/route.js
 /**
- * Cron Job: Close Expired Campaigns
+ * Cron Job: Close Expired Campaigns & Notify Expiring Campaigns
  * 
  * Automatically marks campaigns as 'completed' when their endDate has passed.
+ * Also sends advance warnings to creators about campaigns expiring soon.
  * Can be called periodically (e.g., every hour) via a cron service, or manually.
  * 
  * Security: Protected by CRON_SECRET in production.
@@ -10,7 +11,7 @@
 
 import { NextResponse } from 'next/server';
 import connectDb from '@/db/connectDb';
-import { closeExpiredCampaigns } from '@/lib/campaignExpiry';
+import { closeExpiredCampaigns, notifyExpiringCampaigns } from '@/lib/campaignExpiry';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,22 +31,26 @@ export async function GET(request) {
 
         await connectDb();
 
-        // Bulk close all expired campaigns
+        // Bulk close all expired campaigns (sends completion notifications)
         const result = await closeExpiredCampaigns();
 
-        console.log(`[Cron] Closed ${result.modifiedCount} expired campaigns`);
+        // Notify creators about campaigns expiring soon (3 days, 1 day warnings)
+        const expiringResult = await notifyExpiringCampaigns();
+
+        console.log(`[Cron] Closed ${result.modifiedCount} expired campaigns, sent ${expiringResult.notified} expiring warnings`);
 
         return NextResponse.json({
             success: true,
-            message: `Closed ${result.modifiedCount} expired campaigns`,
+            message: `Closed ${result.modifiedCount} expired campaigns, sent ${expiringResult.notified} expiring warnings`,
             modifiedCount: result.modifiedCount,
             matchedCount: result.matchedCount,
+            expiringNotified: expiringResult.notified,
             timestamp: new Date().toISOString()
         });
     } catch (error) {
-        console.error('[Cron] Error closing expired campaigns:', error);
+        console.error('[Cron] Error in campaign expiry cron:', error);
         return NextResponse.json(
-            { success: false, message: 'Failed to close expired campaigns', error: error.message },
+            { success: false, message: 'Failed to process campaign expiry', error: error.message },
             { status: 500 }
         );
     }
@@ -55,3 +60,4 @@ export async function GET(request) {
 export async function POST(request) {
     return GET(request);
 }
+

@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import connectDb from '@/db/connectDb';
 import Campaign from '@/models/Campaign';
+import { notifyCampaignStatusChange, notifyCampaignCompleted, getSupporterIdsForCampaign } from '@/lib/notifications';
 
 export async function PATCH(request, { params }) {
     try {
@@ -43,8 +44,42 @@ export async function PATCH(request, { params }) {
             );
         }
 
+        const oldStatus = campaign.status;
         campaign.status = status;
         await campaign.save();
+
+        // Notify creator about status change
+        if (oldStatus !== status) {
+            await notifyCampaignStatusChange({
+                creatorId: session.user.id,
+                campaignTitle: campaign.title,
+                campaignId: campaign._id,
+                oldStatus,
+                newStatus: status,
+            });
+
+            // When campaign is completed, notify all supporters
+            if (status === 'completed') {
+                try {
+                    const supporterIds = await getSupporterIdsForCampaign(
+                        campaign._id,
+                        campaign.creator.toString()
+                    );
+                    if (supporterIds.length > 0) {
+                        await notifyCampaignCompleted({
+                            supporterIds,
+                            campaignTitle: campaign.title,
+                            campaignSlug: campaign.username ? `${campaign.username}/${campaign.slug}` : null,
+                            campaignId: campaign._id,
+                            currentAmount: campaign.currentAmount,
+                            goalAmount: campaign.goalAmount,
+                        });
+                    }
+                } catch (notifyError) {
+                    console.error('Failed to notify supporters about campaign completion:', notifyError);
+                }
+            }
+        }
 
         return NextResponse.json({
             success: true,

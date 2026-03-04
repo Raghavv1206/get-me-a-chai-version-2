@@ -4,9 +4,11 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import connectDb from '@/db/connectDb';
 import Campaign from '@/models/Campaign';
+import User from '@/models/User';
 import { createLogger } from '@/lib/logger';
 import { validateNumber, validateString, ValidationError } from '@/lib/validation';
 import { resolveCoverImage } from '@/lib/categoryImages';
+import { notifyCampaignStatusChange } from '@/lib/notifications';
 
 const logger = createLogger('API:CreateCampaign');
 
@@ -154,6 +156,20 @@ export async function POST(req) {
             campaignId: campaign._id,
             slug: campaign.slug,
             duration: duration_ms
+        });
+
+        // Notify creator that campaign is live
+        await notifyCampaignStatusChange({
+            creatorId: session.user.id,
+            campaignTitle: campaign.title,
+            campaignId: campaign._id,
+            oldStatus: 'draft',
+            newStatus: 'active',
+        });
+
+        // Update user's campaign count
+        await User.findByIdAndUpdate(session.user.id, {
+            $inc: { 'stats.campaignsCount': 1 }
         });
 
         return NextResponse.json(

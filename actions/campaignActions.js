@@ -22,6 +22,7 @@ import {
     ValidationError
 } from '@/lib/validation';
 import { checkRateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
+import { notifyCampaignStatusChange } from '@/lib/notifications';
 
 const logger = createLogger('CampaignActions');
 
@@ -236,6 +237,15 @@ export async function publishCampaign(campaignId) {
         campaign.publishedAt = new Date();
         campaign.updatedAt = new Date();
         await campaign.save();
+
+        // Notify creator that campaign is now live
+        await notifyCampaignStatusChange({
+            creatorId: user._id,
+            campaignTitle: campaign.title,
+            campaignId: campaign._id,
+            oldStatus: 'draft',
+            newStatus: 'active',
+        });
 
         return {
             success: true,

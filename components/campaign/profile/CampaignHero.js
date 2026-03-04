@@ -1,9 +1,25 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import { FaCheckCircle, FaMapMarkerAlt, FaCalendarAlt } from 'react-icons/fa';
 
+const DEFAULT_PROFILE_PIC = '/images/default-profilepic.svg';
+
 export default function CampaignHero({ campaign, creator }) {
+    const [profileSrc, setProfileSrc] = useState(
+        creator.profilepic && creator.profilepic.trim() !== ''
+            ? creator.profilepic
+            : DEFAULT_PROFILE_PIC
+    );
+
+    const handleProfileError = () => {
+        // If the current src already IS the default, don't loop
+        if (profileSrc !== DEFAULT_PROFILE_PIC) {
+            setProfileSrc(DEFAULT_PROFILE_PIC);
+        }
+    };
+
     return (
         <div className="relative">
             {/* Cover Image */}
@@ -30,12 +46,14 @@ export default function CampaignHero({ campaign, creator }) {
                         <div className="flex flex-col md:flex-row md:items-end gap-6">
                             {/* Creator Profile Picture */}
                             <div className="relative">
-                                <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl overflow-hidden border-4 border-white/20 backdrop-blur-sm shadow-2xl">
+                                <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-2xl overflow-hidden border-4 border-white/20 backdrop-blur-sm shadow-2xl">
                                     <Image
-                                        src={creator.profilepic || '/images/default-profilepic.svg'}
-                                        alt={creator.name}
+                                        src={profileSrc}
+                                        alt={creator.name || 'Creator'}
                                         fill
                                         className="object-cover"
+                                        onError={handleProfileError}
+                                        sizes="(max-width: 768px) 96px, 128px"
                                     />
                                 </div>
                                 {creator.verified && (

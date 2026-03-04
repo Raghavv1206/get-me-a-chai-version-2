@@ -5,11 +5,195 @@ import Payment from '@/models/Payment';
 import Subscription from '@/models/Subscription';
 import Campaign from '@/models/Campaign';
 import User from '@/models/User';
-import Notification from '@/models/Notification';
+import { notifyPaymentReceived, notifyMilestoneReached, notifyNewSubscription, notifySubscriptionCancelled, notifySubscriptionCharged, notifyPaymentConfirmation, notifyCampaignGoalReached, getSupporterIdsForCampaign } from '@/lib/notifications';
 import { createLogger } from '@/lib/logger';
 import config from '@/lib/config';
 
 const logger = createLogger('RazorpayWebhook');
+
+/**
+ * Sends payment notification + checks milestones for a completed payment.
+ * Uses atomic `notifiedAt` flag to prevent duplicate notifications
+ * when both form-data verification and webhook fire for the same payment.
+ *
+ * @param {Object} paymentRecord - The Payment document (must have _id, amount, to_user, campaign, name, anonymous)
+ * @param {string} source - 'form-data' or 'webhook' (for logging)
+ * @returns {Promise<void>}
+ */
+async function sendPaymentNotification(paymentRecord, source = 'unknown') {
+    try {
+        // Atomically set notifiedAt only if it hasn't been set yet (prevents duplicates)
+        const updated = await Payment.findOneAndUpdate(
+            { _id: paymentRecord._id, notifiedAt: null },
+            { $set: { notifiedAt: new Date() } },
+            { new: true }
+        );
+
+        if (!updated) {
+            // Another path already sent the notification
+            logger.info('Notification already sent for this payment, skipping', {
+                paymentId: paymentRecord._id?.toString(),
+                source,
+            });
+            return;
+        }
+
+        // Find creator
+        const creator = await User.findOne({ username: paymentRecord.to_user });
+        if (!creator) {
+            logger.warn('Creator not found for notification', {
+                to_user: paymentRecord.to_user,
+                paymentId: paymentRecord._id?.toString(),
+                source,
+            });
+            return;
+        }
+
+        // Get campaign title
+        let campaignTitle = 'your campaign';
+        let campaign = null;
+        if (paymentRecord.campaign) {
+            campaign = await Campaign.findById(paymentRecord.campaign).lean();
+            if (campaign?.title) {
+                campaignTitle = campaign.title;
+            }
+        }
+
+        // Send payment notification to CREATOR
+        await notifyPaymentReceived({
+            creatorId: creator._id,
+            supporterName: paymentRecord.name,
+            campaignTitle,
+            campaignId: paymentRecord.campaign,
+            paymentId: paymentRecord._id,
+            amount: paymentRecord.amount,
+            anonymous: paymentRecord.anonymous || false,
+            campaignSlug: campaign?.username ? `${campaign.username}/${campaign.slug}` : (campaign?.slug || null),
+            message: paymentRecord.message || '',
+        });
+
+        logger.info('Payment notification sent successfully', {
+            creatorId: creator._id?.toString(),
+            paymentId: paymentRecord._id?.toString(),
+            amount: paymentRecord.amount,
+            source,
+        });
+
+        // Send payment confirmation to SUPPORTER
+        if (paymentRecord.userId) {
+            await notifyPaymentConfirmation({
+                supporterId: paymentRecord.userId,
+                campaignTitle,
+                campaignSlug: campaign?.username ? `${campaign.username}/${campaign.slug}` : (campaign?.slug || null),
+                campaignId: paymentRecord.campaign,
+                paymentId: paymentRecord._id,
+                amount: paymentRecord.amount,
+            });
+        }
+
+        // Check for milestone notifications (only if campaign exists with a goal)
+        if (campaign && campaign.goalAmount > 0) {
+            await checkAndNotifyMilestones(creator, campaign, paymentRecord.amount);
+
+            // Check if campaign just reached its funding goal — notify all supporters
+            const refreshedCampaign = await Campaign.findById(campaign._id).lean();
+            if (refreshedCampaign) {
+                const prevAmount = refreshedCampaign.currentAmount - paymentRecord.amount;
+                const wasUnderGoal = prevAmount < refreshedCampaign.goalAmount;
+                const nowAtGoal = refreshedCampaign.currentAmount >= refreshedCampaign.goalAmount;
+
+                if (wasUnderGoal && nowAtGoal) {
+                    const supporterIds = await getSupporterIdsForCampaign(campaign._id, creator._id?.toString());
+                    if (supporterIds.length > 0) {
+                        await notifyCampaignGoalReached({
+                            supporterIds,
+                            campaignTitle,
+                            campaignSlug: campaign.username ? `${campaign.username}/${campaign.slug}` : null,
+                            campaignId: campaign._id,
+                            goalAmount: campaign.goalAmount,
+                        });
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        // Notification failures should never break the payment flow
+        logger.error('Failed to send payment notification (non-fatal)', {
+            error: error.message,
+            paymentId: paymentRecord._id?.toString(),
+            source,
+        });
+    }
+}
+
+/**
+ * Checks and sends milestone notifications after a payment.
+ * Handles both custom milestones and percentage-based milestones (25%, 50%, 75%, 100%).
+ */
+async function checkAndNotifyMilestones(creator, campaign, paymentAmount) {
+    try {
+        // Refetch campaign to get the latest currentAmount (after $inc)
+        const updatedCampaign = await Campaign.findById(campaign._id).lean();
+        if (!updatedCampaign || !updatedCampaign.goalAmount || updatedCampaign.goalAmount <= 0) return;
+
+        const prevAmount = updatedCampaign.currentAmount - paymentAmount;
+        const prevPercentage = Math.floor((prevAmount / updatedCampaign.goalAmount) * 100);
+        const newPercentage = Math.floor((updatedCampaign.currentAmount / updatedCampaign.goalAmount) * 100);
+
+        // Check custom milestones
+        if (updatedCampaign.milestones && updatedCampaign.milestones.length > 0) {
+            for (const milestone of updatedCampaign.milestones) {
+                if (!milestone.completed && updatedCampaign.currentAmount >= milestone.amount) {
+                    await notifyMilestoneReached({
+                        creatorId: creator._id,
+                        campaignTitle: updatedCampaign.title,
+                        campaignId: updatedCampaign._id,
+                        milestoneTitle: milestone.title,
+                        percentage: Math.floor((milestone.amount / updatedCampaign.goalAmount) * 100),
+                        currentAmount: updatedCampaign.currentAmount,
+                    });
+
+                    // Mark milestone as completed
+                    await Campaign.updateOne(
+                        { _id: campaign._id, 'milestones._id': milestone._id },
+                        { $set: { 'milestones.$.completed': true, 'milestones.$.completedAt': new Date() } }
+                    );
+
+                    logger.info('Custom milestone reached', {
+                        campaignId: campaign._id?.toString(),
+                        milestoneTitle: milestone.title,
+                    });
+                }
+            }
+        }
+
+        // Check percentage milestones (25%, 50%, 75%, 100%)
+        const milestoneThresholds = [25, 50, 75, 100];
+        for (const threshold of milestoneThresholds) {
+            if (prevPercentage < threshold && newPercentage >= threshold) {
+                await notifyMilestoneReached({
+                    creatorId: creator._id,
+                    campaignTitle: updatedCampaign.title,
+                    campaignId: updatedCampaign._id,
+                    milestoneTitle: `${threshold}% funded`,
+                    percentage: threshold,
+                    currentAmount: updatedCampaign.currentAmount,
+                });
+
+                logger.info('Percentage milestone reached', {
+                    campaignId: campaign._id?.toString(),
+                    threshold,
+                    newPercentage,
+                });
+            }
+        }
+    } catch (error) {
+        logger.error('Milestone check failed (non-fatal)', {
+            error: error.message,
+            campaignId: campaign._id?.toString(),
+        });
+    }
+}
 
 export async function POST(request) {
     const startTime = Date.now();
@@ -134,7 +318,7 @@ export async function POST(request) {
             const razorpay_order_id = formData.get('razorpay_order_id');
             const razorpay_signature = formData.get('razorpay_signature');
 
-            logger.info('Processing payment verification', {
+            logger.info('Processing payment verification (form-data)', {
                 payment_id: razorpay_payment_id,
                 order_id: razorpay_order_id,
                 hasSignature: !!razorpay_signature
@@ -148,12 +332,12 @@ export async function POST(request) {
                 );
             }
 
-            // Verify payment signature
-            const webhookSecret = config.payment.razorpay.keySecret;
+            // Verify payment signature using Razorpay key secret
+            const keySecret = config.payment.razorpay.keySecret;
 
-            if (webhookSecret) {
+            if (keySecret) {
                 const expectedSignature = crypto
-                    .createHmac('sha256', webhookSecret)
+                    .createHmac('sha256', keySecret)
                     .update(`${razorpay_order_id}|${razorpay_payment_id}`)
                     .digest('hex');
 
@@ -176,7 +360,24 @@ export async function POST(request) {
 
             const paymentRecord = await Payment.findOne({ oid: razorpay_order_id });
 
-            if (paymentRecord && !paymentRecord.done) {
+            if (!paymentRecord) {
+                logger.warn('Payment record not found', { order_id: razorpay_order_id });
+                return NextResponse.json(
+                    { success: false, message: 'Payment record not found' },
+                    { status: 404 }
+                );
+            }
+
+            if (paymentRecord.done) {
+                // Already processed (e.g., by webhook) — still try to send notification
+                // in case the webhook processed payment but didn't notify
+                logger.info('Payment already marked done, ensuring notification was sent', {
+                    order_id: razorpay_order_id,
+                    payment_id: razorpay_payment_id,
+                });
+                await sendPaymentNotification(paymentRecord, 'form-data-retry');
+            } else {
+                // Mark payment as done
                 paymentRecord.paymentId = razorpay_payment_id;
                 paymentRecord.status = 'success';
                 paymentRecord.done = true;
@@ -184,7 +385,8 @@ export async function POST(request) {
 
                 logger.info('Payment record updated', {
                     order_id: razorpay_order_id,
-                    payment_id: razorpay_payment_id
+                    payment_id: razorpay_payment_id,
+                    amount: paymentRecord.amount,
                 });
 
                 // Update campaign stats
@@ -207,18 +409,14 @@ export async function POST(request) {
                         }
                     });
                 }
-            } else {
-                logger.warn('Payment record not found or already processed', {
-                    order_id: razorpay_order_id,
-                    found: !!paymentRecord,
-                    done: paymentRecord?.done
-                });
+
+                // Send notification + milestone checks
+                await sendPaymentNotification(paymentRecord, 'form-data');
             }
 
             logger.info('Payment verification processed successfully', {
                 order_id: razorpay_order_id,
                 payment_id: razorpay_payment_id,
-                updated: !!(paymentRecord && !paymentRecord.done)
             });
         } else {
             logger.error('Unsupported content type', { contentType });
@@ -255,23 +453,34 @@ export async function POST(request) {
     }
 }
 
-// Handler functions
+// ============================================================
+//  Webhook event handler functions
+// ============================================================
+
 async function handlePaymentCaptured(payment) {
     const paymentRecord = await Payment.findOne({ oid: payment.order_id });
 
-    if (paymentRecord && !paymentRecord.done) {
+    if (!paymentRecord) {
+        logger.warn('Payment record not found in webhook', { order_id: payment.order_id });
+        return;
+    }
+
+    if (!paymentRecord.done) {
+        // First time processing — update payment, stats, and notify
         paymentRecord.paymentId = payment.id;
         paymentRecord.status = 'success';
         paymentRecord.done = true;
         await paymentRecord.save();
 
         // Update campaign stats
-        await Campaign.findByIdAndUpdate(paymentRecord.campaign, {
-            $inc: {
-                currentAmount: paymentRecord.amount,
-                'stats.supporters': 1
-            }
-        });
+        if (paymentRecord.campaign) {
+            await Campaign.findByIdAndUpdate(paymentRecord.campaign, {
+                $inc: {
+                    currentAmount: paymentRecord.amount,
+                    'stats.supporters': 1
+                }
+            }, { new: true });
+        }
 
         // Update creator stats
         const creator = await User.findOne({ username: paymentRecord.to_user });
@@ -284,15 +493,23 @@ async function handlePaymentCaptured(payment) {
             });
         }
     }
+
+    // Always attempt to send notification (sendPaymentNotification is idempotent via notifiedAt)
+    await sendPaymentNotification(paymentRecord, 'webhook');
 }
 
 async function handlePaymentFailed(payment) {
     const paymentRecord = await Payment.findOne({ oid: payment.order_id });
 
-    if (paymentRecord) {
+    if (paymentRecord && !paymentRecord.done) {
         paymentRecord.status = 'failed';
         paymentRecord.done = false;
         await paymentRecord.save();
+
+        logger.info('Payment marked as failed', {
+            order_id: payment.order_id,
+            payment_id: payment.id,
+        });
     }
 }
 
@@ -306,13 +523,19 @@ async function handleSubscriptionActivated(subscription) {
         subscriptionRecord.startDate = new Date(subscription.start_at * 1000);
         await subscriptionRecord.save();
 
-        // Notify creator
-        await Notification.create({
-            user: subscriptionRecord.creator,
-            type: 'new_subscription',
-            title: 'New Subscription!',
-            message: `Someone started a ${subscriptionRecord.frequency} subscription of ₹${subscriptionRecord.amount}`,
-            link: `/dashboard/subscriptions`
+        // Notify creator (with subscriber name lookup)
+        let subscriberName = 'Someone';
+        if (subscriptionRecord.subscriber) {
+            const subscriber = await User.findById(subscriptionRecord.subscriber).select('name').lean();
+            if (subscriber?.name) subscriberName = subscriber.name;
+        }
+        await notifyNewSubscription({
+            creatorId: subscriptionRecord.creator,
+            subscriberId: subscriptionRecord.subscriber,
+            subscriberName,
+            amount: subscriptionRecord.amount,
+            frequency: subscriptionRecord.frequency,
+            campaignId: subscriptionRecord.campaign,
         });
     }
 }
@@ -324,9 +547,17 @@ async function handleSubscriptionCharged(payment) {
 
     if (subscription) {
         // Create payment record for this subscription charge
+        const creatorUser = await User.findById(subscription.creator);
+        if (!creatorUser) {
+            logger.error('Creator not found for subscription charge', {
+                creatorId: subscription.creator?.toString(),
+            });
+            return;
+        }
+
         await Payment.create({
             name: 'Subscription Payment',
-            to_user: (await User.findById(subscription.creator)).username,
+            to_user: creatorUser.username,
             userId: subscription.subscriber || null,
             campaign: subscription.campaign,
             oid: payment.id,
@@ -335,17 +566,28 @@ async function handleSubscriptionCharged(payment) {
             type: 'subscription',
             subscriptionId: subscription._id,
             status: 'success',
-            done: true
+            done: true,
+            notifiedAt: new Date(), // Mark as notified immediately since we're about to notify
         });
 
         // Update campaign amount
-        await Campaign.findByIdAndUpdate(subscription.campaign, {
-            $inc: { currentAmount: subscription.amount }
-        });
+        if (subscription.campaign) {
+            await Campaign.findByIdAndUpdate(subscription.campaign, {
+                $inc: { currentAmount: subscription.amount }
+            });
+        }
 
         // Update creator stats
         await User.findByIdAndUpdate(subscription.creator, {
             $inc: { 'stats.totalRaised': subscription.amount }
+        });
+
+        // Notify creator about subscription charge
+        await notifySubscriptionCharged({
+            creatorId: subscription.creator,
+            amount: subscription.amount,
+            frequency: subscription.frequency,
+            campaignId: subscription.campaign,
         });
 
         // Update next billing date
@@ -374,12 +616,10 @@ async function handleSubscriptionCancelled(subscription) {
         await subscriptionRecord.save();
 
         // Notify creator
-        await Notification.create({
-            user: subscriptionRecord.creator,
-            type: 'subscription_cancelled',
-            title: 'Subscription Cancelled',
-            message: `A ${subscriptionRecord.frequency} subscription of ₹${subscriptionRecord.amount} was cancelled`,
-            link: `/dashboard/subscriptions`
+        await notifySubscriptionCancelled({
+            creatorId: subscriptionRecord.creator,
+            amount: subscriptionRecord.amount,
+            frequency: subscriptionRecord.frequency,
         });
     }
 }
