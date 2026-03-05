@@ -70,7 +70,24 @@ export default function CampaignSidebar({ campaign, creator, selectedReward, onS
 
     const pay = async (paymentAmount) => {
         try {
-            // Validate inputs
+            // ── Guard: creator must have configured their Razorpay Key ID in Settings ──
+            // This is a public Key ID (safe to read client-side). If missing, the creator
+            // hasn't connected their Razorpay account yet — show a clear toast immediately.
+            if (!creator.razorpayid) {
+                toast.error(
+                    '⚠️ This creator hasn\'t set up a payment gateway yet. ' +
+                    'Please ask them to add their Razorpay Key ID in their Settings.',
+                    {
+                        position: 'top-right',
+                        autoClose: 6000,
+                        theme: 'dark',
+                        transition: Bounce,
+                    }
+                );
+                return;
+            }
+
+            // ── Input validation ──
             if (!paymentForm.name || paymentForm.name.length < 3) {
                 toast.error('Please enter your name (minimum 3 characters)', {
                     position: "top-right",

@@ -54,19 +54,22 @@ export const initiate = async (amount, to_username, paymentform) => {
             throw new Error('User not found');
         }
 
-        // Check if user has configured Razorpay credentials
-        const razorpayId = user.razorpayid || config.payment.razorpay.keyId;
-        const razorpaySecret = user.razorpaysecret || config.payment.razorpay.keySecret;
+        // Use only the creator's own per-user Razorpay credentials (stored in DB via Settings).
+        // We intentionally do NOT fall back to global env vars — each creator must configure
+        // their own Razorpay account in the dashboard Settings page.
+        const razorpayId = user.razorpayid?.trim();
+        const razorpaySecret = user.razorpaysecret?.trim();
 
         if (!razorpayId || !razorpaySecret) {
-            logger.error('Razorpay credentials not configured', {
+            logger.error('Creator has not configured Razorpay credentials', {
                 username: validatedUsername,
                 hasUserId: !!user.razorpayid,
                 hasUserSecret: !!user.razorpaysecret,
-                hasConfigId: !!config.payment.razorpay.keyId,
-                hasConfigSecret: !!config.payment.razorpay.keySecret
             });
-            throw new Error('Payment gateway not configured. Please contact the creator.');
+            throw new Error(
+                'This creator has not set up their payment gateway yet. ' +
+                'Please ask them to add their Razorpay Key ID and Secret in their Settings.'
+            );
         }
 
         logger.info('Creating Razorpay instance', {
@@ -167,13 +170,21 @@ export const fetchuser = async (username) => {
         await connectDb();
         let u = await User.findOne({ username: username });
         if (!u) return null;
-        let user = u.toObject({ flattenObjectIds: true });
-        return user;
+
+        const user = u.toObject({ flattenObjectIds: true });
+
+        // Strip sensitive fields before the result is serialized and sent to the browser.
+        // razorpaysecret is the Razorpay API secret — it must never be exposed client-side.
+        // razorpayid (the public Key ID) is kept because the checkout modal needs it.
+        const { razorpaysecret, password, ...safeUser } = user;
+
+        return safeUser;
     } catch (error) {
         logger.error('Failed to fetch user', { error: error.message, username });
         throw error;
     }
 }
+
 
 export const fetchpayments = async (username) => {
     try {

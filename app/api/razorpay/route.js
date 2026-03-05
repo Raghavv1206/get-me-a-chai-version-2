@@ -7,7 +7,6 @@ import Campaign from '@/models/Campaign';
 import User from '@/models/User';
 import { notifyPaymentReceived, notifyMilestoneReached, notifyNewSubscription, notifySubscriptionCancelled, notifySubscriptionCharged, notifyPaymentConfirmation, notifyCampaignGoalReached, getSupporterIdsForCampaign } from '@/lib/notifications';
 import { createLogger } from '@/lib/logger';
-import config from '@/lib/config';
 
 const logger = createLogger('RazorpayWebhook');
 
@@ -202,52 +201,6 @@ export async function POST(request) {
         logger.request('POST', '/api/razorpay');
 
         const body = await request.text();
-        const signature = request.headers.get('x-razorpay-signature');
-
-        // Get webhook secret from config
-        const webhookSecret = config.payment.razorpay.webhookSecret;
-
-        // Check if webhook secret is configured
-        if (!webhookSecret) {
-            logger.warn('Razorpay webhook secret not configured', {
-                env: process.env.NODE_ENV,
-                hasSignature: !!signature
-            });
-
-            // In development, allow webhooks without verification
-            if (process.env.NODE_ENV === 'development') {
-                logger.info('Development mode: Processing webhook without signature verification');
-            } else {
-                logger.error('Production mode: Webhook secret is required');
-                return NextResponse.json(
-                    {
-                        success: false,
-                        message: 'Webhook secret not configured',
-                        error: 'RAZORPAY_WEBHOOK_SECRET environment variable is required'
-                    },
-                    { status: 500 }
-                );
-            }
-        } else {
-            // Verify webhook signature
-            const expectedSignature = crypto
-                .createHmac('sha256', webhookSecret)
-                .update(body)
-                .digest('hex');
-
-            if (signature !== expectedSignature) {
-                logger.error('Invalid webhook signature', {
-                    receivedSignature: signature?.substring(0, 10) + '...',
-                    expectedSignature: expectedSignature?.substring(0, 10) + '...'
-                });
-                return NextResponse.json(
-                    { success: false, message: 'Invalid signature' },
-                    { status: 400 }
-                );
-            }
-
-            logger.info('Webhook signature verified successfully');
-        }
 
         // Check content type to determine how to parse the body
         const contentType = request.headers.get('content-type') || '';
@@ -332,8 +285,27 @@ export async function POST(request) {
                 );
             }
 
-            // Verify payment signature using Razorpay key secret
-            const keySecret = config.payment.razorpay.keySecret;
+            // Fetch payment record first so we can look up the creator's secret.
+            // This must come BEFORE signature verification.
+            await connectDb();
+
+            const paymentRecord = await Payment.findOne({ oid: razorpay_order_id });
+
+            if (!paymentRecord) {
+                logger.warn('Payment record not found', { order_id: razorpay_order_id });
+                return NextResponse.json(
+                    { success: false, message: 'Payment record not found' },
+                    { status: 404 }
+                );
+            }
+
+            // Verify payment signature using the CREATOR's own Razorpay key secret.
+            // We look it up from the payment record's to_user field.
+            // Supporters do NOT need Razorpay credentials — only the creator's keys matter here.
+            const paymentCreator = await User.findOne({ username: paymentRecord.to_user })
+                .select('razorpaysecret')
+                .lean();
+            const keySecret = paymentCreator?.razorpaysecret?.trim();
 
             if (keySecret) {
                 const expectedSignature = crypto
@@ -353,19 +325,11 @@ export async function POST(request) {
                 }
 
                 logger.info('Payment signature verified successfully');
-            }
-
-            // Update payment record
-            await connectDb();
-
-            const paymentRecord = await Payment.findOne({ oid: razorpay_order_id });
-
-            if (!paymentRecord) {
-                logger.warn('Payment record not found', { order_id: razorpay_order_id });
-                return NextResponse.json(
-                    { success: false, message: 'Payment record not found' },
-                    { status: 404 }
-                );
+            } else {
+                logger.warn('Creator has no Razorpay secret; skipping signature verification', {
+                    to_user: paymentRecord.to_user,
+                    order_id: razorpay_order_id,
+                });
             }
 
             if (paymentRecord.done) {

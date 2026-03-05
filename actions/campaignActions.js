@@ -217,6 +217,25 @@ export async function publishCampaign(campaignId) {
             return { error: 'User not found' };
         }
 
+        // ── Razorpay credentials check ──
+        // Only required when PUBLISHING (activating). Supporters are never affected.
+        const hasRazorpayId = !!(user.razorpayid?.trim());
+        const hasRazorpaySecret = !!(user.razorpaysecret?.trim());
+
+        if (!hasRazorpayId || !hasRazorpaySecret) {
+            logger.warn('Campaign publish blocked: missing Razorpay credentials', {
+                userId: user._id.toString(),
+                hasRazorpayId,
+                hasRazorpaySecret,
+            });
+            return {
+                error:
+                    'Payment gateway not configured. Please save your Razorpay Key ID and Secret in ' +
+                    'Dashboard → Settings → Payment Settings before publishing.',
+                code: 'RAZORPAY_CREDENTIALS_MISSING',
+            };
+        }
+
         // Find campaign and verify ownership
         const campaign = await Campaign.findById(campaignId);
         if (!campaign) {

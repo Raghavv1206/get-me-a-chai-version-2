@@ -24,7 +24,7 @@ const STEPS = [
 
 const STORAGE_KEY = 'campaign_builder_draft';
 
-export default function CampaignBuilderWizard() {
+export default function CampaignBuilderWizard({ hasRazorpayCredentials = false }) {
     const router = useRouter();
     const [currentStep, setCurrentStep] = useState(1);
     const [autoSaving, setAutoSaving] = useState(false);
@@ -167,7 +167,27 @@ export default function CampaignBuilderWizard() {
     };
 
     const handlePublish = async () => {
-        // Validate required fields before publishing
+        // ── 1. Razorpay credentials check (client-side fast path) ──
+        // Supporters never need to do this — only CREATORS publishing a campaign.
+        if (!hasRazorpayCredentials) {
+            toast.error(
+                <span>
+                    ⚠️ Payment gateway not set up.{' '}
+                    <a
+                        href="/dashboard/settings"
+                        className="underline font-semibold"
+                        onClick={() => router.push('/dashboard/settings')}
+                    >
+                        Go to Settings → Payment Settings
+                    </a>{' '}
+                    to add your Razorpay Key ID and Secret before publishing.
+                </span>,
+                { autoClose: 8000 }
+            );
+            return;
+        }
+
+        // ── 2. Required field validation ──
         if (!campaignData.title || campaignData.title.trim().length < 5) {
             toast.error('Campaign title is required (at least 5 characters)');
             return;
@@ -202,12 +222,13 @@ export default function CampaignBuilderWizard() {
                 {
                     loading: 'Publishing campaign...',
                     success: 'Campaign published successfully!',
-                    error: 'Failed to publish campaign'
+                    // apiToast reads data.message from the response — so the
+                    // 422 RAZORPAY_CREDENTIALS_MISSING message is shown automatically.
+                    error: 'Failed to publish campaign',
                 }
             );
 
             if (response.ok) {
-                const { campaignId } = await response.json();
                 localStorage.removeItem(STORAGE_KEY);
                 router.push(`/dashboard/campaigns`);
             }

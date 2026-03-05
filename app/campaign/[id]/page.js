@@ -30,7 +30,9 @@ export default async function CampaignPage({ params }) {
         const [session, campaign] = await Promise.all([
             getServerSession(authOptions).catch(() => null),
             Campaign.findById(id)
-                .populate('creator', 'name email verified username bio location socialLinks stats coverpic profilepic razorpayid razorpaysecret')
+                // NOTE: razorpaysecret is intentionally excluded — it must never be sent to the client.
+                // razorpayid (public Key ID) is included because the Razorpay checkout modal needs it.
+                .populate('creator', 'name email verified username bio location socialLinks stats coverpic profilepic razorpayid')
         ]);
 
         if (!campaign) {
@@ -165,6 +167,7 @@ export default async function CampaignPage({ params }) {
             _id: creator._id,
             name: creator.name || 'Anonymous',
             username: creator.username || creator.email?.split('@')[0] || 'user',
+            // NOTE: email is included only for display; if you want to hide it from public, remove it.
             email: creator.email,
             profilepic: sanitizeImageUrl(creator.profilepic, DEFAULT_PROFILE_PIC),
             coverpic: sanitizeImageUrl(creator.coverpic, DEFAULT_COVER_PIC),
@@ -172,8 +175,9 @@ export default async function CampaignPage({ params }) {
             location: creator.location || '',
             verified: creator.verified || false,
             socialLinks: creator.socialLinks || {},
+            // razorpayid (public Key ID) is safe to expose — it's used by the Razorpay
+            // checkout modal on the frontend. The secret is NEVER sent to the client.
             razorpayid: creator.razorpayid || '',
-            razorpaysecret: creator.razorpaysecret || '',
             stats: {
                 totalRaised,
                 totalSupporters,

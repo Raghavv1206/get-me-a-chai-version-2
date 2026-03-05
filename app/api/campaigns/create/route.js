@@ -78,6 +78,33 @@ export async function POST(req) {
             throw error;
         }
 
+        // ── Razorpay credentials check (only required when publishing, not for drafts) ──
+        // Supporters do NOT need credentials — this check is only for CREATORS publishing.
+        const isPublishing = campaignData.status === 'active';
+        if (isPublishing) {
+            const creator = await User.findById(session.user.id).select('razorpayid razorpaysecret').lean();
+            const hasRazorpayId = !!(creator?.razorpayid?.trim());
+            const hasRazorpaySecret = !!(creator?.razorpaysecret?.trim());
+
+            if (!hasRazorpayId || !hasRazorpaySecret) {
+                logger.warn('Campaign publish blocked: missing Razorpay credentials', {
+                    userId: session.user.id,
+                    hasRazorpayId,
+                    hasRazorpaySecret,
+                });
+                return NextResponse.json(
+                    {
+                        error: 'Payment gateway not configured',
+                        message: 'You must save your Razorpay Key ID and Secret in Settings before publishing a campaign. Go to Dashboard → Settings → Payment Settings.',
+                        code: 'RAZORPAY_CREDENTIALS_MISSING',
+                    },
+                    { status: 422 }
+                );
+            }
+
+            logger.info('Razorpay credentials verified for publish', { userId: session.user.id });
+        }
+
         // 4. Generate unique slug
         const baseSlug = validatedData.title
             .toLowerCase()

@@ -78,7 +78,8 @@ export default function CampaignListCard({ campaign, viewMode = 'grid', onUpdate
             {
               loading: action === 'pause' ? 'Pausing campaign...' : 'Resuming campaign...',
               success: action === 'pause' ? 'Campaign paused!' : 'Campaign resumed!',
-              error: `Failed to ${action} campaign`
+              // apiToast reads data.message from the 422 response automatically
+              error: `Failed to ${action} campaign`,
             }
           );
 

@@ -1,8 +1,10 @@
+// app/api/campaigns/[id]/status/route.js
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import connectDb from '@/db/connectDb';
 import Campaign from '@/models/Campaign';
+import User from '@/models/User';
 import { notifyCampaignStatusChange, notifyCampaignCompleted, getSupporterIdsForCampaign } from '@/lib/notifications';
 
 export async function PATCH(request, { params }) {
@@ -27,6 +29,29 @@ export async function PATCH(request, { params }) {
         }
 
         await connectDb();
+
+        // ── Razorpay credentials check when publishing/re-activating a campaign ──
+        // Supporters do NOT need Razorpay credentials — this only gates CREATORS.
+        if (status === 'active') {
+            const creator = await User.findById(session.user.id)
+                .select('razorpayid razorpaysecret')
+                .lean();
+            const hasRazorpayId = !!(creator?.razorpayid?.trim());
+            const hasRazorpaySecret = !!(creator?.razorpaysecret?.trim());
+
+            if (!hasRazorpayId || !hasRazorpaySecret) {
+                return NextResponse.json(
+                    {
+                        success: false,
+                        message:
+                            'You must save your Razorpay Key ID and Secret in Settings before publishing a campaign. ' +
+                            'Go to Dashboard → Settings → Payment Settings.',
+                        code: 'RAZORPAY_CREDENTIALS_MISSING',
+                    },
+                    { status: 422 }
+                );
+            }
+        }
 
         const campaign = await Campaign.findById(campaignId);
         if (!campaign) {

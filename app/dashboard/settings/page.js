@@ -34,13 +34,24 @@ export default async function SettingsPage() {
         redirect('/login');
     }
 
-    // Serialize user data
+    // Serialize only the fields SettingsForm needs.
+    // This avoids accidentally leaking internal DB fields to the client component.
+    // Note: razorpaysecret is safe to include here because this route is
+    // protected by session — only the account owner can reach this page.
     const userData = {
-        ...user,
         _id: user._id.toString(),
+        name: user.name || '',
+        email: user.email || '',
+        username: user.username || '',
+        bio: user.bio || '',
+        profileImage: user.profileImage || user.profilepic || '',
+        coverImage: user.coverImage || user.coverpic || '',
+        razorpayid: user.razorpayid || '',
+        razorpaysecret: user.razorpaysecret || '',
         createdAt: user.createdAt?.toISOString(),
-        updatedAt: user.updatedAt?.toISOString()
+        updatedAt: user.updatedAt?.toISOString(),
     };
+
 
     return (
         <div className="min-h-screen bg-black text-gray-100">

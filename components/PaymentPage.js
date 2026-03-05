@@ -54,6 +54,21 @@ const PaymentPage = ({ username }) => {
 
   const pay = async (amount) => {
     try {
+      // ── Guard: creator must have configured their Razorpay Key ID in Settings ──
+      if (!currentUser.razorpayid) {
+        toast.error(
+          '⚠️ This creator hasn\'t set up a payment gateway yet. ' +
+          'Please ask them to add their Razorpay Key ID in their Settings.',
+          {
+            position: 'top-right',
+            autoClose: 6000,
+            theme: 'dark',
+            transition: Bounce,
+          }
+        );
+        return;
+      }
+
       // Get the order Id 
       let a = await initiate(amount, username, paymentform)
       let orderId = a.id

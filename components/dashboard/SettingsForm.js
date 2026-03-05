@@ -159,7 +159,22 @@ export default function SettingsForm({ user }) {
 
             {/* Payment Settings Section */}
             <div className="pt-6 mt-6 border-t border-gray-700">
-                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2"><CreditCard className="w-5 h-5 text-purple-400" /> Payment Settings</h3>
+                <h3 className="text-lg font-semibold text-white mb-2 flex items-center gap-2"><CreditCard className="w-5 h-5 text-purple-400" /> Payment Settings</h3>
+
+                {/* Contextual info: required only for CREATORS, not supporters */}
+                <div className={`mb-4 px-4 py-3 rounded-lg text-sm border ${formData.razorpayid && formData.razorpaysecret
+                        ? 'bg-green-500/10 border-green-500/30 text-green-400'
+                        : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+                    }`}>
+                    {formData.razorpayid && formData.razorpaysecret ? (
+                        <span>✅ Payment gateway configured — you can publish campaigns and receive contributions.</span>
+                    ) : (
+                        <span>
+                            ⚠️ <strong>Required to publish campaigns.</strong> Add your Razorpay Key ID and Secret below before publishing.{' '}
+                            Supporters who contribute to your campaigns do <strong>not</strong> need to configure this.
+                        </span>
+                    )}
+                </div>
 
                 <div className="space-y-4">
                     <div>
