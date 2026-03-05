@@ -16,6 +16,12 @@ export default function NotificationBell() {
     const wrapperRef = useRef(null);
     const scrollRef = useScrollIsolation();
 
+    // Track whether there were unread notifications when the panel was opened.
+    // Using a ref avoids stale-closure issues inside event handlers.
+    const hadUnreadRef = useRef(false);
+    // Guard against duplicate mark-all-read calls in the same open/close cycle
+    const markingAllRef = useRef(false);
+
     useEffect(() => {
         if (session) {
             fetchUnreadCount();
@@ -26,13 +32,48 @@ export default function NotificationBell() {
         }
     }, [session]);
 
+    // ─── Centralized close handler ───────────────────────────────────────
+    // Every place that closes the panel calls this instead of setIsOpen(false)
+    const closePanel = useCallback(() => {
+        // Only act if the panel is actually open
+        setIsOpen((prev) => {
+            if (!prev) return prev; // already closed — no-op
+
+            // Fire mark-all-read if there were unread notifications and we haven't
+            // already sent the request in this cycle
+            if (hadUnreadRef.current && !markingAllRef.current) {
+                markingAllRef.current = true;
+                // Fire-and-forget: don't block the UI
+                fetch('/api/notifications', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'mark-all-read' }),
+                })
+                    .then((res) => {
+                        if (res.ok) {
+                            // Update local state so the badge disappears immediately
+                            setNotifications((n) => n.map((item) => ({ ...item, read: true })));
+                            setUnreadCount(0);
+                        }
+                    })
+                    .catch((err) => console.error('Auto mark-all-read error:', err))
+                    .finally(() => {
+                        markingAllRef.current = false;
+                    });
+            }
+
+            hadUnreadRef.current = false;
+            return false; // close the panel
+        });
+    }, []);
+
     // Close dropdown when clicking outside
     useEffect(() => {
         if (!isOpen) return;
 
         const handleClickOutside = (event) => {
             if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
-                setIsOpen(false);
+                closePanel();
             }
         };
 
@@ -47,17 +88,17 @@ export default function NotificationBell() {
             document.removeEventListener('mousedown', handleClickOutside);
             document.removeEventListener('touchstart', handleClickOutside);
         };
-    }, [isOpen]);
+    }, [isOpen, closePanel]);
 
     // Close on Escape key
     useEffect(() => {
         if (!isOpen) return;
         const handleKeyDown = (e) => {
-            if (e.key === 'Escape') setIsOpen(false);
+            if (e.key === 'Escape') closePanel();
         };
         document.addEventListener('keydown', handleKeyDown);
         return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [isOpen]);
+    }, [isOpen, closePanel]);
 
     const fetchUnreadCount = async () => {
         try {
@@ -78,8 +119,13 @@ export default function NotificationBell() {
             const response = await fetch('/api/notifications?limit=10');
             if (response.ok) {
                 const data = await response.json();
-                setNotifications(data.notifications || []);
-                setUnreadCount(data.unreadCount || 0);
+                const fetched = data.notifications || [];
+                setNotifications(fetched);
+                const fetchedUnread = data.unreadCount ?? 0;
+                setUnreadCount(fetchedUnread);
+
+                // Record whether there are unread notifications in this batch
+                hadUnreadRef.current = fetchedUnread > 0 || fetched.some((n) => !n.read);
             }
         } catch (error) {
             console.error('Error fetching notifications:', error);
@@ -88,9 +134,14 @@ export default function NotificationBell() {
 
     const handleToggleDropdown = () => {
         if (!isOpen) {
+            // Opening — reset the guard and fetch fresh data
+            markingAllRef.current = false;
             fetchNotifications();
+            setIsOpen(true);
+        } else {
+            // Closing via the bell button — use centralized close
+            closePanel();
         }
-        setIsOpen(!isOpen);
     };
 
     const markAsRead = async (notificationId) => {
@@ -127,6 +178,8 @@ export default function NotificationBell() {
             if (response.ok) {
                 setNotifications(prev => prev.map(n => ({ ...n, read: true })));
                 setUnreadCount(0);
+                // Already marked all — no need to repeat on close
+                hadUnreadRef.current = false;
             }
         } catch (error) {
             console.error('Error marking all as read:', error);
@@ -201,7 +254,7 @@ export default function NotificationBell() {
                     {/* Backdrop - visible on mobile, subtle on desktop */}
                     <div
                         className="fixed inset-0 z-[60] bg-black/50 sm:bg-transparent"
-                        onClick={() => setIsOpen(false)}
+                        onClick={closePanel}
                     />
 
                     {/* Panel: right-aligned via CSS, no JS positioning needed */}
@@ -230,7 +283,7 @@ export default function NotificationBell() {
                                         </button>
                                     )}
                                     <button
-                                        onClick={() => setIsOpen(false)}
+                                        onClick={closePanel}
                                         className="sm:hidden p-1 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
                                         aria-label="Close notifications"
                                     >
@@ -260,7 +313,7 @@ export default function NotificationBell() {
                                                     markAsRead(notification._id);
                                                 }
                                                 if (notification.link) {
-                                                    setIsOpen(false);
+                                                    closePanel();
                                                     window.location.href = notification.link;
                                                 }
                                             }}
@@ -302,7 +355,7 @@ export default function NotificationBell() {
                                     <Link
                                         href="/notifications"
                                         className="block text-center text-sm text-purple-400 hover:text-purple-300 transition-colors"
-                                        onClick={() => setIsOpen(false)}
+                                        onClick={closePanel}
                                     >
                                         View All Notifications
                                     </Link>

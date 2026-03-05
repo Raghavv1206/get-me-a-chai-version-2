@@ -1,0 +1,148 @@
+﻿   Γû▓ Next.js 15.5.9
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+ Γ£ô Compiled successfully in 20.1s
+   Skipping linting
+   Checking validity of types ...
+   Collecting page data ...
+{"timestamp":"2026-03-05T08:39:50.070Z","level":"INFO","component":"Config","message":"Configuration validated successfully","env":"production","features":["aiCampaignBuilder","aiChatbot","aiRecommendations","subscriptions","socialSharing","emailNotifications"]}
+{"timestamp":"2026-03-05T08:39:52.127Z","level":"INFO","component":"Config","message":"Configuration validated successfully","env":"production","features":["aiCampaignBuilder","aiChatbot","aiRecommendations","subscriptions","socialSharing","emailNotifications"]}
+{"timestamp":"2026-03-05T08:39:52.166Z","level":"INFO","component":"RateLimit","message":"Rate limiter created","maxRequests":5,"windowMs":900000}
+{"timestamp":"2026-03-05T08:39:52.168Z","level":"INFO","component":"RateLimit","message":"Rate limiter created","maxRequests":100,"windowMs":900000}
+{"timestamp":"2026-03-05T08:39:52.169Z","level":"INFO","component":"RateLimit","message":"Rate limiter created","maxRequests":1000,"windowMs":900000}
+{"timestamp":"2026-03-05T08:39:52.169Z","level":"INFO","component":"RateLimit","message":"Rate limiter created","maxRequests":3,"windowMs":3600000}
+{"timestamp":"2026-03-05T08:39:52.169Z","level":"INFO","component":"RateLimit","message":"Rate limiter created","maxRequests":20,"windowMs":3600000}
+   Generating static pages (0/80) ...
+{"timestamp":"2026-03-05T08:40:01.636Z","level":"INFO","component":"Config","message":"Configuration validated successfully","env":"production","features":["aiCampaignBuilder","aiChatbot","aiRecommendations","subscriptions","socialSharing","emailNotifications"]}
+{"timestamp":"2026-03-05T08:40:02.939Z","level":"INFO","component":"Config","message":"Configuration validated successfully","env":"production","features":["aiCampaignBuilder","aiChatbot","aiRecommendations","subscriptions","socialSharing","emailNotifications"]}
+{"timestamp":"2026-03-05T08:40:02.993Z","level":"INFO","component":"RateLimit","message":"Rate limiter created","maxRequests":5,"windowMs":900000}
+{"timestamp":"2026-03-05T08:40:02.993Z","level":"INFO","component":"RateLimit","message":"Rate limiter created","maxRequests":100,"windowMs":900000}
+{"timestamp":"2026-03-05T08:40:02.994Z","level":"INFO","component":"RateLimit","message":"Rate limiter created","maxRequests":1000,"windowMs":900000}
+{"timestamp":"2026-03-05T08:40:02.994Z","level":"INFO","component":"RateLimit","message":"Rate limiter created","maxRequests":3,"windowMs":3600000}
+{"timestamp":"2026-03-05T08:40:02.994Z","level":"INFO","component":"RateLimit","message":"Rate limiter created","maxRequests":20,"windowMs":3600000}
+MongoDB Connected: localhost
+   Generating static pages (20/80) 
+   Generating static pages (40/80) 
+   Generating static pages (60/80) 
+ Γ£ô Generating static pages (80/80)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                         Size  First Load JS  Revalidate  Expire
+Γöî Γùï /                                            17.4 kB         139 kB
+Γö£ Γùï /_not-found                                     1 kB         103 kB
+Γö£ ╞Æ /[username]                                  6.24 kB         118 kB
+Γö£ Γùï /about                                       10.7 kB         116 kB
+Γö£ Γùï /admin                                          9 kB         137 kB
+Γö£ Γùï /admin/moderation                            27.6 kB         152 kB
+Γö£ ╞Æ /api/admin/campaigns                           325 B         103 kB
+Γö£ ╞Æ /api/admin/moderation/queue                    325 B         103 kB
+Γö£ ╞Æ /api/admin/moderation/stats                    325 B         103 kB
+Γö£ ╞Æ /api/admin/stats                               325 B         103 kB
+Γö£ ╞Æ /api/ai/chat                                   325 B         103 kB
+Γö£ ╞Æ /api/ai/generate-campaign                      325 B         103 kB
+Γö£ ╞Æ /api/ai/generate-faqs                          325 B         103 kB
+Γö£ ╞Æ /api/ai/generate-milestones                    325 B         103 kB
+Γö£ ╞Æ /api/ai/generate-rewards                       325 B         103 kB
+Γö£ ╞Æ /api/ai/insights                               325 B         103 kB
+Γö£ ╞Æ /api/ai/moderate                               325 B         103 kB
+Γö£ ╞Æ /api/ai/recommendations                        325 B         103 kB
+Γö£ ╞Æ /api/ai/score-campaign                         325 B         103 kB
+Γö£ ╞Æ /api/ai/suggest-goal                           325 B         103 kB
+Γö£ ╞Æ /api/analytics/conversion                      325 B         103 kB
+Γö£ ╞Æ /api/analytics/devices                         325 B         103 kB
+Γö£ ╞Æ /api/analytics/geographic                      325 B         103 kB
+Γö£ ╞Æ /api/analytics/overview                        325 B         103 kB
+Γö£ ╞Æ /api/analytics/sources                         325 B         103 kB
+Γö£ ╞Æ /api/analytics/visitors                        325 B         103 kB
+Γö£ ╞Æ /api/auth/[...nextauth]                        325 B         103 kB
+Γö£ ╞Æ /api/auth/check-email                          325 B         103 kB
+Γö£ ╞Æ /api/auth/forgot-password                      325 B         103 kB
+Γö£ ╞Æ /api/auth/reset-password                       325 B         103 kB
+Γö£ ╞Æ /api/auth/signup                               325 B         103 kB
+Γö£ ╞Æ /api/campaigns/[id]                            325 B         103 kB
+Γö£ ╞Æ /api/campaigns/[id]/analytics                  325 B         103 kB
+Γö£ ╞Æ /api/campaigns/[id]/comments                   325 B         103 kB
+Γö£ ╞Æ /api/campaigns/[id]/delete                     325 B         103 kB
+Γö£ ╞Æ /api/campaigns/[id]/duplicate                  325 B         103 kB
+Γö£ ╞Æ /api/campaigns/[id]/report                     325 B         103 kB
+Γö£ ╞Æ /api/campaigns/[id]/share                      325 B         103 kB
+Γö£ ╞Æ /api/campaigns/[id]/status                     325 B         103 kB
+Γö£ ╞Æ /api/campaigns/[id]/supporters                 325 B         103 kB
+Γö£ ╞Æ /api/campaigns/[id]/update                     325 B         103 kB
+Γö£ ╞Æ /api/campaigns/[id]/updates                    325 B         103 kB
+Γö£ ╞Æ /api/campaigns/category-counts                 325 B         103 kB
+Γö£ ╞Æ /api/campaigns/comments/[id]                   325 B         103 kB
+Γö£ ╞Æ /api/campaigns/comments/[id]/like              325 B         103 kB
+Γö£ ╞Æ /api/campaigns/comments/[id]/pin               325 B         103 kB
+Γö£ ╞Æ /api/campaigns/comments/[id]/report            325 B         103 kB
+Γö£ ╞Æ /api/campaigns/create                          325 B         103 kB
+Γö£ ╞Æ /api/campaigns/draft                           325 B         103 kB
+Γö£ ╞Æ /api/campaigns/filter                          325 B         103 kB
+Γö£ ╞Æ /api/campaigns/list                            325 B         103 kB
+Γö£ ╞Æ /api/campaigns/track-view                      325 B         103 kB
+Γö£ ╞Æ /api/campaigns/trending                        325 B         103 kB
+Γö£ ╞Æ /api/campaigns/updates/[id]/like               325 B         103 kB
+Γö£ ╞Æ /api/check-user                                325 B         103 kB
+Γö£ ╞Æ /api/cron/close-expired-campaigns              325 B         103 kB
+Γö£ ╞Æ /api/cron/publish-scheduled                    325 B         103 kB
+Γö£ ╞Æ /api/cron/weekly-summary                       325 B         103 kB
+Γö£ ╞Æ /api/email/send                                325 B         103 kB
+Γö£ ╞Æ /api/email/track                               325 B         103 kB
+Γö£ ╞Æ /api/follow                                    325 B         103 kB
+Γö£ ╞Æ /api/notifications                             325 B         103 kB
+Γö£ ╞Æ /api/notifications/count                       325 B         103 kB
+Γö£ ╞Æ /api/notifications/list                        325 B         103 kB
+Γö£ ╞Æ /api/notifications/mark-all-read               325 B         103 kB
+Γö£ ╞Æ /api/notifications/mark-read                   325 B         103 kB
+Γö£ ╞Æ /api/notifications/preferences                 325 B         103 kB
+Γö£ ╞Æ /api/notifications/preferences/email-status    325 B         103 kB
+Γö£ ╞Æ /api/notifications/preferences/test-email      325 B         103 kB
+Γö£ ╞Æ /api/notifications/unsubscribe                 325 B         103 kB
+Γö£ ╞Æ /api/payments/create                           325 B         103 kB
+Γö£ ╞Æ /api/payments/subscription                     325 B         103 kB
+Γö£ ╞Æ /api/payments/verify                           325 B         103 kB
+Γö£ ╞Æ /api/razorpay                                  325 B         103 kB
+Γö£ ╞Æ /api/search                                    325 B         103 kB
+Γö£ ╞Æ /api/search/suggestions                        325 B         103 kB
+Γö£ Γùï /api/stats                                     325 B         103 kB          5m      1y
+Γö£ ╞Æ /api/subscription/cancel                       325 B         103 kB
+Γö£ ╞Æ /api/subscription/list                         325 B         103 kB
+Γö£ ╞Æ /api/subscription/pause                        325 B         103 kB
+Γö£ ╞Æ /api/subscription/resume                       325 B         103 kB
+Γö£ ╞Æ /api/subscription/update                       325 B         103 kB
+Γö£ ╞Æ /api/supporters/[id]                           325 B         103 kB
+Γö£ ╞Æ /api/supporters/list                           325 B         103 kB
+Γö£ ╞Æ /api/supporters/send-email                     325 B         103 kB
+Γö£ ╞Æ /api/user/update                               325 B         103 kB
+Γö£ ╞Æ /campaign/[id]                               63.1 kB         206 kB
+Γö£ ╞Æ /dashboard                                   5.64 kB         232 kB
+Γö£ ╞Æ /dashboard/analytics                         17.7 kB         246 kB
+Γö£ Γùï /dashboard/campaign/new                      12.3 kB         133 kB
+Γö£ ╞Æ /dashboard/campaigns                         5.48 kB         139 kB
+Γö£ ╞Æ /dashboard/campaigns/[id]/analytics          70.9 kB         186 kB
+Γö£ ╞Æ /dashboard/campaigns/[id]/edit               4.62 kB         125 kB
+Γö£ ╞Æ /dashboard/content                            148 kB         283 kB
+Γö£ Γùï /dashboard/create-campaign                     325 B         103 kB
+Γö£ ╞Æ /dashboard/settings                          8.81 kB         120 kB
+Γö£ ╞Æ /dashboard/supporters                        16.8 kB         131 kB
+Γö£ Γùï /explore                                     11.3 kB         132 kB
+Γö£ Γùï /login                                       4.31 kB         119 kB
+Γö£ Γùï /my-contributions                            9.32 kB         142 kB
+Γö£ Γùï /notifications                               3.55 kB         122 kB
+Γö£ Γùï /payment-success                             2.18 kB         124 kB
+Γö£ Γùï /signup                                      3.18 kB         118 kB
+Γö£ Γùï /stories                                     9.48 kB         119 kB
+Γöö Γùï /unsubscribe                                 2.03 kB         108 kB
++ First Load JS shared by all                     102 kB
+  Γö£ chunks/1255-8befde0980f5cba9.js              45.6 kB
+  Γö£ chunks/4bd1b696-100b9d70ed4e49c1.js          54.2 kB
+  Γöö other shared chunks (total)                  2.32 kB
+
+
+╞Æ Middleware                                     61.3 kB
+
+Γùï  (Static)   prerendered as static content
+╞Æ  (Dynamic)  server-rendered on demand
+

@@ -422,12 +422,18 @@ export default function ChaiScrollytelling() {
     const progress = frameIndex / FRAME_COUNT;
 
     // Helper for opacity/transforms
-    const getOpacity = (start, end, current) => {
+    // fadeInEnd (optional) lets you control when the fade-in completes
+    const getOpacity = (start, end, current, fadeInEnd) => {
         if (current < start || current > end) return 0;
-        // Fade in first half, fade out second half
-        const mid = (start + end) / 2;
-        if (current <= mid) return (current - start) / (mid - start);
-        return 1 - (current - mid) / (end - mid);
+        const mid = fadeInEnd !== undefined ? fadeInEnd : (start + end) / 2;
+        if (current <= mid) {
+            // Avoid division by zero when start === mid
+            if (mid === start) return 1;
+            return Math.min(1, (current - start) / (mid - start));
+        }
+        // Fade out from mid to end
+        if (end === mid) return 0;
+        return Math.max(0, 1 - (current - mid) / (end - mid));
     };
 
     const currentPercent = progress * 100;
@@ -451,11 +457,15 @@ export default function ChaiScrollytelling() {
                 {/* Cinematic Scrim - Improves text contrast */}
                 <div className="absolute inset-0 bg-black/50 pointer-events-none z-0" />
 
-                {/* Overlay 0: Initial Hero Text (0-10%) */}
+                {/* Overlay 0: Initial Hero Text — fully visible 0–5%, fades out by 12% */}
                 <div
                     className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none px-4 z-20"
                     style={{
-                        opacity: progress < 0.1 ? 1 - (progress * 10) : 0,
+                        opacity: progress <= 0.05
+                            ? 1
+                            : progress <= 0.12
+                                ? Math.max(0, 1 - ((progress - 0.05) / 0.07))
+                                : 0,
                         transform: `scale(${1 + progress * 0.5}) translateY(${progress * -50}px)`,
                         transition: 'opacity 0.1s ease-out',
                         willChange: 'opacity, transform'
@@ -471,11 +481,13 @@ export default function ChaiScrollytelling() {
                     </p>
                 </div>
 
-                {/* Overlay 1: 0-15% - Center Fade */}
+                {/* Overlay 1: 10-25% — Starts ONLY after Overlay 0 has faded */}
                 <div
                     className="absolute inset-0 flex items-center justify-center pointer-events-none px-4 z-10"
                     style={{
-                        opacity: currentPercent <= 20 ? getOpacity(0, 0.20, progress) : 0,
+                        opacity: (currentPercent >= 10 && currentPercent <= 25)
+                            ? getOpacity(0.10, 0.25, progress, 0.15)
+                            : 0,
                         transform: `scale(${1 + progress * 0.2})`,
                         transition: 'opacity 0.3s ease-out'
                     }}
@@ -486,11 +498,11 @@ export default function ChaiScrollytelling() {
                     </h2>
                 </div>
 
-                {/* Overlay 2: 25-40% - Left Slide */}
+                {/* Overlay 2: 25-45% - Left Slide */}
                 <div
                     className="absolute inset-0 flex items-center justify-start px-6 md:px-20 pointer-events-none z-10"
                     style={{
-                        opacity: (currentPercent >= 20 && currentPercent <= 45) ? getOpacity(0.20, 0.45, progress) : 0,
+                        opacity: (currentPercent >= 25 && currentPercent <= 45) ? getOpacity(0.25, 0.45, progress) : 0,
                         transform: `translateX(${currentPercent < 25 ? -50 : (currentPercent > 40 ? -50 : 0)}px)`,
                         transition: 'all 0.5s ease-out'
                     }}
