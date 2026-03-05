@@ -3,6 +3,8 @@ const nextConfig = {
     eslint: {
         ignoreDuringBuilds: true,
     },
+    poweredByHeader: false,
+    compress: true,
     images: {
         remotePatterns: [
             {
@@ -12,10 +14,10 @@ const nextConfig = {
         ],
         unoptimized: process.env.NODE_ENV === 'development',
     },
-    // Improve dev server stability
-    onDemandEntries: {
-        maxInactiveAge: 60 * 1000,
-        pagesBufferLength: 5,
+    logging: {
+        fetches: {
+            fullUrl: process.env.NODE_ENV === 'development',
+        },
     },
 };
 

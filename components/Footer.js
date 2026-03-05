@@ -110,7 +110,7 @@ export default function Footer() {
           ))}
         </div>
 
-        {/* Bottom bar */}
+        {/* Bottom bar */}  
         <div className="pt-5 border-t border-white/[0.05] flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-gray-600 text-xs">
             © {currentYear} Get Me a Chai. All rights reserved.
