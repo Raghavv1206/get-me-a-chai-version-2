@@ -3,11 +3,7 @@ import { getServerSession } from 'next-auth';
 import Razorpay from 'razorpay';
 import connectDb from '@/db/connectDb';
 import Subscription from '@/models/Subscription';
-
-const razorpay = new Razorpay({
-    key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET
-});
+import User from '@/models/User';
 
 export async function POST(request) {
     try {
@@ -40,6 +36,35 @@ export async function POST(request) {
             );
         }
 
+        // Fetch creator's Razorpay credentials from DB (per-creator, never global env vars)
+        const creator = await User.findById(subscription.creator)
+            .select('razorpayid razorpaysecret');
+        if (!creator) {
+            return NextResponse.json(
+                { success: false, message: 'Creator not found' },
+                { status: 404 }
+            );
+        }
+
+        const razorpayId = creator.razorpayid?.trim();
+        const razorpaySecret = creator.razorpaysecret?.trim();
+
+        if (!razorpayId || !razorpaySecret) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    message: 'Creator payment gateway not configured. Cannot pause via Razorpay.',
+                },
+                { status: 422 }
+            );
+        }
+
+        // Instantiate Razorpay inside handler with creator's own credentials
+        const razorpay = new Razorpay({
+            key_id: razorpayId,
+            key_secret: razorpaySecret,
+        });
+
         // Pause subscription in Razorpay
         await razorpay.subscriptions.pause(subscription.razorpaySubscriptionId);
 
@@ -59,3 +84,4 @@ export async function POST(request) {
         );
     }
 }
+
