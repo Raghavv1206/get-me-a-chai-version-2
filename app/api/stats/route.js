@@ -3,62 +3,56 @@ import { NextResponse } from 'next/server';
 import connectDb from '@/db/connectDb';
 import Campaign from '@/models/Campaign';
 import Payment from '@/models/Payment';
-import User from '@/models/User';
 
-export async function GET(req) {
+// Cache stats response for 5 minutes at the CDN/edge level
+export const revalidate = 300;
+
+export async function GET() {
     try {
         await connectDb();
 
-        // Get total raised (sum of all successful payments)
-        const totalRaisedResult = await Payment.aggregate([
-            { $match: { done: true, status: 'success' } },
-            { $group: { _id: null, total: { $sum: '$amount' } } }
-        ]);
-        const totalRaised = totalRaisedResult[0]?.total || 0;
-        const totalRaisedInLakhs = (totalRaised / 100000).toFixed(1); // Convert paise to lakhs
+        // Run all DB queries in parallel to minimise latency
+        const [totalRaisedResult, activeCampaigns, creatorsFunded, totalCampaigns, successfulCampaigns] =
+            await Promise.all([
+                Payment.aggregate([
+                    { $match: { done: true, status: 'success' } },
+                    { $group: { _id: null, total: { $sum: '$amount' } } }
+                ]),
+                Campaign.countDocuments({
+                    status: 'active',
+                    endDate: { $gte: new Date() }
+                }),
+                Payment.distinct('to_user', { done: true, status: 'success' }),
+                Campaign.countDocuments(),
+                Campaign.countDocuments({
+                    $expr: { $gte: ['$currentAmount', '$goalAmount'] }
+                }),
+            ]);
 
-        // Get active campaigns count
-        const activeCampaigns = await Campaign.countDocuments({
-            status: 'active',
-            endDate: { $gte: new Date() }
-        });
-
-        // Get creators funded (unique users who received payments)
-        const creatorsFunded = await Payment.distinct('to_user', {
-            done: true,
-            status: 'success'
-        });
-
-        // Calculate success rate
-        const totalCampaigns = await Campaign.countDocuments();
-        const successfulCampaigns = await Campaign.countDocuments({
-            $expr: { $gte: ['$currentAmount', '$goalAmount'] }
-        });
+        const totalRaised = totalRaisedResult[0]?.total ?? 0;
+        const totalRaisedInLakhs = (totalRaised / 100000).toFixed(1);
         const successRate = totalCampaigns > 0
             ? Math.round((successfulCampaigns / totalCampaigns) * 100)
             : 0;
 
-        return NextResponse.json({
+        const data = {
             totalRaised: parseFloat(totalRaisedInLakhs),
             activeCampaigns,
             creatorsFunded: creatorsFunded.length,
-            successRate
+            successRate,
+        };
+
+        return NextResponse.json(data, {
+            headers: {
+                // Cache at CDN for 5 min, stale-while-revalidate for 10 min
+                'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+            },
         });
     } catch (error) {
         console.error('Stats API error:', error);
         return NextResponse.json(
-            {
-                error: 'Failed to fetch stats',
-                // Return default values on error
-                totalRaised: 0,
-                activeCampaigns: 0,
-                creatorsFunded: 0,
-                successRate: 0
-            },
+            { totalRaised: 0, activeCampaigns: 0, creatorsFunded: 0, successRate: 0 },
             { status: 500 }
         );
     }
 }
-
-// Optional: Cache stats for 5 minutes
-export const revalidate = 300;

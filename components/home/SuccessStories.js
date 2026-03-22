@@ -176,6 +176,9 @@ export default function SuccessStories() {
                   <button
                     key={story.id}
                     onClick={() => setActiveStory(idx)}
+                    aria-label={`View story by ${story.name}`}
+                    aria-current={idx === activeStory ? 'true' : undefined}
+                    type="button"
                     className={`transition-all ${idx === activeStory
                       ? 'w-12 h-3 bg-gradient-to-r from-purple-500 to-blue-500'
                       : 'w-3 h-3 bg-gray-600 hover:bg-gray-500'

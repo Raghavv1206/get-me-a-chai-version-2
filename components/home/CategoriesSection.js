@@ -109,12 +109,14 @@ export default function CategoriesSection() {
         {/* Categories Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-6xl mx-auto">
           {categories.map((category, idx) => (
-            <div
+            <button
               key={category.id}
               onClick={() => router.push(`/explore?category=${category.id}`)}
               onMouseEnter={() => setHoveredCategory(category.id)}
               onMouseLeave={() => setHoveredCategory(null)}
-              className="group relative backdrop-blur-md bg-gray-800/30 border border-gray-700 rounded-2xl p-6 hover:border-purple-500/50 transition-all duration-300 hover:-translate-y-2 cursor-pointer overflow-hidden"
+              type="button"
+              aria-label={`Explore ${category.name} campaigns`}
+              className="group relative backdrop-blur-md bg-gray-800/30 border border-gray-700 rounded-2xl p-6 hover:border-purple-500/50 transition-all duration-300 hover:-translate-y-2 cursor-pointer overflow-hidden text-left w-full"
             >
               {/* Gradient background on hover */}
               <div className={`absolute inset-0 bg-gradient-to-br ${category.gradient} opacity-0 group-hover:opacity-10 transition-opacity`} />
@@ -164,7 +166,7 @@ export default function CategoriesSection() {
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity">
                 <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/5 to-transparent" />
               </div>
-            </div>
+            </button>
           ))}
         </div>
 
@@ -172,6 +174,7 @@ export default function CategoriesSection() {
         <div className="text-center mt-12">
           <button
             onClick={() => router.push('/explore')}
+            type="button"
             className="group inline-flex items-center gap-2 px-8 py-4 bg-gray-800/50 text-white font-semibold rounded-xl border border-gray-700 backdrop-blur-sm hover:bg-gray-800/70 hover:border-purple-500/50 transition-all duration-300"
           >
             Browse All Categories

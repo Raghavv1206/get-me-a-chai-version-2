@@ -60,6 +60,8 @@ export default function CTASection() {
                 <button
                   onClick={() => setShowVideo(true)}
                   className="px-10 py-5 bg-gray-800/70 text-white font-bold text-lg rounded-xl border-2 border-gray-700 backdrop-blur-sm hover:bg-gray-800 hover:border-purple-500/50 transition-all duration-300"
+                  aria-label="Watch platform demo video"
+                  type="button"
                 >
                   Watch Demo
                 </button>
@@ -138,6 +140,9 @@ export default function CTASection() {
       {showVideo && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Demo video"
           onClick={() => setShowVideo(false)}
         >
           <div
@@ -147,6 +152,8 @@ export default function CTASection() {
             <button
               onClick={() => setShowVideo(false)}
               className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors"
+              aria-label="Close video"
+              type="button"
             >
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

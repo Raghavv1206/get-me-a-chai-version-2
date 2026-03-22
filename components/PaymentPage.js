@@ -134,7 +134,7 @@ const PaymentPage = ({ username }) => {
         },
         "prefill": {
           "name": paymentform.name || "Supporter",
-          "email": session?.user?.email || "",
+          "email": "",
           "contact": ""
         },
         "notes": {
@@ -156,8 +156,17 @@ const PaymentPage = ({ username }) => {
         }
       }
 
-      var rzp1 = new Razorpay(options);
-      rzp1.open();
+      if (typeof window !== 'undefined' && window.Razorpay) {
+        var rzp1 = new window.Razorpay(options);
+        rzp1.open();
+      } else {
+        toast.error('Payment gateway not loaded. Please refresh the page.', {
+          position: 'top-right',
+          autoClose: 3000,
+          theme: 'dark',
+          transition: Bounce,
+        });
+      }
     } catch (error) {
       // Catch errors from initiate() function
       console.error('Payment initiation error:', error);

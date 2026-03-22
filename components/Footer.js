@@ -80,7 +80,7 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-gray-600 hover:text-gray-300 transition-colors duration-200"
-                  title={social.name}
+                  aria-label={`Follow us on ${social.name}`}
                 >
                   {social.icon}
                 </a>
@@ -91,9 +91,9 @@ export default function Footer() {
           {/* Link columns */}
           {footerLinks.map((section) => (
             <div key={section.title}>
-              <h4 className="text-white/80 text-xs font-semibold uppercase tracking-wider mb-3">
+              <h3 className="text-white/80 text-xs font-semibold uppercase tracking-wider mb-3">
                 {section.title}
-              </h4>
+              </h3>
               <ul className="space-y-2">
                 {section.links.map((link) => (
                   <li key={link.name}>
@@ -110,7 +110,7 @@ export default function Footer() {
           ))}
         </div>
 
-        {/* Bottom bar */}  
+        {/* Bottom bar */}
         <div className="pt-5 border-t border-white/[0.05] flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-gray-600 text-xs">
             © {currentYear} Get Me a Chai. All rights reserved.

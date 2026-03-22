@@ -247,6 +247,8 @@ export default function TrendingCampaigns() {
             <button
               onClick={prevSlide}
               className="p-3 bg-gray-800 border border-gray-700 rounded-xl hover:bg-gray-700 hover:border-purple-500/50 transition-all"
+              aria-label="Previous campaigns"
+              type="button"
             >
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -255,6 +257,8 @@ export default function TrendingCampaigns() {
             <button
               onClick={nextSlide}
               className="p-3 bg-gray-800 border border-gray-700 rounded-xl hover:bg-gray-700 hover:border-purple-500/50 transition-all"
+              aria-label="Next campaigns"
+              type="button"
             >
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -305,6 +309,9 @@ export default function TrendingCampaigns() {
                   <button
                     key={idx}
                     onClick={() => setActiveSlide(idx)}
+                    aria-label={`Go to campaign ${idx + 1}`}
+                    aria-current={idx === activeSlide ? 'true' : undefined}
+                    type="button"
                     className={`h-2 rounded-full transition-all ${idx === activeSlide ? 'w-8 bg-purple-500' : 'w-2 bg-gray-600'
                       }`}
                   />

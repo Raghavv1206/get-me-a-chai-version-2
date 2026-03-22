@@ -124,6 +124,8 @@ export default function HowItWorksSection() {
               <button
                 onClick={() => setShowVideo(true)}
                 className="group relative w-full aspect-video bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl overflow-hidden border border-gray-700 hover:border-purple-500/50 transition-all"
+                aria-label="Play platform demo video"
+                type="button"
               >
                 {/* Thumbnail overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-center justify-center">

@@ -173,29 +173,40 @@ export default function ChaiScrollytelling() {
     useEffect(() => {
         if (!imagesLoaded || showFallback) return;
 
-        let isAnimating = false; // Lock to prevent rapid-fire triggers
+        let isAnimating = false;
+        let rafPending = false;  // rAF throttle flag for scroll handler
         const checkpoints = [0.00, 0.10, 0.35, 0.60, 1.00];
 
+        // Cache container geometry — read once instead of on every scroll tick
+        // This eliminates the forced reflow (getBoundingClientRect in scroll listener)
+        let cachedRect = containerRef.current?.getBoundingClientRect() ?? { top: 0, height: 0 };
+        let cachedScrollY = window.scrollY;
+        let cachedWindowHeight = window.innerHeight;
+
+        const updateCachedRect = () => {
+            if (!containerRef.current) return;
+            cachedRect = containerRef.current.getBoundingClientRect();
+            cachedScrollY = window.scrollY;
+            cachedWindowHeight = window.innerHeight;
+        };
+
         const getScrollProgress = () => {
-            if (!containerRef.current) return 0;
-            const container = containerRef.current;
-            const { top, height } = container.getBoundingClientRect();
-            const windowHeight = window.innerHeight;
-            const scrollableDistance = height - windowHeight;
-            const scrolled = -top;
+            // Use cached rect — no getBoundingClientRect() here
+            const scrollableDistance = cachedRect.height - cachedWindowHeight;
+            if (scrollableDistance <= 0) return 0;
+            // Recompute effective top using cached scrollY delta
+            const effectiveTop = cachedRect.top - (window.scrollY - cachedScrollY);
+            const scrolled = -effectiveTop;
             return Math.max(0, Math.min(1, scrolled / scrollableDistance));
         };
 
-        const handleScroll = () => {
+        const processScroll = () => {
+            rafPending = false;
             if (!containerRef.current) return;
-
-            // This function now primarily handles FRAME RENDERING only.
-            // The "Movement" is handled by handleWheel/Lenis.
-            // But we still need to update frames based on where Lenis takes us.
 
             const progress = getScrollProgress();
 
-            // Nonlinear mapping (Same as before)
+            // Nonlinear frame mapping
             const getFrameProgress = (p) => {
                 const points = [
                     { s: 0.00, f: 0.00 },
@@ -204,10 +215,8 @@ export default function ChaiScrollytelling() {
                     { s: 0.60, f: 0.60 },
                     { s: 1.00, f: 1.00 }
                 ];
-                // Linear interpolation between points
                 for (let i = 0; i < points.length - 1; i++) {
-                    const p1 = points[i];
-                    const p2 = points[i + 1];
+                    const p1 = points[i], p2 = points[i + 1];
                     if (p >= p1.s && p <= p2.s) {
                         const rS = p2.s - p1.s;
                         const rF = p2.f - p1.f;
@@ -226,132 +235,87 @@ export default function ChaiScrollytelling() {
             }
         };
 
+        // rAF-throttled scroll handler — prevents layout thrashing
+        const handleScroll = () => {
+            if (rafPending) return;
+            rafPending = true;
+            requestAnimationFrame(processScroll);
+        };
+
         const handleWheel = (e) => {
-            // Only intervene if we are WITHN the scrolly section
-            // or entering it from top.
-            // Actually, we are globally listening, so we MUST check bounds.
             if (!containerRef.current) return;
-            const container = containerRef.current;
-            const { top, bottom } = container.getBoundingClientRect();
-            const windowHeight = window.innerHeight;
+            // Use cached rect — no forced reflow
+            const effectiveTop = cachedRect.top - (window.scrollY - cachedScrollY);
+            const effectiveBottom = effectiveTop + cachedRect.height;
 
-            // Check if section is in view (partially or fully)
-            // Or rather, is it the active interaction zone?
-            const inView = top <= 0 && bottom >= windowHeight;
+            if (effectiveTop > 1 || effectiveBottom < cachedWindowHeight - 1) return;
 
-            // If not in the active sticky zone, let default scroll happen
-            // (Unless we are just entering? Complexity high. 
-            // Simplified: If Top > 0 (above viewport), default.
-            // If Bottom < WindowHeight (scrolled past), default.
-            if (top > 1 || bottom < windowHeight - 1) return;
-
-            // We are IN the zone. Intercept.
             e.preventDefault();
-
-            if (isAnimating) return; // Ignore while moving
+            if (isAnimating) return;
 
             const currentProgress = getScrollProgress();
-
-            // Determine Direction
-            // Using e.deltaY. 
             const direction = Math.sign(e.deltaY);
-
             if (direction === 0) return;
 
-            // Find current nearest checkpoint index
-            // We use a small threshold to snap to "current"
-            let currentIndex = 0;
+            let targetCPIndex = 0;
             let minDiff = 100;
             checkpoints.forEach((cp, i) => {
                 const diff = Math.abs(cp - currentProgress);
-                if (diff < minDiff) {
-                    minDiff = diff;
-                    currentIndex = i;
-                }
+                if (diff < minDiff) { minDiff = diff; targetCPIndex = i; }
             });
 
-            let targetIndex = currentIndex;
-
             if (direction > 0) {
-                // Scroll Down -> Next Checkpoint
                 if (currentProgress >= 0.99) {
-                    // At end, allow escape downwards?
-                    // We prevented default above. So we must manually scroll window?
-                    // Or, we explicitly allow default if at boundary.
-                    // IMPORTANT: To allow escape, we effectively need to NOT preventDefault.
-                    // But we already did.
-                    // Solution: Use Lenis to scroll out.
-                    window.lenis?.scrollTo(window.scrollY + windowHeight / 2);
+                    window.lenis?.scrollTo(window.scrollY + cachedWindowHeight / 2);
                     return;
                 }
-                // If we are "at" the current checkpoint (close enough), advance.
-                // If we are "between" (rare with this logic), advance to next.
-                // Actually, simply: Find first checkpoint GREATER than current + epsilon
                 const nextCP = checkpoints.find(cp => cp > currentProgress + 0.01);
-                if (nextCP !== undefined) {
-                    targetIndex = checkpoints.indexOf(nextCP);
-                } else {
-                    targetIndex = checkpoints.length - 1;
-                }
+                targetCPIndex = nextCP !== undefined ? checkpoints.indexOf(nextCP) : checkpoints.length - 1;
             } else {
-                // Scroll Up -> Prev Checkpoint
                 if (currentProgress <= 0.01) {
-                    // At start, allow escape upwards
-                    window.lenis?.scrollTo(window.scrollY - windowHeight / 2);
+                    window.lenis?.scrollTo(window.scrollY - cachedWindowHeight / 2);
                     return;
                 }
-                // Find first checkpoint LESS than current - epsilon
-                // reverse slice to find last one smaller
-                const reversed = [...checkpoints].reverse();
-                const prevCP = reversed.find(cp => cp < currentProgress - 0.01);
-                if (prevCP !== undefined) {
-                    targetIndex = checkpoints.indexOf(prevCP);
-                } else {
-                    targetIndex = 0;
-                }
+                const prevCP = [...checkpoints].reverse().find(cp => cp < currentProgress - 0.01);
+                targetCPIndex = prevCP !== undefined ? checkpoints.indexOf(prevCP) : 0;
             }
 
-            // Execute Move
-            const targetProgress = checkpoints[targetIndex];
-            const scrollableDistance = container.getBoundingClientRect().height - windowHeight;
-
-            // Calculate absolute target position
-            // We need absolute document Y.
-            // Current ScrollY + (targetProgress * dist) - (currentProgress * dist) ? 
-            // Simpler: container Top position relative to document + target offset.
-            // container.getBoundingClientRect().top is relative to viewport.
-            // Absolute Container Top = window.scrollY + container.getBoundingClientRect().top
-            const containerTopAbsolute = window.scrollY + top;
-            const targetPx = containerTopAbsolute + (targetProgress * scrollableDistance);
+            const targetProgress = checkpoints[targetCPIndex];
+            const scrollableDistance = cachedRect.height - cachedWindowHeight;
+            const containerTopAbsolute = cachedScrollY + cachedRect.top - (window.scrollY - cachedScrollY);
+            const containerTopAbs = window.scrollY + effectiveTop;
+            const targetPx = containerTopAbs + (targetProgress * scrollableDistance);
 
             if (window.lenis) {
                 isAnimating = true;
                 window.lenis.scrollTo(targetPx, {
                     duration: 1.2,
-                    easing: (t) => t === 1 ? 1 : 1 - Math.pow(2, -10 * t), // Exponential ease out
-                    lock: true, // Lock user input during scroll
-                    onComplete: () => {
-                        isAnimating = false;
-                    }
+                    easing: (t) => t === 1 ? 1 : 1 - Math.pow(2, -10 * t),
+                    lock: true,
+                    onComplete: () => { isAnimating = false; }
                 });
             } else {
-                // Fallback (native behavior not supported for hijacked scroll well without Lenis)
-                window.scrollTo({ top: targetPx, behavior: "smooth" });
+                window.scrollTo({ top: targetPx, behavior: 'smooth' });
             }
         };
 
-        window.addEventListener("scroll", handleScroll, { passive: true });
-        window.addEventListener("resize", () => renderFrame(frameIndex));
-        // Active listener to intercept wheel
-        window.addEventListener("wheel", handleWheel, { passive: false });
+        // Update cached rect on resize (not on every scroll)
+        const handleResize = () => {
+            updateCachedRect();
+            renderFrame(frameIndex);
+        };
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        window.addEventListener('resize', handleResize, { passive: true });
+        window.addEventListener('wheel', handleWheel, { passive: false });
 
         // Initial render
         renderFrame(frameIndex);
 
         return () => {
-            window.removeEventListener("scroll", handleScroll);
-            window.removeEventListener("resize", () => renderFrame(frameIndex));
-            window.removeEventListener("wheel", handleWheel);
+            window.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('resize', handleResize);
+            window.removeEventListener('wheel', handleWheel);
             if (requestRef.current) cancelAnimationFrame(requestRef.current);
         };
     }, [imagesLoaded, showFallback, frameIndex, renderFrame]);
@@ -377,21 +341,28 @@ export default function ChaiScrollytelling() {
     }, [frameIndex, renderFrame]);
 
 
-    // 5. Preloader Component
+    // Loading skeleton — inline in the section, not a full-screen blocker
     if (!imagesLoaded && !showFallback) {
         return (
-            <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gray-950">
-                <div className="mb-8 animate-bounce"><Coffee className="w-16 h-16 text-amber-400 mx-auto" /></div>
-                <div className="w-64 h-2 bg-gray-800 rounded-full overflow-hidden mb-4">
-                    <div
-                        className="h-full bg-gradient-to-r from-purple-600 to-blue-600 transition-all duration-300 ease-out"
-                        style={{ width: `${loadingProgress}%` }}
-                    />
+            <section
+                className="relative bg-gray-950 flex items-center justify-center"
+                style={{ height: SCROLL_HEIGHT }}
+            >
+                <div className="sticky top-0 h-screen w-full flex flex-col items-center justify-center gap-6">
+                    <div className="animate-bounce">
+                        <Coffee className="w-16 h-16 text-amber-400 mx-auto" aria-hidden="true" />
+                    </div>
+                    <div className="w-64 h-2 bg-gray-800 rounded-full overflow-hidden">
+                        <div
+                            className="h-full bg-gradient-to-r from-purple-600 to-blue-600 transition-all duration-300 ease-out"
+                            style={{ width: `${loadingProgress}%` }}
+                        />
+                    </div>
+                    <p className="text-gray-400 font-medium" aria-live="polite">
+                        Brewing your experience... {loadingProgress}%
+                    </p>
                 </div>
-                <p className="text-gray-400 font-medium">
-                    Brewing your experience... {loadingProgress}%
-                </p>
-            </div>
+            </section>
         );
     }
 
@@ -542,9 +513,9 @@ export default function ChaiScrollytelling() {
                         pointerEvents: currentPercent >= 75 ? 'auto' : 'none'
                     }}
                 >
-                    <h1 className="text-5xl md:text-7xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-white via-purple-200 to-blue-200 mb-8 drop-shadow-[0_4px_4px_rgba(0,0,0,1)]">
+                    <p className="text-5xl md:text-7xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-white via-purple-200 to-blue-200 mb-8 drop-shadow-[0_4px_4px_rgba(0,0,0,1)]">
                         Turn your 3 AM ideas<br />into reality.
-                    </h1>
+                    </p>
                     <Link
                         href="/start-campaign"
                         className="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white transition-all duration-200 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl hover:from-purple-500 hover:to-blue-500 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 focus:ring-offset-gray-900 shadow-[0_0_20px_rgba(124,58,237,0.5)]"

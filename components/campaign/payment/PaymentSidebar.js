@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Script from 'next/script';
 import { useSession } from 'next-auth/react';
 import AmountSelector from './AmountSelector';
 import RewardTierSelector from './RewardTierSelector';
@@ -106,9 +107,20 @@ export default function PaymentSidebar({
         throw new Error(orderData.message || 'Failed to create order');
       }
 
+      // Guard: creator must have Razorpay configured
+      if (!creator?.razorpayid) {
+        toast.error(
+          '⚠️ This creator hasn\'t set up a payment gateway yet. ' +
+          'Please ask them to add their Razorpay Key ID in their Settings.',
+          { error: 'Failed to create payment order' }
+        );
+        setIsProcessing(false);
+        return;
+      }
+
       // Initialize Razorpay
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        key: creator.razorpayid,
         amount: orderData.order.amount,
         currency: orderData.order.currency,
         name: 'Get Me A Chai',
@@ -158,8 +170,13 @@ export default function PaymentSidebar({
         }
       };
 
-      const razorpay = new window.Razorpay(options);
-      razorpay.open();
+      if (typeof window !== 'undefined' && window.Razorpay) {
+        const razorpay = new window.Razorpay(options);
+        razorpay.open();
+      } else {
+        toast.error('Payment gateway not loaded. Please refresh and try again.');
+        setIsProcessing(false);
+      }
     } catch (error) {
       console.error('Payment error:', error);
       toast.error(error.message || 'Payment failed. Please try again.');
@@ -606,8 +623,11 @@ export default function PaymentSidebar({
         }
       `}</style>
 
-      {/* Load Razorpay Script */}
-      <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+      {/* Load Razorpay Script - must use Next.js Script component */}
+      <Script
+        src="https://checkout.razorpay.com/v1/checkout.js"
+        strategy="beforeInteractive"
+      />
     </>
   );
 }

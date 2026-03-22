@@ -1,17 +1,26 @@
-// app/page.js - Complete Redesigned Home Page
+// app/page.js
+import dynamic from 'next/dynamic';
 import ChaiScrollytelling from '@/components/home/ChaiScrollytelling';
-import LiveStatsBar from '@/components/home/LiveStatsBar';
-import HowItWorksSection from '@/components/home/HowItWorksSection';
-import TrendingCampaigns from '@/components/home/TrendingCampaigns';
-import RecommendationFeed from '@/components/recommendations/RecommendationFeed';
-import CategoriesSection from '@/components/home/CategoriesSection';
-import SuccessStories from '@/components/home/SuccessStories';
-import PlatformFeatures from '@/components/home/PlatformFeatures';
-import CTASection from '@/components/home/CTASection';
+
+// Lazy-load all below-the-fold sections — they don't affect FCP/LCP
+const LiveStatsBar = dynamic(() => import('@/components/home/LiveStatsBar'));
+const HowItWorksSection = dynamic(() => import('@/components/home/HowItWorksSection'));
+const TrendingCampaigns = dynamic(() => import('@/components/home/TrendingCampaigns'));
+const RecommendationFeed = dynamic(() => import('@/components/recommendations/RecommendationFeed'));
+const CategoriesSection = dynamic(() => import('@/components/home/CategoriesSection'));
+const SuccessStories = dynamic(() => import('@/components/home/SuccessStories'));
+const PlatformFeatures = dynamic(() => import('@/components/home/PlatformFeatures'));
+const CTASection = dynamic(() => import('@/components/home/CTASection'));
+
+export const metadata = {
+  title: 'Get Me a Chai - AI-Powered Crowdfunding Platform',
+  description: 'Turn your creative projects into reality with AI-powered campaign building, smart recommendations, and seamless community support.',
+};
 
 export default function Home() {
   return (
     <main className="min-h-screen -mt-24">
+      {/* ChaiScrollytelling is the LCP element — loaded eagerly */}
       <ChaiScrollytelling />
       <LiveStatsBar />
       <HowItWorksSection />
@@ -29,8 +38,3 @@ export default function Home() {
     </main>
   );
 }
-
-export const metadata = {
-  title: 'Get Me a Chai - AI-Powered Crowdfunding Platform',
-  description: 'Turn your creative projects into reality with AI-powered campaign building, smart recommendations, and seamless community support.',
-};

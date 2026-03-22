@@ -103,7 +103,7 @@ export default function LiveStatsBar() {
                                         )}
                                     </div>
                                     {/* Label */}
-                                    <div className="text-xs sm:text-sm font-semibold text-gray-400 uppercase tracking-widest mt-1 group-hover:text-gray-200 transition-colors">
+                                    <div className="text-xs sm:text-sm font-semibold text-gray-300 uppercase tracking-widest mt-1 group-hover:text-white transition-colors">
                                         {stat.label}
                                     </div>
                                 </div>

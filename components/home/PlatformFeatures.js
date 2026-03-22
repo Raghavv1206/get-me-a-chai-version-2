@@ -125,6 +125,8 @@ export default function PlatformFeatures() {
                   router.push(feature.link);
                 }}
                 className="group/btn flex items-center gap-2 text-purple-400 hover:text-purple-300 font-semibold text-sm transition-colors"
+                aria-label={`Learn more about ${feature.title}`}
+                type="button"
               >
                 Learn more
                 <svg className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -160,6 +162,7 @@ export default function PlatformFeatures() {
                 <button
                   onClick={() => router.push('/dashboard/campaign/new')}
                   className="group px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-xl shadow-lg shadow-purple-500/50 hover:shadow-purple-500/70 transition-all duration-300 hover:scale-105"
+                  type="button"
                 >
                   <span className="flex items-center gap-2">
                     Start Free Campaign
@@ -172,6 +175,7 @@ export default function PlatformFeatures() {
                 <button
                   onClick={() => router.push('/pricing')}
                   className="px-8 py-4 bg-gray-800/50 text-white font-semibold rounded-xl border border-gray-700 backdrop-blur-sm hover:bg-gray-800/70 hover:border-purple-500/50 transition-all duration-300"
+                  type="button"
                 >
                   Compare Plans
                 </button>

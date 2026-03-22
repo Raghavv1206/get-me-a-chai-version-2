@@ -5,12 +5,6 @@ import Subscription from '@/models/Subscription';
 import Campaign from '@/models/Campaign';
 import User from '@/models/User';
 
-// Initialize Razorpay
-const razorpay = new Razorpay({
-    key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET
-});
-
 export async function POST(request) {
     try {
         const body = await request.json();
@@ -30,6 +24,13 @@ export async function POST(request) {
             );
         }
 
+        if (!creatorUsername) {
+            return NextResponse.json(
+                { success: false, message: 'Creator username is required' },
+                { status: 400 }
+            );
+        }
+
         await connectDb();
 
         // Verify campaign exists
@@ -41,14 +42,37 @@ export async function POST(request) {
             );
         }
 
-        // Get creator
-        const creator = await User.findOne({ username: creatorUsername });
+        // Get creator with their Razorpay credentials from DB
+        const creator = await User.findOne({ username: creatorUsername })
+            .select('razorpayid razorpaysecret username _id');
         if (!creator) {
             return NextResponse.json(
                 { success: false, message: 'Creator not found' },
                 { status: 404 }
             );
         }
+
+        // Use per-creator credentials (never global env vars)
+        const razorpayId = creator.razorpayid?.trim();
+        const razorpaySecret = creator.razorpaysecret?.trim();
+
+        if (!razorpayId || !razorpaySecret) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    message:
+                        'This creator has not set up their payment gateway yet. ' +
+                        'Please ask them to add their Razorpay Key ID and Secret in their Settings.',
+                },
+                { status: 422 }
+            );
+        }
+
+        // Instantiate Razorpay with creator's own credentials (inside handler, never at module level)
+        const razorpay = new Razorpay({
+            key_id: razorpayId,
+            key_secret: razorpaySecret,
+        });
 
         // Calculate period based on frequency
         let period = 'monthly';

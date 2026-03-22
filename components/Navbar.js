@@ -138,7 +138,8 @@ export default function Navbar() {
               <button
                 onClick={() => setShowSearchModal(true)}
                 className="hidden md:flex items-center gap-2 px-3 py-1.5 text-sm text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full border border-white/5 transition-all group"
-                title="Search (Ctrl+K)"
+                aria-label="Search (Ctrl+K)"
+                type="button"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -158,10 +159,11 @@ export default function Navbar() {
                   <Link href="/login" className="text-sm font-medium text-gray-300 hover:text-white transition-colors px-2">
                     Log in
                   </Link>
-                  <Link href="/login">
-                    <button className="px-4 py-1.5 text-sm font-semibold bg-white text-black rounded-full hover:bg-gray-100 transition-all hover:scale-105 shadow-lg shadow-white/10">
-                      Start for free
-                    </button>
+                  <Link
+                    href="/login"
+                    className="px-4 py-1.5 text-sm font-semibold bg-white text-black rounded-full hover:bg-gray-100 transition-all hover:scale-105 shadow-lg shadow-white/10"
+                  >
+                    Start for free
                   </Link>
                 </div>
               )}
@@ -170,8 +172,10 @@ export default function Navbar() {
               <button
                 onClick={() => setShowMobileMenu(!showMobileMenu)}
                 className="md:hidden p-2 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+                aria-label={showMobileMenu ? 'Close menu' : 'Open menu'}
+                aria-expanded={showMobileMenu}
+                type="button"
               >
-                <span className="sr-only">Open menu</span>
                 {showMobileMenu ? (
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -202,7 +206,12 @@ export default function Navbar() {
         <div ref={mobileMenuScrollRef} className="flex flex-col h-full overflow-y-auto">
           <div className="p-6 border-b border-white/10 flex justify-between items-center">
             <span className="font-bold text-lg text-white">Menu</span>
-            <button onClick={() => setShowMobileMenu(false)} className="p-2 text-gray-400 hover:text-white">
+            <button
+              onClick={() => setShowMobileMenu(false)}
+              className="p-2 text-gray-400 hover:text-white"
+              aria-label="Close menu"
+              type="button"
+            >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -247,15 +256,19 @@ export default function Navbar() {
           <div className="mt-auto p-6 border-t border-white/10 bg-black/20">
             {!session ? (
               <div className="grid gap-3">
-                <Link href="/login" onClick={() => setShowMobileMenu(false)}>
-                  <button className="w-full px-4 py-2.5 text-sm font-semibold bg-white text-black rounded-xl hover:bg-gray-100 transition-colors">
-                    Start for free
-                  </button>
+                <Link
+                  href="/login"
+                  className="w-full px-4 py-2.5 text-sm font-semibold bg-white text-black rounded-xl hover:bg-gray-100 transition-colors text-center"
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  Start for free
                 </Link>
-                <Link href="/login" onClick={() => setShowMobileMenu(false)}>
-                  <button className="w-full px-4 py-2.5 text-sm font-semibold text-gray-300 border border-white/10 rounded-xl hover:bg-white/5 hover:text-white transition-colors">
-                    Log in
-                  </button>
+                <Link
+                  href="/login"
+                  className="w-full px-4 py-2.5 text-sm font-semibold text-gray-300 border border-white/10 rounded-xl hover:bg-white/5 hover:text-white transition-colors text-center"
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  Log in
                 </Link>
               </div>
             ) : (
