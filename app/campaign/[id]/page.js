@@ -45,6 +45,19 @@ export default async function CampaignPage({ params }) {
             await campaign.save();
         }
 
+        // Draft campaigns are only visible to their creator.
+        // Everyone else (public visitors, other logged-in users) gets a 404.
+        if (campaign.status === 'draft') {
+            // We need the session to know if the visitor IS the creator.
+            // session may already be fetched above in the parallel Promise.all.
+            const creatorId = campaign.creator?._id?.toString?.() ?? campaign.creator?.toString?.();
+            const visitorId = session?.user?.id;
+
+            if (!visitorId || visitorId !== creatorId) {
+                notFound();
+            }
+        }
+
         // Convert MongoDB ObjectId to string
         const campaignData = JSON.parse(JSON.stringify(campaign.toObject()));
 
@@ -186,7 +199,10 @@ export default async function CampaignPage({ params }) {
             }
         };
 
-        return <CampaignProfile campaign={campaignData} creator={creatorData} isSupporter={isSupporter} />;
+        // Pass isDraft so the UI can disable funding-related interactions
+        const isDraft = campaign.status === 'draft';
+
+        return <CampaignProfile campaign={campaignData} creator={creatorData} isSupporter={isSupporter} isDraft={isDraft} />;
     } catch (error) {
         console.error('Error loading campaign:', error);
         notFound();

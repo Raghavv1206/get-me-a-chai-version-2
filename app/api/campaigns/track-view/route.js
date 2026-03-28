@@ -35,12 +35,9 @@ export async function POST(req) {
 
         await connectDb();
 
-        // Always increment the campaign's total view counter
-        const campaign = await Campaign.findByIdAndUpdate(
-            campaignId,
-            { $inc: { 'stats.views': 1 } },
-            { new: true }
-        );
+        // Always increment the campaign's total view counter — but ONLY for live campaigns.
+        // Draft campaigns must not accrue views; the creator is just previewing.
+        const campaign = await Campaign.findById(campaignId);
 
         if (!campaign) {
             return NextResponse.json(
@@ -48,6 +45,17 @@ export async function POST(req) {
                 { status: 404 }
             );
         }
+
+        if (campaign.status === 'draft') {
+            // Return silently — no view recorded, no error shown to the client
+            return NextResponse.json({ success: false, reason: 'draft' });
+        }
+
+        // Increment view counter for live/paused/completed campaigns
+        await Campaign.findByIdAndUpdate(
+            campaignId,
+            { $inc: { 'stats.views': 1 } }
+        );
 
         // Classify the traffic source from referrer and UTM params
         const source = Analytics.classifySource(referrer, {

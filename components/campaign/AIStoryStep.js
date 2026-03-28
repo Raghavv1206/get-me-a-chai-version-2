@@ -4,6 +4,66 @@ import { useState } from 'react';
 import { Sparkles, Loader2, RefreshCw } from 'lucide-react';
 import { toast } from '@/lib/apiToast';
 
+/**
+ * Robustly extracts { title, hook, story } from an AI response string.
+ *
+ * Strategy (tried in order):
+ * 1. Strip markdown code fences (```json ... ``` or ``` ... ```)
+ * 2. Extract the first {...} block and JSON.parse it
+ * 3. If the JSON has a nested "story" key that is itself JSON → unwrap it
+ * 4. Return the raw text as the story if all JSON parsing fails
+ *
+ * @param {string} raw  Full streamed response text
+ * @returns {{ title: string, hook: string, story: string }}
+ */
+function parseAIResponse(raw) {
+    if (!raw || typeof raw !== 'string') return { title: '', hook: '', story: '' };
+
+    // 1. Strip markdown code fences if present
+    let cleaned = raw
+        .replace(/^```(?:json)?\s*/i, '')
+        .replace(/\s*```\s*$/i, '')
+        .trim();
+
+    // 2. Attempt to extract the outermost { … } block
+    const braceStart = cleaned.indexOf('{');
+    const braceEnd   = cleaned.lastIndexOf('}');
+
+    if (braceStart !== -1 && braceEnd > braceStart) {
+        try {
+            const jsonStr = cleaned.slice(braceStart, braceEnd + 1);
+            const parsed  = JSON.parse(jsonStr);
+
+            let story = parsed.story ?? '';
+            let hook  = parsed.hook  ?? '';
+            let title = parsed.title ?? '';
+
+            // 3. Guard: if story is itself a JSON string (shouldn't happen but handle it)
+            if (typeof story === 'string' && story.trimStart().startsWith('{')) {
+                try {
+                    const inner = JSON.parse(story);
+                    story = inner.story ?? story;
+                    hook  = hook  || inner.hook  || '';
+                    title = title || inner.title || '';
+                } catch {
+                    // inner is not JSON, keep as-is
+                }
+            }
+
+            return {
+                title: typeof title === 'string' ? title.trim() : '',
+                hook:  typeof hook  === 'string' ? hook.trim()  : '',
+                story: typeof story === 'string' ? story.trim() : '',
+            };
+        } catch {
+            // JSON.parse failed — fall through to plain-text fallback
+        }
+    }
+
+    // 4. Plain-text fallback: use the whole cleaned text as the story
+    return { title: '', hook: '', story: cleaned };
+}
+
 export default function AIStoryStep({ data, onUpdate, onLiveSync, onNext, onBack }) {
     const [formData, setFormData] = useState({
         brief: data.brief || '',
@@ -37,7 +97,6 @@ export default function AIStoryStep({ data, onUpdate, onLiveSync, onNext, onBack
         setStreamedText('');
 
         try {
-            console.log('Sending request to generate campaign...');
             const response = await fetch('/api/ai/generate-campaign', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -49,60 +108,51 @@ export default function AIStoryStep({ data, onUpdate, onLiveSync, onNext, onBack
                 }),
             });
 
-            console.log('Response status:', response.status);
-
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                console.error('API error:', errorData);
                 throw new Error(errorData.details || errorData.error || 'Failed to generate story');
             }
 
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            let fullText = '';
+            if (!response.body) {
+                throw new Error('No response body received from AI service');
+            }
 
+            const reader  = response.body.getReader();
+            const decoder = new TextDecoder();
+            let fullText  = '';
+
+            // Read the full stream
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
-
-                const chunk = decoder.decode(value);
-                fullText += chunk;
+                fullText += decoder.decode(value, { stream: !done });
                 setStreamedText(fullText);
             }
 
-            // Parse the JSON response
-            try {
-                const jsonMatch = fullText.match(/\{[\s\S]*\}/);
-                if (jsonMatch) {
-                    const parsed = JSON.parse(jsonMatch[0]);
-                    const newData = {
-                        ...formData,
-                        title: parsed.title || formData.title,
-                        hook: parsed.hook || formData.hook,
-                        story: parsed.story || formData.story,
-                    };
-                    setFormData(newData);
-                    // Sync generated content to parent immediately
-                    if (onLiveSync) onLiveSync(newData);
-                } else {
-                    // If no JSON, use the full text as story
-                    const newData = { ...formData, story: fullText };
-                    setFormData(newData);
-                    if (onLiveSync) onLiveSync(newData);
-                }
-            } catch (parseError) {
-                console.warn('JSON parsing failed, using raw text:', parseError);
-                // If parsing fails, use the full text
-                const newData = { ...formData, story: fullText };
-                setFormData(newData);
-                if (onLiveSync) onLiveSync(newData);
+            // Parse using the robust multi-strategy parser
+            const { title, hook, story } = parseAIResponse(fullText);
+
+            if (!story) {
+                // The AI returned something we couldn't parse at all
+                throw new Error('AI returned an empty or unreadable response. Please try again.');
             }
+
+            const newData = {
+                ...formData,
+                title: title || formData.title,
+                hook:  hook  || formData.hook,
+                story,
+            };
+            setFormData(newData);
+            if (onLiveSync) onLiveSync(newData);
 
         } catch (error) {
             console.error('Error generating story:', error);
             toast.error(`Failed to generate story: ${error.message}`);
         } finally {
             setGenerating(false);
+            // Clear the raw stream buffer — we've already parsed and populated the fields
+            setStreamedText('');
         }
     };
 
@@ -180,16 +230,21 @@ export default function AIStoryStep({ data, onUpdate, onLiveSync, onNext, onBack
                 </button>
             </div>
 
-            {/* Streaming Display */}
-            {generating && streamedText && (
+            {/* Streaming progress indicator — shows a pulsing message, not raw JSON */}
+            {generating && (
                 <div className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
                         <span className="animate-pulse text-purple-400">●</span>
-                        <span className="text-sm font-semibold text-purple-300">AI is writing...</span>
+                        <span className="text-sm font-semibold text-purple-300">AI is writing your campaign story...</span>
                     </div>
-                    <div className="text-gray-300 whitespace-pre-wrap text-sm">
-                        {streamedText}
-                        <span className="animate-pulse">|</span>
+                    <div className="flex gap-1 mt-1">
+                        {[0, 1, 2].map(i => (
+                            <span
+                                key={i}
+                                className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"
+                                style={{ animationDelay: `${i * 0.15}s` }}
+                            />
+                        ))}
                     </div>
                 </div>
             )}

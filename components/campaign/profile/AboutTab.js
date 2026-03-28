@@ -15,8 +15,34 @@ export default function AboutTab({ campaign, onSelectReward }) {
   const [showAllImages, setShowAllImages] = useState(false);
 
   const daysLeft = campaign.daysRemaining || 0;
-  const images = campaign.images || [];
+  const images   = campaign.images || [];
   const displayImages = showAllImages ? images : images.slice(0, 6);
+
+  // ── Defensive story parsing ──────────────────────────────────────────────
+  // Legacy campaigns may have their story field stored as a raw JSON string
+  // (e.g. the entire AI response object was accidentally saved verbatim).
+  // We detect that here and unwrap the actual story/hook text before rendering
+  // so no migration is needed for existing records.
+  const { safeStory, safeHook } = (() => {
+    const rawStory = typeof campaign.story === 'string' ? campaign.story.trim() : '';
+    const rawHook  = typeof campaign.hook  === 'string' ? campaign.hook.trim()  : '';
+
+    // If the story starts with '{' it might be a stored JSON blob
+    if (rawStory.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(rawStory);
+        return {
+          safeStory: typeof parsed.story === 'string' ? parsed.story.trim() : rawStory,
+          safeHook:  rawHook || (typeof parsed.hook  === 'string' ? parsed.hook.trim()  : ''),
+        };
+      } catch {
+        // Not valid JSON after all — render as-is
+      }
+    }
+
+    return { safeStory: rawStory, safeHook: rawHook };
+  })();
+  // ─────────────────────────────────────────────────────────────────────────
 
   const closeLightbox = () => setLightboxIndex(null);
 
@@ -37,10 +63,10 @@ export default function AboutTab({ campaign, onSelectReward }) {
           Campaign Story
         </h2>
 
-        {campaign.hook && (
+        {safeHook && (
           <div className="mb-6 p-6 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border-l-4 border-purple-500 rounded-lg">
             <p className="text-lg text-gray-200 leading-relaxed font-medium">
-              {campaign.hook}
+              {safeHook}
             </p>
           </div>
         )}
@@ -53,14 +79,14 @@ export default function AboutTab({ campaign, onSelectReward }) {
                 h1: ({ node, ...props }) => <h1 className="text-3xl font-bold text-white mt-8 mb-4" {...props} />,
                 h2: ({ node, ...props }) => <h2 className="text-2xl font-bold text-white mt-6 mb-3" {...props} />,
                 h3: ({ node, ...props }) => <h3 className="text-xl font-bold text-white mt-4 mb-2" {...props} />,
-                p: ({ node, ...props }) => <p className="mb-4 text-gray-300" {...props} />,
+                p:  ({ node, ...props }) => <p  className="mb-4 text-gray-300" {...props} />,
                 strong: ({ node, ...props }) => <strong className="font-bold text-white" {...props} />,
-                a: ({ node, ...props }) => <a className="text-purple-400 hover:text-purple-300 underline" {...props} />,
+                a:  ({ node, ...props }) => <a  className="text-purple-400 hover:text-purple-300 underline" {...props} />,
                 ul: ({ node, ...props }) => <ul className="list-disc list-inside mb-4 space-y-2" {...props} />,
                 ol: ({ node, ...props }) => <ol className="list-decimal list-inside mb-4 space-y-2" {...props} />,
               }}
             >
-              {campaign.story}
+              {safeStory}
             </ReactMarkdown>
           </div>
         </div>

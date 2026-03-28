@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { FaArrowLeft, FaSave, FaSpinner } from 'react-icons/fa';
+import { FaArrowLeft, FaSave, FaSpinner, FaRocket, FaPause, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
 import Image from 'next/image';
 
 export default function EditCampaignPage() {
@@ -10,7 +10,9 @@ export default function EditCampaignPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [publishing, setPublishing] = useState(false);
     const [error, setError] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
     const [campaign, setCampaign] = useState(null);
     const [formData, setFormData] = useState({
         title: '',
@@ -98,36 +100,104 @@ export default function EditCampaignPage() {
         }));
     };
 
+    /** Build and POST the update payload; returns true on success */
+    const saveChanges = async () => {
+        const payload = {
+            ...formData,
+            goalAmount: Number(formData.goalAmount),
+            tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean)
+        };
+
+        const response = await fetch(`/api/campaigns/${params.id}/update`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+        if (!data.success) {
+            throw new Error(data.message || 'Failed to update campaign');
+        }
+        return data;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSaving(true);
         setError('');
+        setSuccessMessage('');
 
         try {
-            const payload = {
-                ...formData,
-                goalAmount: Number(formData.goalAmount),
-                tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean)
-            };
-
-            const response = await fetch(`/api/campaigns/${params.id}/update`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                router.push('/dashboard/campaigns');
-            } else {
-                setError(data.message || 'Failed to update campaign');
-            }
+            await saveChanges();
+            router.push('/dashboard/campaigns');
         } catch (err) {
-            setError('An error occurred while updating the campaign');
+            setError(err.message || 'An error occurred while updating the campaign');
             console.error(err);
         } finally {
             setSaving(false);
+        }
+    };
+
+    /**
+     * Save changes first, then toggle publish status.
+     * - draft / paused  → publish (set status = 'active')
+     * - active          → unpublish (set status = 'paused')
+     */
+    const handlePublish = async () => {
+        const isCurrentlyActive = campaign?.status === 'active';
+        const actionLabel = isCurrentlyActive ? 'unpublish' : 'publish';
+
+        // Confirmation guard
+        const confirmed = window.confirm(
+            isCurrentlyActive
+                ? 'Unpublish this campaign? It will no longer be visible to the public.'
+                : 'Publishing will first save your current changes and then make the campaign live. Continue?'
+        );
+        if (!confirmed) return;
+
+        setPublishing(true);
+        setError('');
+        setSuccessMessage('');
+
+        try {
+            // Step 1: always persist edits first (skip for unpublish if form is clean, but always safe to save)
+            await saveChanges();
+
+            // Step 2: toggle status
+            const newStatus = isCurrentlyActive ? 'paused' : 'active';
+            const statusResponse = await fetch(`/api/campaigns/${params.id}/status`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus })
+            });
+
+            const statusData = await statusResponse.json();
+
+            if (!statusData.success) {
+                // Surface the Razorpay-specific error with a settings link cue
+                if (statusData.code === 'RAZORPAY_CREDENTIALS_MISSING') {
+                    setError(
+                        'Payment gateway not configured. Please add your Razorpay Key ID & Secret in ' +
+                        'Dashboard → Settings → Payment Settings, then try again.'
+                    );
+                } else {
+                    setError(statusData.message || `Failed to ${actionLabel} campaign`);
+                }
+                return;
+            }
+
+            // Optimistically update local state so the button reflects the new status immediately
+            setCampaign(prev => ({ ...prev, status: newStatus }));
+            setSuccessMessage(
+                isCurrentlyActive
+                    ? 'Campaign unpublished. It is now in draft mode.'
+                    : '🎉 Campaign published successfully! It is now live.'
+            );
+        } catch (err) {
+            setError(err.message || `An error occurred while trying to ${actionLabel} the campaign`);
+            console.error(err);
+        } finally {
+            setPublishing(false);
         }
     };
 
@@ -170,13 +240,38 @@ export default function EditCampaignPage() {
                         <FaArrowLeft className="w-4 h-4" />
                         <span>Back to Campaigns</span>
                     </button>
-                    <h1 className="text-3xl font-bold text-white">Edit Campaign</h1>
+                    <div className="flex items-center gap-3 flex-wrap">
+                        <h1 className="text-3xl font-bold text-white">Edit Campaign</h1>
+                        {campaign?.status && (
+                            <span
+                                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${
+                                    campaign.status === 'active'
+                                        ? 'bg-green-500/15 text-green-400 border border-green-500/30'
+                                        : campaign.status === 'paused'
+                                        ? 'bg-yellow-500/15 text-yellow-400 border border-yellow-500/30'
+                                        : campaign.status === 'completed'
+                                        ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
+                                        : 'bg-gray-500/15 text-gray-400 border border-gray-500/30'
+                                }`}
+                            >
+                                {campaign.status}
+                            </span>
+                        )}
+                    </div>
                     <p className="text-gray-400 mt-2">Update your campaign details</p>
                 </div>
 
                 {error && (
-                    <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400">
-                        {error}
+                    <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 flex items-start gap-3">
+                        <FaExclamationTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+                        <span>{error}</span>
+                    </div>
+                )}
+
+                {successMessage && (
+                    <div className="mb-6 p-4 bg-green-500/10 border border-green-500/30 rounded-xl text-green-400 flex items-start gap-3">
+                        <FaCheckCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                        <span>{successMessage}</span>
                     </div>
                 )}
 
@@ -552,10 +647,11 @@ export default function EditCampaignPage() {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                        {/* Save Changes */}
                         <button
                             type="submit"
-                            disabled={saving}
+                            disabled={saving || publishing}
                             className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-purple-500/50 transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                         >
                             {saving ? (
@@ -570,10 +666,45 @@ export default function EditCampaignPage() {
                                 </>
                             )}
                         </button>
+
+                        {/* Publish / Unpublish — hidden for completed/cancelled campaigns */}
+                        {campaign?.status !== 'completed' && campaign?.status !== 'cancelled' && (
+                            <button
+                                type="button"
+                                onClick={handlePublish}
+                                disabled={saving || publishing}
+                                className={`flex items-center justify-center gap-2 px-6 py-4 font-semibold rounded-xl transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 ${
+                                    campaign?.status === 'active'
+                                        ? 'bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/20'
+                                        : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:shadow-lg hover:shadow-green-500/40'
+                                }`}
+                            >
+                                {publishing ? (
+                                    <>
+                                        <FaSpinner className="w-5 h-5 animate-spin" />
+                                        <span>
+                                            {campaign?.status === 'active' ? 'Unpublishing...' : 'Publishing...'}
+                                        </span>
+                                    </>
+                                ) : campaign?.status === 'active' ? (
+                                    <>
+                                        <FaPause className="w-5 h-5" />
+                                        <span>Unpublish</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <FaRocket className="w-5 h-5" />
+                                        <span>Publish</span>
+                                    </>
+                                )}
+                            </button>
+                        )}
+
+                        {/* Cancel */}
                         <button
                             type="button"
                             onClick={() => router.push('/dashboard/campaigns')}
-                            disabled={saving}
+                            disabled={saving || publishing}
                             className="px-6 py-4 bg-white/5 border border-white/10 text-white font-semibold rounded-xl hover:bg-white/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Cancel
