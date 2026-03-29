@@ -1,0 +1,36 @@
+﻿[dotenv@17.2.3] injecting env (13) from .env.local -- tip: ΓÜÖ∩╕Å  load multiple .env files with { path: ['.env.local', '.env'] }
+Γ£à  Connected to MongoDB
+≡ƒùæ∩╕Å   Cleared existing data
+≡ƒæñ  Created demo user + 5 supporter users
+≡ƒÄ»  Created 5 campaigns
+≡ƒÆ░  Created 60 payments
+≡ƒôê  Created 7550 analytics events
+≡ƒôó  Created 5 campaign updates
+node.exe : 
+At C:\Users\ragha\project\
+get-me-a-chai\run-seed.ps1
+:2 char:11
++ $result = & node 
+scripts/seed.js 2>&1
++           ~~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+    + CategoryInfo        
+      : NotSpecified: (:  
+  String) [], RemoteExc   
+ eption
+    + FullyQualifiedError 
+   Id : NativeCommandErr  
+  or
+ 
+Γ¥î  Error seeding 
+database: TypeError: 
+Cannot read properties of 
+null (reading '_id')
+    at seedDatabase (file:
+///C:/Users/ragha/project/
+get-me-a-chai/scripts/seed
+.js:512:89)
+    at process.processTick
+sAndRejections (node:inter
+nal/process/task_queues:10
+5:5)

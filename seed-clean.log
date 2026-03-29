@@ -1,0 +1,37 @@
+﻿[dotenv@17.2.3] injecting env (13) from .env.local -- tip: ΓÜÖ∩╕Å  enable debug logging with { debug: true }
+Γ£à  Connected to MongoDB
+≡ƒùæ∩╕Å   Cleared existing data
+≡ƒæñ  Created demo user + 5 supporter users
+≡ƒÄ»  Created 5 campaigns
+≡ƒÆ░  Created 60 payments
+≡ƒôê  Created 7187 analytics events
+≡ƒôó  Created 5 campaign updates
+node : 
+At line:1 char:54
++ ... Users\ragha\project\
+get-me-a-chai'; node 
+scripts/seed.js 2>&1 | 
+Out-F ...
++                         
+                
+~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo        
+      : NotSpecified: (:  
+  String) [], RemoteExc   
+ eption
+    + FullyQualifiedError 
+   Id : NativeCommandErr  
+  or
+ 
+Γ¥î  Error seeding 
+database: TypeError: 
+Cannot read properties of 
+null (reading '_id')
+    at seedDatabase (file:
+///C:/Users/ragha/project/
+get-me-a-chai/scripts/seed
+.js:512:89)
+    at process.processTick
+sAndRejections (node:inter
+nal/process/task_queues:10
+5:5)

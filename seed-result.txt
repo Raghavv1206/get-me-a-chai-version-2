@@ -1,0 +1,33 @@
+[dotenv@17.2.3] injecting env (13) from .env.local -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+✅  Connected to MongoDB
+🗑️   Cleared existing data
+👤  Created demo user + 5 supporter users
+🎯  Created 5 campaigns
+💰  Created 60 payments
+📈  Created 4166 analytics events
+📢  Created 5 campaign updates
+💬  Created 8 comments (incl. pinned, threaded reply)
+🔔  Created 8 notifications
+🔁  Created 3 subscriptions
+👁️   Created 25 campaign view records
+🚩  Created 1 report(s)
+
+✅  Database seeded successfully!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔐  Demo User Credentials:
+    Email:    demo@getmeachai.com
+    Password: demo123456
+    Username: democreator
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯  Campaigns:       5
+💰  Payments:        60
+📈  Analytics events: 4166
+📢  Updates:         5
+💬  Comments:        8
+🔔  Notifications:   8
+🔁  Subscriptions:   3
+👁️   Campaign Views:  25
+🚩  Reports:         1
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
