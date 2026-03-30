@@ -170,49 +170,47 @@ export default function ChaiScrollytelling() {
     }, []);
 
     // 3. Scroll Handler & Step-Based Navigation
-    // ─────────────────────────────────────────────────────────────────────────
-    // CHECKPOINT DESIGN:
-    //   Each checkpoint is placed at the EXACT scroll progress where a text
-    //   overlay reaches 100% opacity. The scroll snaps ONLY to these points.
-    //
-    //   Overlay 0 (Hero "Get Me a Chai")          → peak at 0.00
-    //   Overlay 1 ("bank account said no…")       → peak at 0.17  (midpoint of 0.10–0.24)
-    //   Overlay 2 ("asking for vibes")            → peak at 0.35  (midpoint of 0.26–0.44)
-    //   Overlay 3 ("₹5Cr+ raised…")              → peak at 0.575 (midpoint of 0.46–0.69)
-    //   Overlay 4 (CTA "Turn your 3 AM ideas…")  → peak at 0.87  (fully opaque from ~0.82)
-    // ─────────────────────────────────────────────────────────────────────────
     useEffect(() => {
         if (!imagesLoaded || showFallback) return;
 
         let isAnimating = false;
         let rafPending = false;
 
-        // Checkpoints aligned to 100%-opacity moments of each text overlay
-        const checkpoints = [0.00, 0.17, 0.35, 0.575, 0.87];
+        // ─── CHECKPOINTS ───────────────────────────────────────────────
+        // Each checkpoint is where a text overlay is at **100% opacity**.
+        // The scroll will ONLY stop at these positions — never in between.
+        //
+        // CP 0  (0.00) → Overlay 0  "Get Me a Chai"        (full at 0–5%)
+        // CP 1  (0.20) → Overlay 1  "Your bank account…"   (peak at 20%)
+        // CP 2  (0.40) → Overlay 2  "We're not asking…"    (peak at 40%)
+        // CP 3  (0.60) → Overlay 3  "₹5Cr+ raised…"       (peak at 60%)
+        // CP 4  (1.00) → Overlay 4  CTA                    (full at 100%)
+        // ────────────────────────────────────────────────────────────────
+        const checkpoints = [0.00, 0.20, 0.40, 0.60, 1.00];
 
-        // ── Geometry cache ──────────────────────────────────────────────────
-        // We cache the container's absolute top offset and height so that the
-        // scroll handler never calls getBoundingClientRect (which forces reflow).
-        let containerTop = 0;     // absolute offset from document top
+        // How close to a checkpoint to count as "arrived"
+        const SNAP_EPSILON = 0.02;
+
+        // Container geometry cache
+        let containerTop = 0;
         let containerHeight = 0;
         let windowHeight = window.innerHeight;
 
-        const updateGeometryCache = () => {
+        const updateGeometry = () => {
             if (!containerRef.current) return;
-            // offsetTop relative to offsetParent — walk up the tree
-            let el = containerRef.current;
+            const el = containerRef.current;
             let top = 0;
-            while (el) {
-                top += el.offsetTop;
-                el = el.offsetParent;
+            let node = el;
+            while (node) {
+                top += node.offsetTop;
+                node = node.offsetParent;
             }
             containerTop = top;
-            containerHeight = containerRef.current.offsetHeight;
+            containerHeight = el.offsetHeight;
             windowHeight = window.innerHeight;
         };
 
-        // Compute once on mount
-        updateGeometryCache();
+        updateGeometry();
 
         const getScrollProgress = () => {
             const scrollableDistance = containerHeight - windowHeight;
@@ -221,139 +219,33 @@ export default function ChaiScrollytelling() {
             return Math.max(0, Math.min(1, scrolled / scrollableDistance));
         };
 
-        // ── Shared: find target checkpoint for a given direction ────────────
-        // Returns the index of the next checkpoint to snap to, or -1 if the
-        // user should EXIT the section (already at the last/first checkpoint).
-        const findTargetCheckpoint = (currentProgress, direction) => {
-            if (direction > 0) {
-                // Moving down → find FIRST checkpoint meaningfully ahead
-                for (let i = 0; i < checkpoints.length; i++) {
-                    if (checkpoints[i] > currentProgress + 0.01) return i;
+        // Find the nearest checkpoint to a given progress value
+        const findNearestCheckpoint = (progress) => {
+            let bestIdx = 0;
+            let bestDist = Math.abs(checkpoints[0] - progress);
+            for (let i = 1; i < checkpoints.length; i++) {
+                const dist = Math.abs(checkpoints[i] - progress);
+                if (dist < bestDist) {
+                    bestDist = dist;
+                    bestIdx = i;
                 }
-                // No checkpoint ahead → signal exit
-                return -1;
-            } else {
-                // Moving up → find LAST checkpoint meaningfully behind
-                for (let i = checkpoints.length - 1; i >= 0; i--) {
-                    if (checkpoints[i] < currentProgress - 0.01) return i;
-                }
-                // No checkpoint behind → signal exit
-                return -1;
             }
+            return bestIdx;
         };
 
-        // ── Shared: smoothly animate scroll to a target pixel position ──────
-        // Uses requestAnimationFrame for buttery-smooth animation that works
-        // reliably on both desktop and mobile (unlike window.scrollTo behavior
-        // which can be janky or interrupted by touch events on mobile).
-        let snapAnimationId = null;
 
-        const smoothScrollTo = (targetPx, duration = 800, onDone) => {
-            // Cancel any in-progress snap animation
-            if (snapAnimationId) {
-                cancelAnimationFrame(snapAnimationId);
-                snapAnimationId = null;
-            }
-
-            const startPx = window.scrollY;
-            const distance = targetPx - startPx;
-
-            // If already at the target (or extremely close), skip animation
-            if (Math.abs(distance) < 1) {
-                if (onDone) onDone();
-                return;
-            }
-
-            const startTime = performance.now();
-
-            // Expo ease-out for a premium feel
-            const easeOutExpo = (t) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t));
-
-            const step = (now) => {
-                const elapsed = now - startTime;
-                const t = Math.min(1, elapsed / duration);
-                const eased = easeOutExpo(t);
-
-                window.scrollTo(0, startPx + distance * eased);
-
-                if (t < 1) {
-                    snapAnimationId = requestAnimationFrame(step);
-                } else {
-                    snapAnimationId = null;
-                    if (onDone) onDone();
-                }
-            };
-
-            snapAnimationId = requestAnimationFrame(step);
-        };
-
-        // ── Shared: animate to checkpoint (used by both wheel and touch) ────
-        const animateToCheckpoint = (targetCPIndex) => {
-            const targetProgress = checkpoints[targetCPIndex];
-            const scrollableDistance = containerHeight - windowHeight;
-            const targetPx = containerTop + targetProgress * scrollableDistance;
-
-            isAnimating = true;
-
-            if (window.lenis) {
-                window.lenis.scrollTo(targetPx, {
-                    duration: 1.2,
-                    easing: (t) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t)),
-                    lock: true,
-                    onComplete: () => {
-                        isAnimating = false;
-                        updateGeometryCache();
-                    },
-                });
-            } else {
-                smoothScrollTo(targetPx, 800, () => {
-                    isAnimating = false;
-                    updateGeometryCache();
-                });
-            }
-        };
-
-        // ── Shared: exit the section boundary ───────────────────────────────
-        const exitSection = (direction) => {
-            const scrollTop = window.scrollY;
-            const exitPx = direction > 0
-                ? scrollTop + windowHeight * 0.6
-                : Math.max(0, scrollTop - windowHeight * 0.6);
-
-            if (window.lenis) {
-                window.lenis.scrollTo(exitPx);
-            } else {
-                smoothScrollTo(exitPx, 500);
-            }
-        };
-
-        // ── Check if viewport is inside the scrollytelling section ──────────
-        const isInsideSection = () => {
-            const scrollTop = window.scrollY;
-            return !(
-                scrollTop + windowHeight < containerTop + 1 ||
-                scrollTop > containerTop + containerHeight - windowHeight - 1
-            );
-        };
-
-        // ── Process scroll → update frame ───────────────────────────────────
         const processScroll = () => {
             rafPending = false;
             if (!containerRef.current) return;
 
             const progress = getScrollProgress();
 
-            // Linear frame mapping (1:1 progress-to-frame)
-            const targetIndex = Math.min(
-                FRAME_COUNT - 1,
-                Math.floor(progress * FRAME_COUNT)
-            );
+            // Linear frame mapping (1:1 scroll-to-animation)
+            const targetIndex = Math.min(FRAME_COUNT - 1, Math.floor(progress * FRAME_COUNT));
 
             if (targetIndex !== frameIndex) {
                 setFrameIndex(targetIndex);
-                requestRef.current = requestAnimationFrame(() =>
-                    renderFrame(targetIndex)
-                );
+                requestRef.current = requestAnimationFrame(() => renderFrame(targetIndex));
             }
         };
 
@@ -364,287 +256,282 @@ export default function ChaiScrollytelling() {
             requestAnimationFrame(processScroll);
         };
 
-        // ── Wheel handler: snap to nearest checkpoint ───────────────────────
-        const handleWheel = (e) => {
-            if (!containerRef.current) return;
-            if (!isInsideSection()) return;
+        // Smooth-scroll to a checkpoint
+        const scrollToCheckpoint = (targetProgress) => {
+            const scrollableDistance = containerHeight - windowHeight;
+            if (scrollableDistance <= 0) return;
 
-            e.preventDefault();
-            if (isAnimating) return;
+            const targetPx = containerTop + (targetProgress * scrollableDistance);
 
-            const currentProgress = getScrollProgress();
-            const direction = Math.sign(e.deltaY);
-            if (direction === 0) return;
+            isAnimating = true;
 
-            const targetIdx = findTargetCheckpoint(currentProgress, direction);
-
-            // -1 means no more checkpoints in this direction → exit section
-            if (targetIdx === -1) {
-                exitSection(direction);
-                return;
+            if (window.lenis) {
+                window.lenis.scrollTo(targetPx, {
+                    duration: 0.9,
+                    easing: (t) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t)),
+                    lock: true,
+                    onComplete: () => { isAnimating = false; }
+                });
+            } else {
+                window.scrollTo({ top: targetPx, behavior: 'smooth' });
+                setTimeout(() => { isAnimating = false; }, 900);
             }
-
-            animateToCheckpoint(targetIdx);
         };
 
-        // ══════════════════════════════════════════════════════════════════════
-        // ── TOUCH HANDLER: snap scrolling for touchscreen devices ────────────
-        // ══════════════════════════════════════════════════════════════════════
-        //
-        // Strategy:
-        //   1. On touchstart, record the initial position and timestamp.
-        //   2. On touchmove, prevent default scroll to freeze the page, but
-        //      manually update the scroll position for visual feedback. Track
-        //      velocity from the last N samples for accurate direction detection.
-        //   3. On touchend, calculate swipe direction from velocity (or fallback
-        //      to net displacement), then snap to the next/previous checkpoint.
-        //
-        // Edge cases handled:
-        //   - Multi-finger gestures (ignored; only single-finger swipes snap)
-        //   - Tiny/accidental touches (minimum displacement threshold)
-        //   - Rapid successive swipes (animation guard)
-        //   - Touch outside section boundaries (native scroll passthrough)
-        //   - Section exit at first/last checkpoint
-        //   - Orientation change mid-touch (geometry refresh)
-        //   - iOS overscroll/rubber-band prevention
-        // ──────────────────────────────────────────────────────────────────────
+        // ─── SHARED HELPERS ────────────────────────────────────────────
+        const isInsideScrollytelling = () => {
+            const scrollTop = window.scrollY;
+            const containerBottom = containerTop + containerHeight;
+            const viewportBottom = scrollTop + windowHeight;
+            return scrollTop >= containerTop - 5 && viewportBottom <= containerBottom + 5;
+        };
 
+        const exitSection = (dir) => {
+            isAnimating = true;
+            const exitTarget = dir === 'down'
+                ? containerTop + containerHeight - windowHeight + windowHeight * 0.6
+                : Math.max(0, containerTop - windowHeight * 0.6);
+
+            if (window.lenis) {
+                window.lenis.scrollTo(exitTarget, {
+                    duration: 0.8,
+                    onComplete: () => { isAnimating = false; }
+                });
+            } else {
+                window.scrollTo({ top: exitTarget, behavior: 'smooth' });
+                setTimeout(() => { isAnimating = false; }, 700);
+            }
+        };
+
+        const snapToNearest = (progress) => {
+            const nearestIdx = findNearestCheckpoint(progress);
+            const nearestCP = checkpoints[nearestIdx];
+            if (Math.abs(nearestCP - progress) > SNAP_EPSILON) {
+                scrollToCheckpoint(nearestCP);
+            }
+        };
+
+        const navigateCheckpoint = (dir) => {
+            const currentProgress = getScrollProgress();
+            if (dir > 0) {
+                if (currentProgress >= 1 - SNAP_EPSILON) { exitSection('down'); return; }
+                const nextCP = checkpoints.find(cp => cp > currentProgress + SNAP_EPSILON);
+                scrollToCheckpoint(nextCP !== undefined ? nextCP : 1.0);
+            } else {
+                if (currentProgress <= SNAP_EPSILON) { exitSection('up'); return; }
+                const prevCP = [...checkpoints].reverse().find(cp => cp < currentProgress - SNAP_EPSILON);
+                scrollToCheckpoint(prevCP !== undefined ? prevCP : 0.0);
+            }
+        };
+
+        // ─── WHEEL HANDLER ─────────────────────────────────────────────
+        let wheelAccum = 0;
+        let wheelTimer = null;
+        const WHEEL_COMMIT_DELAY = 120;
+
+        const commitWheel = () => {
+            wheelTimer = null;
+            if (isAnimating) { wheelAccum = 0; return; }
+            const direction = Math.sign(wheelAccum);
+            wheelAccum = 0;
+            if (direction === 0) return;
+            navigateCheckpoint(direction);
+        };
+
+        const handleWheel = (e) => {
+            if (!containerRef.current) return;
+            if (!isInsideScrollytelling()) return;
+            e.preventDefault();
+            if (isAnimating) return;
+            wheelAccum += e.deltaY;
+            if (wheelTimer) clearTimeout(wheelTimer);
+            wheelTimer = setTimeout(commitWheel, WHEEL_COMMIT_DELAY);
+        };
+
+        // ─── TOUCH HANDLER ─────────────────────────────────────────────
         let touchStartY = 0;
-        let touchStartX = 0;
         let touchStartTime = 0;
-        let touchStartScrollY = 0;
+        let touchStartProgress = 0;
+        let touchLastY = 0;
+        let touchLastTime = 0;
         let touchActive = false;
-        let touchInsideSection = false;
+        let touchHijacked = false;
+        let snapTimer = null;
+        let scrollSettleTimer = null;
+        let scrollSettleRafId = null;
 
-        // Velocity tracking: keep the last few move samples
-        const velocitySamples = [];
-        const MAX_VELOCITY_SAMPLES = 5;
+        const TOUCH_SWIPE_THRESHOLD = 30;
+        const TOUCH_VELOCITY_THRESHOLD = 0.4;
+        const TOUCH_FLICK_MAX_DURATION = 300;
 
-        // Thresholds
-        const MIN_SWIPE_DISTANCE = 20;   // px — ignore accidental micro-touches
-        const HORIZONTAL_REJECT_RATIO = 1.5; // if horizontal distance > vertical * ratio, ignore
+        const waitForScrollSettle = (callback) => {
+            if (scrollSettleTimer) clearTimeout(scrollSettleTimer);
+            if (scrollSettleRafId) cancelAnimationFrame(scrollSettleRafId);
+            let lastScrollY = window.scrollY;
+            let stableFrames = 0;
+            const FRAMES_TO_SETTLE = 5;
+            const check = () => {
+                const currentScrollY = window.scrollY;
+                if (Math.abs(currentScrollY - lastScrollY) < 1) { stableFrames++; }
+                else { stableFrames = 0; }
+                lastScrollY = currentScrollY;
+                if (stableFrames >= FRAMES_TO_SETTLE) { callback(); return; }
+                scrollSettleRafId = requestAnimationFrame(check);
+            };
+            scrollSettleRafId = requestAnimationFrame(check);
+            scrollSettleTimer = setTimeout(() => {
+                if (scrollSettleRafId) cancelAnimationFrame(scrollSettleRafId);
+                callback();
+            }, 1500);
+        };
 
         const handleTouchStart = (e) => {
             if (!containerRef.current) return;
-
-            // Only handle single-finger touches
-            if (e.touches.length !== 1) {
-                touchActive = false;
-                return;
-            }
-
-            // ── Allow taps on interactive elements (links, buttons) ──────────
-            // If the user taps on a CTA button or link, let native behavior
-            // handle it instead of intercepting for scroll snapping.
-            const target = e.touches[0].target;
-            if (target && target.closest && target.closest('a, button, [role="button"], input, select, textarea')) {
-                touchActive = false;
-                return;
-            }
-
-            // Refresh geometry in case layout shifted (keyboard, orientation, etc.)
-            updateGeometryCache();
-
-            touchInsideSection = isInsideSection();
-            if (!touchInsideSection) return;
-
-            // Cancel any in-flight snap animation from a previous swipe
-            if (snapAnimationId) {
-                cancelAnimationFrame(snapAnimationId);
-                snapAnimationId = null;
-                isAnimating = false;
-            }
-
-            const touch = e.touches[0];
-            touchStartY = touch.clientY;
-            touchStartX = touch.clientX;
-            touchStartTime = performance.now();
-            touchStartScrollY = window.scrollY;
+            if (e.touches.length > 1) { touchActive = false; return; }
+            if (snapTimer) { clearTimeout(snapTimer); snapTimer = null; }
+            if (scrollSettleTimer) { clearTimeout(scrollSettleTimer); scrollSettleTimer = null; }
+            if (scrollSettleRafId) { cancelAnimationFrame(scrollSettleRafId); scrollSettleRafId = null; }
+            const now = Date.now();
+            touchStartY = e.touches[0].clientY;
+            touchLastY = touchStartY;
+            touchStartTime = now;
+            touchLastTime = now;
+            touchStartProgress = getScrollProgress();
             touchActive = true;
-
-            // Reset velocity samples
-            velocitySamples.length = 0;
-            velocitySamples.push({ y: touch.clientY, t: touchStartTime });
+            touchHijacked = isInsideScrollytelling();
         };
 
         const handleTouchMove = (e) => {
-            if (!touchActive || !touchInsideSection) return;
-            if (e.touches.length !== 1) return;
+            if (!touchActive || !containerRef.current) return;
+            if (e.touches.length > 1) { touchActive = false; touchHijacked = false; return; }
+            const currentY = e.touches[0].clientY;
+            const deltaY = touchStartY - currentY;
+            const now = Date.now();
+            touchLastY = currentY;
+            touchLastTime = now;
+            const progress = getScrollProgress();
 
-            const touch = e.touches[0];
-            const deltaY = touchStartY - touch.clientY; // positive = swiping up = scroll down
-            const deltaX = touchStartX - touch.clientX;
-
-            // If the gesture is more horizontal than vertical, release control
-            if (Math.abs(deltaX) > Math.abs(deltaY) * HORIZONTAL_REJECT_RATIO && Math.abs(deltaY) < 30) {
-                return;
+            if (touchHijacked) {
+                if (progress <= 0 && deltaY < -TOUCH_SWIPE_THRESHOLD) { touchHijacked = false; return; }
+                if (progress >= 1 && deltaY > TOUCH_SWIPE_THRESHOLD) { touchHijacked = false; return; }
+                e.preventDefault();
+            } else {
+                if (isInsideScrollytelling() && Math.abs(deltaY) > 10) {
+                    touchHijacked = true;
+                    touchStartProgress = progress;
+                }
             }
-
-            // Prevent native scroll + iOS rubber-banding
-            e.preventDefault();
-
-            // Record velocity sample
-            const now = performance.now();
-            velocitySamples.push({ y: touch.clientY, t: now });
-            if (velocitySamples.length > MAX_VELOCITY_SAMPLES) {
-                velocitySamples.shift();
-            }
-
-            // ── Visual feedback: Let the user "drag" the scroll ─────────────
-            // This makes the touch feel responsive rather than frozen.
-            // Apply a damping factor so the user can't freely scroll past
-            // checkpoints — the page resists but still moves slightly.
-            const damping = 0.35;
-            const newScrollY = touchStartScrollY + deltaY * damping;
-
-            // Clamp to section bounds so we don't overshoot
-            const minScroll = containerTop;
-            const maxScroll = containerTop + containerHeight - windowHeight;
-            const clamped = Math.max(minScroll, Math.min(maxScroll, newScrollY));
-
-            window.scrollTo(0, clamped);
         };
 
-        const handleTouchEnd = (e) => {
-            if (!touchActive || !touchInsideSection) {
-                touchActive = false;
-                return;
-            }
+        const handleTouchEnd = () => {
+            if (!touchActive) return;
             touchActive = false;
-
-            if (isAnimating) return;
-
-            // ── Calculate swipe velocity from recent samples ─────────────────
-            let velocity = 0;
-            if (velocitySamples.length >= 2) {
-                const newest = velocitySamples[velocitySamples.length - 1];
-                // Use the sample ~80ms ago for stable velocity (not the very first)
-                let oldest = velocitySamples[0];
-                for (let i = velocitySamples.length - 2; i >= 0; i--) {
-                    if (newest.t - velocitySamples[i].t >= 60) {
-                        oldest = velocitySamples[i];
-                        break;
-                    }
-                }
-                const dt = newest.t - oldest.t;
-                if (dt > 0) {
-                    // velocity in px/ms; negative = finger moved up = swiping up = scroll down
-                    velocity = (oldest.y - newest.y) / dt;
-                }
-            }
-
-            // ── Determine direction ─────────────────────────────────────────
-            const netDisplacement = touchStartY - (velocitySamples.length > 0
-                ? velocitySamples[velocitySamples.length - 1].y
-                : touchStartY);
-            const absDisplacement = Math.abs(netDisplacement);
-
-            // If the swipe was too small, snap to the NEAREST checkpoint (no direction bias)
-            if (absDisplacement < MIN_SWIPE_DISTANCE && Math.abs(velocity) < 0.05) {
-                const currentProgress = getScrollProgress();
-                // Find nearest checkpoint
-                let nearestIdx = 0;
-                let nearestDist = Infinity;
-                for (let i = 0; i < checkpoints.length; i++) {
-                    const d = Math.abs(checkpoints[i] - currentProgress);
-                    if (d < nearestDist) {
-                        nearestDist = d;
-                        nearestIdx = i;
-                    }
-                }
-                animateToCheckpoint(nearestIdx);
-                return;
-            }
-
-            // Primary: use velocity for direction (more reliable than displacement)
-            // Fallback: use net displacement if velocity is too small
-            const direction = Math.abs(velocity) > 0.03
-                ? Math.sign(velocity)
-                : Math.sign(netDisplacement);
-
-            if (direction === 0) return;
-
+            const endTime = Date.now();
+            const totalDeltaY = touchStartY - touchLastY;
+            const totalDuration = endTime - touchStartTime;
+            const velocity = totalDuration > 0 ? Math.abs(totalDeltaY) / totalDuration : 0;
             const currentProgress = getScrollProgress();
+            const direction = Math.sign(totalDeltaY);
 
-            // ── Find target checkpoint or exit ──────────────────────────────
-            const targetIdx = findTargetCheckpoint(currentProgress, direction);
-
-            // -1 means no more checkpoints in this direction → exit section
-            if (targetIdx === -1) {
-                exitSection(direction);
-                return;
+            if (touchHijacked && !isAnimating) {
+                const isFlick = Math.abs(totalDeltaY) > TOUCH_SWIPE_THRESHOLD
+                    && velocity > TOUCH_VELOCITY_THRESHOLD
+                    && totalDuration < TOUCH_FLICK_MAX_DURATION;
+                const isDeliberateSwipe = Math.abs(totalDeltaY) > TOUCH_SWIPE_THRESHOLD;
+                if ((isFlick || isDeliberateSwipe) && direction !== 0) {
+                    navigateCheckpoint(direction);
+                } else {
+                    snapToNearest(currentProgress);
+                }
+            } else if (!touchHijacked) {
+                waitForScrollSettle(() => {
+                    if (isInsideScrollytelling() && !isAnimating) {
+                        snapToNearest(getScrollProgress());
+                    }
+                });
             }
-
-            animateToCheckpoint(targetIdx);
+            touchHijacked = false;
         };
 
         const handleTouchCancel = () => {
-            // Touch was interrupted (e.g., system gesture, notification)
-            // Snap to nearest checkpoint to avoid leaving user stranded
-            if (!touchActive || !touchInsideSection) {
-                touchActive = false;
-                return;
-            }
             touchActive = false;
-
-            if (isAnimating) return;
-
-            const currentProgress = getScrollProgress();
-            let nearestIdx = 0;
-            let nearestDist = Infinity;
-            for (let i = 0; i < checkpoints.length; i++) {
-                const d = Math.abs(checkpoints[i] - currentProgress);
-                if (d < nearestDist) {
-                    nearestDist = d;
-                    nearestIdx = i;
-                }
-            }
-            animateToCheckpoint(nearestIdx);
+            touchHijacked = false;
+            if (snapTimer) clearTimeout(snapTimer);
+            snapTimer = setTimeout(() => {
+                if (isAnimating) return;
+                if (isInsideScrollytelling()) { snapToNearest(getScrollProgress()); }
+            }, 300);
         };
 
-        // ── Resize / Orientation handler ────────────────────────────────────
+        // ─── SCROLL-IDLE SNAP (SAFETY NET) ─────────────────────────────
+        // After ALL scroll events stop firing for 150ms, if we're inside
+        // the section and NOT at a checkpoint, snap to nearest.
+        // This catches keyboard scroll, section entry, Find-on-page, etc.
+        // ────────────────────────────────────────────────────────────────
+        let scrollIdleTimer = null;
+        const SCROLL_IDLE_DELAY = 150;
+
+        const handleScrollIdle = () => {
+            if (scrollIdleTimer) clearTimeout(scrollIdleTimer);
+            scrollIdleTimer = setTimeout(() => {
+                if (isAnimating) return;
+                if (!isInsideScrollytelling()) return;
+                const progress = getScrollProgress();
+                const nearestIdx = findNearestCheckpoint(progress);
+                const nearestCP = checkpoints[nearestIdx];
+                if (Math.abs(nearestCP - progress) > SNAP_EPSILON) {
+                    scrollToCheckpoint(nearestCP);
+                }
+            }, SCROLL_IDLE_DELAY);
+        };
+
+        // ─── RESIZE / GEOMETRY ─────────────────────────────────────────
         const handleResize = () => {
-            updateGeometryCache();
+            updateGeometry();
             renderFrame(frameIndex);
         };
 
-        // ── Event listener registration ─────────────────────────────────────
+        let geometryUpdateTimer = null;
+        const handleScrollGeometry = () => {
+            if (geometryUpdateTimer) return;
+            geometryUpdateTimer = setTimeout(() => {
+                updateGeometry();
+                geometryUpdateTimer = null;
+            }, 200);
+        };
+
+        // ─── EVENT BINDING ─────────────────────────────────────────────
+        // touchmove MUST be non-passive to allow preventDefault.
         window.addEventListener('scroll', handleScroll, { passive: true });
+        window.addEventListener('scroll', handleScrollGeometry, { passive: true });
+        window.addEventListener('scroll', handleScrollIdle, { passive: true });
         window.addEventListener('resize', handleResize, { passive: true });
         window.addEventListener('wheel', handleWheel, { passive: false });
-
-        // Touch events are attached to the container element (not window) so
-        // they only fire when touching inside the scrollytelling section.
-        // { passive: false } is required to call preventDefault() in touchmove.
-        const container = containerRef.current;
-        if (container) {
-            container.addEventListener('touchstart', handleTouchStart, { passive: true });
-            container.addEventListener('touchmove', handleTouchMove, { passive: false });
-            container.addEventListener('touchend', handleTouchEnd, { passive: true });
-            container.addEventListener('touchcancel', handleTouchCancel, { passive: true });
-        }
-
-        // Also listen for orientationchange (some older mobile browsers)
-        window.addEventListener('orientationchange', () => {
-            // Orientation change takes time to settle; update after a delay
-            setTimeout(updateGeometryCache, 300);
-        });
+        window.addEventListener('touchstart', handleTouchStart, { passive: true });
+        window.addEventListener('touchmove', handleTouchMove, { passive: false });
+        window.addEventListener('touchend', handleTouchEnd, { passive: true });
+        window.addEventListener('touchcancel', handleTouchCancel, { passive: true });
 
         // Initial render
         renderFrame(frameIndex);
 
         return () => {
             window.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('scroll', handleScrollGeometry);
+            window.removeEventListener('scroll', handleScrollIdle);
             window.removeEventListener('resize', handleResize);
             window.removeEventListener('wheel', handleWheel);
-            if (container) {
-                container.removeEventListener('touchstart', handleTouchStart);
-                container.removeEventListener('touchmove', handleTouchMove);
-                container.removeEventListener('touchend', handleTouchEnd);
-                container.removeEventListener('touchcancel', handleTouchCancel);
-            }
-            if (snapAnimationId) cancelAnimationFrame(snapAnimationId);
+            window.removeEventListener('touchstart', handleTouchStart);
+            window.removeEventListener('touchmove', handleTouchMove);
+            window.removeEventListener('touchend', handleTouchEnd);
+            window.removeEventListener('touchcancel', handleTouchCancel);
             if (requestRef.current) cancelAnimationFrame(requestRef.current);
+            if (snapTimer) clearTimeout(snapTimer);
+            if (geometryUpdateTimer) clearTimeout(geometryUpdateTimer);
+            if (wheelTimer) clearTimeout(wheelTimer);
+            if (scrollSettleTimer) clearTimeout(scrollSettleTimer);
+            if (scrollSettleRafId) cancelAnimationFrame(scrollSettleRafId);
+            if (scrollIdleTimer) clearTimeout(scrollIdleTimer);
         };
     }, [imagesLoaded, showFallback, frameIndex, renderFrame]);
 
@@ -668,14 +555,14 @@ export default function ChaiScrollytelling() {
     }, [frameIndex, renderFrame]);
 
 
-    // Loading skeleton
+    // ─── LOADING STATE ─────────────────────────────────────────────
     if (!imagesLoaded && !showFallback) {
         return (
             <section
                 className="relative bg-gray-950 flex items-center justify-center"
                 style={{ height: SCROLL_HEIGHT }}
             >
-                <div className="sticky top-0 w-full flex flex-col items-center justify-center gap-6" style={{ height: '100dvh' }}>
+                <div className="sticky top-0 h-screen w-full flex flex-col items-center justify-center gap-6">
                     <div className="animate-bounce">
                         <Coffee className="w-16 h-16 text-amber-400 mx-auto" aria-hidden="true" />
                     </div>
@@ -693,7 +580,7 @@ export default function ChaiScrollytelling() {
         );
     }
 
-    // Fallback for reduced motion or error
+    // ─── FALLBACK ──────────────────────────────────────────────────
     if (showFallback) {
         return (
             <section className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-950 to-gray-900 px-6 py-20">
@@ -715,25 +602,18 @@ export default function ChaiScrollytelling() {
         );
     }
 
-    // ─── Opacity / Transform helpers for text overlays ───────────────────────
-    // progress is derived from frameIndex: frameIndex / FRAME_COUNT
+    // ─── OVERLAY VISIBILITY ────────────────────────────────────────
+    // progress is derived from frameIndex for smooth animation coupling
     const progress = frameIndex / FRAME_COUNT;
 
-    /**
-     * Compute overlay opacity with configurable peak point.
-     * @param {number} start  - progress value where fade-in begins
-     * @param {number} peak   - progress value where opacity = 1 (100% visible)
-     * @param {number} end    - progress value where fade-out completes
-     * @param {number} current - current scroll progress
-     */
+    // Opacity helper: ramps up from `start` to `peak`, holds at 1.0 at `peak`,
+    // then ramps down from `peak` to `end`. Guarantees 100% at the checkpoint.
     const getOverlayOpacity = (start, peak, end, current) => {
         if (current < start || current > end) return 0;
         if (current <= peak) {
-            // Fade in: start → peak
             if (peak === start) return 1;
             return Math.min(1, (current - start) / (peak - start));
         }
-        // Fade out: peak → end
         if (end === peak) return 0;
         return Math.max(0, 1 - (current - peak) / (end - peak));
     };
@@ -743,18 +623,10 @@ export default function ChaiScrollytelling() {
     return (
         <section
             ref={containerRef}
-            className="relative bg-gray-950 overflow-hidden"
-            style={{
-                height: SCROLL_HEIGHT,
-                overscrollBehavior: 'none',  // Prevent iOS rubber-band bounce
-                touchAction: 'pan-x',        // We handle vertical pan; allow horizontal
-            }}
+            className="relative bg-gray-950"
+            style={{ height: SCROLL_HEIGHT }}
         >
-            {/* 100dvh accounts for mobile browser chrome; 100vh is the fallback */}
-            <div
-                className="sticky top-0 w-full overflow-hidden"
-                style={{ height: '100dvh', minHeight: '-webkit-fill-available' }}
-            >
+            <div className="sticky top-0 h-screen w-full overflow-hidden">
                 {/* Canvas Layer */}
                 <canvas
                     ref={canvasRef}
@@ -767,97 +639,95 @@ export default function ChaiScrollytelling() {
                 {/* Cinematic Scrim */}
                 <div className="absolute inset-0 bg-black/50 pointer-events-none z-0" />
 
-                {/* ── Overlay 0: Hero "Get Me a Chai" ────────────────────────── */}
-                {/* Fully visible 0–5%, fades out by 9% (well before Overlay 1 fades in) */}
+                {/* ── Overlay 0: "Get Me a Chai" ── CP 0.00 ──
+                     100% at 0–5%, fades out completely by 12% */}
                 <div
                     className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none px-4 z-20"
                     style={{
                         opacity: progress <= 0.05
                             ? 1
-                            : progress <= 0.09
-                                ? Math.max(0, 1 - (progress - 0.05) / 0.04)
+                            : progress <= 0.12
+                                ? Math.max(0, 1 - ((progress - 0.05) / 0.07))
                                 : 0,
                         transform: `scale(${1 + progress * 0.5}) translateY(${progress * -50}px)`,
                         transition: 'opacity 0.1s ease-out',
-                        willChange: 'opacity, transform',
+                        willChange: 'opacity, transform'
                     }}
                 >
-                    <h1 className="text-5xl sm:text-7xl md:text-9xl font-black text-center mb-4 md:mb-6 tracking-tight drop-shadow-2xl">
+                    <h1 className="text-7xl md:text-9xl font-black text-center mb-6 tracking-tight drop-shadow-2xl">
                         <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 drop-shadow-[0_0_15px_rgba(168,85,247,0.5)]">
                             Get Me a Chai
                         </span>
                     </h1>
-                    <p className="text-sm sm:text-xl md:text-4xl font-normal text-white tracking-wider md:tracking-widest uppercase border-y border-white/20 py-2 md:py-4 backdrop-blur-md bg-black/40 px-4 sm:px-6 md:px-8 rounded-full shadow-2xl drop-shadow-lg mx-4 text-center">
+                    <p className="text-2xl md:text-4xl font-normal text-white tracking-widest uppercase border-y border-white/20 py-4 backdrop-blur-md bg-black/40 px-8 rounded-full shadow-2xl drop-shadow-lg">
                         Fund Dreams. Build Community.
                     </p>
                 </div>
 
-                {/* ── Overlay 1: "Your bank account said no…" ─────────────────── */}
-                {/* Range 0.10 → 0.24, peak at 0.17 (checkpoint snaps here) */}
+                {/* ── Overlay 1: "Your bank account…" ── CP 0.20 ──
+                     Fades in 12→20%, 100% AT 20%, fades out 20→32% */}
                 <div
                     className="absolute inset-0 flex items-center justify-center pointer-events-none px-4 z-10"
                     style={{
-                        opacity: getOverlayOpacity(0.10, 0.17, 0.24, progress),
+                        opacity: getOverlayOpacity(0.12, 0.20, 0.32, progress),
                         transform: `scale(${1 + progress * 0.2})`,
-                        transition: 'opacity 0.15s ease-out',
+                        transition: 'opacity 0.15s ease-out'
                     }}
                 >
-                    <h2 className="text-2xl sm:text-4xl md:text-6xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-white via-purple-200 to-blue-200 drop-shadow-[0_4px_4px_rgba(0,0,0,1)] px-2">
+                    <h2 className="text-4xl md:text-6xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-white via-purple-200 to-blue-200 drop-shadow-[0_4px_4px_rgba(0,0,0,1)]">
                         Your bank account said no.<br />
                         But your dreams said chai.
                     </h2>
                 </div>
 
-                {/* ── Overlay 2: "We're asking for vibes" ─────────────────────── */}
-                {/* Range 0.26 → 0.44, peak at 0.35 (checkpoint snaps here) */}
+                {/* ── Overlay 2: "We're not asking…" ── CP 0.40 ──
+                     Fades in 30→40%, 100% AT 40%, fades out 40→52% */}
                 <div
                     className="absolute inset-0 flex items-center justify-start px-6 md:px-20 pointer-events-none z-10"
                     style={{
-                        opacity: getOverlayOpacity(0.26, 0.35, 0.44, progress),
-                        transform: `translateX(${progress < 0.26 ? -50 : progress > 0.42 ? -50 : 0}px)`,
-                        transition: 'all 0.5s ease-out',
+                        opacity: getOverlayOpacity(0.30, 0.40, 0.52, progress),
+                        transform: `translateX(${currentPercent < 32 ? -50 : (currentPercent > 50 ? -50 : 0)}px)`,
+                        transition: 'all 0.4s ease-out'
                     }}
                 >
-                    <h2 className="text-xl sm:text-3xl md:text-5xl font-bold text-left max-w-2xl bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 drop-shadow-[0_4px_4px_rgba(0,0,0,1)]">
-                        We&apos;re not asking for investments.<br />
-                        We&apos;re asking for vibes. <Sparkles className="w-5 h-5 sm:w-8 sm:h-8 text-purple-400 inline-block" />
+                    <h2 className="text-3xl md:text-5xl font-bold text-left max-w-2xl bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 drop-shadow-[0_4px_4px_rgba(0,0,0,1)]">
+                        We're not asking for investments.<br />
+                        We're asking for vibes. <Sparkles className="w-8 h-8 text-purple-400 inline-block" />
                     </h2>
                 </div>
 
-                {/* ── Overlay 3: "₹5Cr+ raised…" ─────────────────────────────── */}
-                {/* Range 0.46 → 0.69, peak at 0.575 (checkpoint snaps here) */}
+                {/* ── Overlay 3: "₹5Cr+ raised…" ── CP 0.60 ──
+                     Fades in 50→60%, 100% AT 60%, fades out 60→72% */}
                 <div
                     className="absolute inset-0 flex items-center justify-end px-6 md:px-20 pointer-events-none z-10"
                     style={{
-                        opacity: getOverlayOpacity(0.46, 0.575, 0.69, progress),
-                        transform: `translateX(${progress < 0.48 ? 50 : progress > 0.67 ? 50 : 0}px)`,
-                        transition: 'all 0.5s ease-out',
+                        opacity: getOverlayOpacity(0.50, 0.60, 0.72, progress),
+                        transform: `translateX(${currentPercent < 52 ? 50 : (currentPercent > 70 ? 50 : 0)}px)`,
+                        transition: 'all 0.4s ease-out'
                     }}
                 >
                     <div className="text-right max-w-2xl drop-shadow-[0_4px_4px_rgba(0,0,0,1)]">
-                        <h2 className="text-xl sm:text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600 mb-2 md:mb-4">
+                        <h2 className="text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600 mb-4">
                             ₹5Cr+ raised by people who believed in
                         </h2>
-                        <p className="text-lg sm:text-2xl md:text-4xl text-white italic">
-                            &quot;delulu is the solulu&quot; 💭
+                        <p className="text-2xl md:text-4xl text-white italic">
+                            "delulu is the solulu" 💭
                         </p>
                     </div>
                 </div>
 
-                {/* ── Overlay 4: CTA "Turn your 3 AM ideas…" ──────────────────── */}
-                {/* Fades in from 0.75, fully opaque by 0.87 (checkpoint snaps here) */}
+                {/* ── Overlay 4: CTA ── CP 1.00 ──
+                     Fades in 75→90%, 100% AT 90%+ */}
                 <div
                     className="absolute inset-0 flex flex-col items-center justify-center px-4 pointer-events-auto z-20"
                     style={{
-                        opacity: progress >= 0.75
-                            ? Math.min(1, (progress - 0.75) / 0.12) // fully opaque at 0.87
-                            : 0,
-                        transform: `translateY(${progress < 0.75 ? 20 : 0}px)`,
-                        transition: 'all 0.5s ease-out',
-                        pointerEvents: progress >= 0.75 ? 'auto' : 'none',
+                        opacity: currentPercent >= 75 ? Math.min(1, (progress - 0.75) / 0.15) : 0,
+                        transform: `translateY(${currentPercent < 75 ? 20 : 0}px)`,
+                        transition: 'all 0.4s ease-out',
+                        pointerEvents: currentPercent >= 80 ? 'auto' : 'none'
                     }}
                 >
-                    <p className="text-3xl sm:text-5xl md:text-7xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-white via-purple-200 to-blue-200 mb-6 md:mb-8 drop-shadow-[0_4px_4px_rgba(0,0,0,1)] px-2">
+                    <p className="text-5xl md:text-7xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-white via-purple-200 to-blue-200 mb-8 drop-shadow-[0_4px_4px_rgba(0,0,0,1)]">
                         Turn your 3 AM ideas<br />into reality.
                     </p>
                     <Link
