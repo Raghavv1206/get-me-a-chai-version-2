@@ -68,7 +68,7 @@ export default function ChatbotWidget() {
                 </div>
             )}
 
-            {/* Floating Button - smaller on mobile, doesn't take layout space */}
+            {/* Floating Button */}
             {!isOpen && (
                 <button
                     onClick={() => setIsOpen(true)}
@@ -77,7 +77,7 @@ export default function ChatbotWidget() {
                     type="button"
                 >
                     <div className="relative">
-                        {/* Main Button - 44px on mobile, 56px on sm, 64px on md+ */}
+                        {/* Main Button — 44px on mobile, 56px on sm, 64px on md+ */}
                         <div className="w-11 h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer">
                             <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white" />
                         </div>
@@ -89,11 +89,11 @@ export default function ChatbotWidget() {
                             </div>
                         )}
 
-                        {/* Pulse Animation */}
-                        <div className="absolute inset-0 rounded-full bg-purple-500 opacity-0 group-hover:opacity-20 group-hover:scale-125 transition-all duration-300 pointer-events-none" />
+                        {/* Pulse Animation — no scale to avoid overflow */}
+                        <div className="absolute inset-0 rounded-full bg-purple-500 opacity-0 group-hover:opacity-20 transition-all duration-300 pointer-events-none" />
                     </div>
 
-                    {/* Tooltip - hidden on mobile/touch devices */}
+                    {/* Tooltip — hidden on mobile/touch devices */}
                     <div className="hidden sm:block absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
                         Need help? Chat with AI
                         <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900" />

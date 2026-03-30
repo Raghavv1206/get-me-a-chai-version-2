@@ -288,9 +288,17 @@ export default function ChaiScrollytelling() {
 
         const exitSection = (dir) => {
             isAnimating = true;
-            const exitTarget = dir === 'down'
-                ? containerTop + containerHeight - windowHeight + windowHeight * 0.6
-                : Math.max(0, containerTop - windowHeight * 0.6);
+            let exitTarget;
+
+            if (dir === 'down') {
+                // Land exactly at the top of the next section.
+                // containerTop + containerHeight is where the next DOM
+                // element begins, so placing scrollTop there puts the
+                // viewport right at the LiveStatsBar (no black gap).
+                exitTarget = containerTop + containerHeight;
+            } else {
+                exitTarget = Math.max(0, containerTop - windowHeight * 0.6);
+            }
 
             if (window.lenis) {
                 window.lenis.scrollTo(exitTarget, {
