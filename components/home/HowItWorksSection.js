@@ -143,14 +143,14 @@ export default function HowItWorksSection() {
 
                 <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent">
                   <p className="text-white font-semibold">Platform Demo Video</p>
-                  <p className="text-gray-400 text-sm">2:30 minutes</p>
+                  <p className="text-gray-400 text-sm">2:45 minutes</p>
                 </div>
               </button>
             ) : (
               <div className="relative aspect-video bg-black rounded-xl overflow-hidden">
                 <iframe
                   className="w-full h-full"
-                  src="https://www.youtube.com/embed/SSUbntk63Yg?autoplay=1"
+                  src="https://www.youtube.com/embed/dCCHcboriSA?si=nZwT2tOoI5Fc38m_?autoplay=1"
                   title="Get Me a Chai Demo"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
