@@ -49,6 +49,10 @@
   }
 
 
+  html {
+    overflow-x: clip;
+  }
+
   body {
     background-color: black;
     color: rgb(243 244 246);
@@ -56,7 +60,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overscroll-behavior: none;
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 
   /* selection: variant cannot be used in @apply — use native CSS */

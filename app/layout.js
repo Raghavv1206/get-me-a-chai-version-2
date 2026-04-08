@@ -35,7 +35,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={inter.className}>
-      <body className="bg-black text-gray-100 min-h-screen relative overflow-x-hidden selection:bg-purple-500/30 flex flex-col">
+      <body className="bg-black text-gray-100 min-h-screen relative selection:bg-purple-500/30 flex flex-col">
         <SessionWrapper>
           <Suspense fallback={null}>
             <RouteProgressBar />
