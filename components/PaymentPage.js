@@ -54,6 +54,27 @@ const PaymentPage = ({ username }) => {
 
   const pay = async (amount) => {
     try {
+      // ── Guard: supporter must provide name & message ──
+      if (!paymentform.name || paymentform.name.trim().length < 2) {
+        toast.error('Please enter your name (at least 2 characters) before paying.', {
+          position: 'top-right',
+          autoClose: 4000,
+          theme: 'dark',
+          transition: Bounce,
+        });
+        return;
+      }
+
+      if (!paymentform.message || paymentform.message.trim().length < 2) {
+        toast.error('Please enter a message before paying.', {
+          position: 'top-right',
+          autoClose: 4000,
+          theme: 'dark',
+          transition: Bounce,
+        });
+        return;
+      }
+
       // ── Guard: creator must have configured their Razorpay Key ID in Settings ──
       if (!currentUser.razorpayid) {
         toast.error(

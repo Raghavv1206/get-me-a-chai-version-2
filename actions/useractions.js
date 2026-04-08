@@ -46,6 +46,14 @@ export const initiate = async (amount, to_username, paymentform) => {
             integer: true
         });
 
+        // Validate paymentform fields that the Payment model requires
+        const supporterName = (paymentform?.name || '').trim();
+        if (!supporterName) {
+            throw new Error('Please enter your name before making a payment.');
+        }
+
+        const supporterMessage = (paymentform?.message || '').trim();
+
         // Fetch the user who is receiving the payment
         let user = await User.findOne({ username: validatedUsername });
 
@@ -74,15 +82,23 @@ export const initiate = async (amount, to_username, paymentform) => {
 
         logger.info('Creating Razorpay instance', {
             username: validatedUsername,
-            hasRazorpayId: !!razorpayId,
-            hasRazorpaySecret: !!razorpaySecret
+            keyIdLength: razorpayId.length,
         });
 
         // Initialize Razorpay instance
-        var instance = new Razorpay({
-            key_id: razorpayId,
-            key_secret: razorpaySecret
-        });
+        let instance;
+        try {
+            instance = new Razorpay({
+                key_id: razorpayId,
+                key_secret: razorpaySecret
+            });
+        } catch (rzpInitError) {
+            logger.error('Razorpay SDK initialization failed', {
+                error: rzpInitError.message,
+                username: validatedUsername,
+            });
+            throw new Error('Payment gateway credentials are invalid. Please contact the creator.');
+        }
 
         let options = {
             amount: Number.parseInt(validatedAmount),
@@ -95,7 +111,43 @@ export const initiate = async (amount, to_username, paymentform) => {
             username: validatedUsername
         });
 
-        let order = await instance.orders.create(options);
+        // Create Razorpay order — wrapped separately to catch Razorpay API errors
+        let order;
+        try {
+            order = await instance.orders.create(options);
+        } catch (rzpError) {
+            // Razorpay SDK wraps API errors in error.error.description
+            const rzpDescription = rzpError?.error?.description
+                || rzpError?.description
+                || rzpError?.message
+                || 'Unknown Razorpay error';
+            const rzpCode = rzpError?.error?.code || rzpError?.statusCode || rzpError?.code;
+
+            logger.error('Razorpay order creation failed', {
+                description: rzpDescription,
+                code: rzpCode,
+                statusCode: rzpError?.statusCode,
+                fullError: JSON.stringify(rzpError, Object.getOwnPropertyNames(rzpError)),
+                username: validatedUsername,
+            });
+
+            // Map Razorpay-specific errors to user-friendly messages
+            if (rzpCode === 'BAD_REQUEST_ERROR') {
+                if (rzpDescription.includes('key_id') || rzpDescription.includes('key_secret') || rzpDescription.includes('authentication')) {
+                    throw new Error('Payment gateway credentials are invalid. Please contact the creator to update their Razorpay settings.');
+                }
+                if (rzpDescription.includes('amount')) {
+                    throw new Error(`Invalid payment amount. ${rzpDescription}`);
+                }
+                throw new Error(`Payment gateway error: ${rzpDescription}`);
+            } else if (rzpCode === 'GATEWAY_ERROR' || rzpCode === 'SERVER_ERROR') {
+                throw new Error('Payment gateway is temporarily unavailable. Please try again in a few minutes.');
+            } else if (rzpError.code === 'ENOTFOUND' || rzpError.code === 'ETIMEDOUT' || rzpError.code === 'ECONNREFUSED') {
+                throw new Error('Unable to connect to payment gateway. Please check your internet connection and try again.');
+            } else {
+                throw new Error(`Payment gateway error: ${rzpDescription}`);
+            }
+        }
 
         logger.info('Razorpay order created', {
             orderId: order.id,
@@ -103,60 +155,75 @@ export const initiate = async (amount, to_username, paymentform) => {
             to_username: validatedUsername
         });
 
-        // Create a payment object (include userId for the supporter/payer)
-        await Payment.create({
-            oid: order.id,
-            amount: validatedAmount / 100,
-            to_user: validatedUsername,
-            name: paymentform.name,
-            email: session.user?.email || paymentform.email,
-            userId: session.user?.id || null,
-            message: paymentform.message,
-            campaign: paymentform.campaign || null // Include campaign ID if provided
-        });
+        // Create a payment record — wrapped to catch Mongoose validation errors
+        try {
+            await Payment.create({
+                oid: order.id,
+                amount: validatedAmount / 100,
+                to_user: validatedUsername,
+                name: supporterName,
+                email: session.user?.email || paymentform?.email || '',
+                userId: session.user?.id || null,
+                message: supporterMessage,
+                campaign: paymentform?.campaign || null
+            });
+        } catch (dbError) {
+            logger.error('Failed to create payment record', {
+                error: dbError.message,
+                orderId: order.id,
+                validationErrors: dbError.errors
+                    ? Object.entries(dbError.errors).map(([k, v]) => `${k}: ${v.message}`)
+                    : undefined,
+            });
+
+            // Mongoose validation error
+            if (dbError.name === 'ValidationError') {
+                const fields = Object.keys(dbError.errors || {});
+                throw new Error(`Please fill in all required fields: ${fields.join(', ')}`);
+            }
+            throw new Error('Failed to save payment record. Please try again.');
+        }
 
         return order;
     } catch (error) {
+        // If the error was already thrown with a user-friendly message from above,
+        // re-throw it directly rather than wrapping it again
         logger.error('Payment initiation failed', {
             error: {
                 name: error.name,
                 message: error.message,
-                stack: error.stack,
                 code: error.code,
-                fullError: JSON.stringify(error, Object.getOwnPropertyNames(error))
             },
             amount,
             to_username
         });
 
-        // Provide user-friendly error messages
+        // Provide user-friendly error messages for errors not already handled above
         let userMessage = error.message;
 
         if (error instanceof ValidationError) {
-            // Check if it's an amount validation error (in paise)
+            // ValidationError from our lib/validation.js
             if (error.message?.includes('must not exceed') && error.message?.includes('Amount')) {
                 userMessage = `Payment amount is too high. Maximum allowed is ₹${(config.payment.razorpay.maxAmount).toLocaleString('en-IN')}`;
             } else if (error.message?.includes('must be at least') && error.message?.includes('Amount')) {
                 userMessage = `Payment amount is too low. Minimum required is ₹${config.payment.razorpay.minAmount}`;
-            } else {
-                // Other validation errors are already user-friendly
-                userMessage = error.message;
             }
-        } else if (error.message?.includes('Amount must not exceed')) {
-            // Razorpay API error
-            userMessage = `Payment amount is too high. Maximum allowed is ₹${(config.payment.razorpay.maxAmount).toLocaleString('en-IN')}`;
-        } else if (error.message?.includes('Amount must be at least')) {
-            // Razorpay API error
-            userMessage = `Payment amount is too low. Minimum required is ₹${config.payment.razorpay.minAmount}`;
-        } else if (error.message?.includes('key_id') || error.message?.includes('key_secret')) {
-            userMessage = 'Payment gateway credentials are invalid. Please contact the creator.';
-        } else if (error.message?.includes('User not found')) {
-            userMessage = 'Creator account not found.';
-        } else if (error.message?.includes('not configured')) {
-            userMessage = error.message; // Already user-friendly
-        } else if (error.code === 'ENOTFOUND' || error.code === 'ETIMEDOUT') {
-            userMessage = 'Unable to connect to payment gateway. Please check your internet connection.';
+            // Other validation errors are already user-friendly
+        } else if (
+            // Don't wrap already user-friendly messages from our inner catches
+            userMessage.includes('Payment gateway') ||
+            userMessage.includes('must be logged in') ||
+            userMessage.includes('not set up') ||
+            userMessage.includes('not found') ||
+            userMessage.includes('Please enter your name') ||
+            userMessage.includes('required fields') ||
+            userMessage.includes('Invalid payment amount') ||
+            userMessage.includes('temporarily unavailable') ||
+            userMessage.includes('internet connection')
+        ) {
+            // Already a user-friendly message — pass through
         } else {
+            // Truly unknown error — generic fallback
             userMessage = 'Failed to initiate payment. Please try again or contact support.';
         }
 
