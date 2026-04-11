@@ -11,8 +11,7 @@
 [![DeepSeek AI](https://img.shields.io/badge/DeepSeek-AI_Powered-FF6B35?style=for-the-badge&logo=openai&logoColor=white)](https://openrouter.ai/)
 [![Razorpay](https://img.shields.io/badge/Razorpay-Payments-0C68FF?style=for-the-badge&logo=razorpay&logoColor=white)](https://razorpay.com/)
 
-[🚀 Live Demo](https://get-me-a-chai.vercel.app) • [🐛 Report Bug](https://github.com/Raghavv1206/get-me-a-chai-version-2/issues) • [✨ Request Feature](https://github.com/Raghavv1206/get-me-a-chai-version-2/issues)
-
+[🚀 Live Demo](https://raghavs-get-me-a-chai.vercel.app/) 
 </div>
 
 ---
@@ -26,7 +25,6 @@
 - [Getting Started](#-getting-started)
 - [API Documentation](#-api-documentation)
 - [Database Schema](#-database-schema)
-- [Screenshots](#-screenshots)
 - [Roadmap](#-roadmap)
 - [Contributing](#-contributing)
 
@@ -953,7 +951,7 @@ POST   /api/cron/close-expired-campaigns # Auto-close expired campaigns
 - [ ] GraphQL API layer
 - [ ] Redis caching for performance
 
-**💡 Have ideas?** [Open a feature request](https://github.com/Raghavv1206/get-me-a-chai-version-2/issues/new)
+<!-- **💡 Have ideas?** [Open a feature request](https://github.com/Raghavv1206/get-me-a-chai-version-2/issues/new)  -->
 
 ---
 
@@ -961,7 +959,7 @@ POST   /api/cron/close-expired-campaigns # Auto-close expired campaigns
 
 We welcome contributions from the community! Here's how you can help make Get Me a Chai better:
 
-### 🐛 Found a Bug?
+<!-- ### 🐛 Found a Bug?
 
 1. Check if the issue already exists in [GitHub Issues](https://github.com/Raghavv1206/get-me-a-chai-version-2/issues)
 2. If not, create a new issue with:
@@ -977,7 +975,7 @@ We welcome contributions from the community! Here's how you can help make Get Me
 2. Describe:
    - What problem it solves
    - Your proposed solution
-   - Any alternative approaches considered
+   - Any alternative approaches considered  -->
 
 ### 💻 Ready to Code?
 
@@ -1036,7 +1034,7 @@ Look for issues labeled `good first issue` or `help wanted` to get started!
 ### 🔗 Project Links
 
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/Raghavv1206/get-me-a-chai-version-2)
-[![Vercel](https://img.shields.io/badge/Vercel-Deployed-000000?style=for-the-badge&logo=vercel)](https://get-me-a-chai.vercel.app)
+[![Vercel](https://img.shields.io/badge/Vercel-Deployed-000000?style=for-the-badge&logo=vercel)](https://raghavs-get-me-a-chai.vercel.app/)
 
 ---
 
