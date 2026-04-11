@@ -391,13 +391,13 @@ graph TB
     A --> G[RecentActivity]
     A --> H[QuickActions]
     
-    A --> I[/dashboard/campaigns]
-    A --> J[/dashboard/analytics]
-    A --> K[/dashboard/content]
-    A --> L[/dashboard/supporters]
-    A --> M[/dashboard/settings]
-    A --> N[/dashboard/create-campaign]
-    A --> O[/dashboard/campaign/:id]
+    A --> I["/dashboard/campaigns"]
+    A --> J["/dashboard/analytics"]
+    A --> K["/dashboard/content"]
+    A --> L["/dashboard/supporters"]
+    A --> M["/dashboard/settings"]
+    A --> N["/dashboard/create-campaign"]
+    A --> O["/dashboard/campaign/:id"]
     
     style A fill:#1a1a2e
 ```
